@@ -1,3 +1,4 @@
+
 import { v4 as uuidv4 } from 'uuid';
 import { addDays, format } from 'date-fns';
 
@@ -31,6 +32,7 @@ export interface ExerciseSet {
 export interface CategoryInfo {
   name: string;
   color: string;
+  icon: string | null;
 }
 
 // Generate a date range for the carousel (today +/- 14 days)
@@ -55,12 +57,17 @@ yesterday.setDate(today.getDate() - 1);
 const twoDaysAgo = new Date(today);
 twoDaysAgo.setDate(today.getDate() - 2);
 
-// Store category colors
-let categoryColors: Record<string, string> = {
-  "Strength": "#ea384c",
-  "Cardio": "#0EA5E9",
-  "Flexibility": "#10B981",
-  "Other": "#9b87f5"
+// Store category information
+interface CategoryData {
+  color: string;
+  icon: string | null;
+}
+
+let categoryData: Record<string, CategoryData> = {
+  "Strength": { color: "#ea384c", icon: "Dumbbell" },
+  "Cardio": { color: "#0EA5E9", icon: "Running" },
+  "Flexibility": { color: "#10B981", icon: "Stretch" },
+  "Other": { color: "#9b87f5", icon: null }
 };
 
 let workouts: Workout[] = [
@@ -188,21 +195,23 @@ export const getAllCategories = (): string[] => {
   return uniqueCategories;
 };
 
-// Function to get category info (name and color)
+// Function to get category info (name, color, and icon)
 export const getCategoryInfo = (category: string): CategoryInfo => {
+  const data = categoryData[category] || { color: "#9b87f5", icon: null };
   return {
     name: category,
-    color: categoryColors[category] || "#9b87f5" // Default purple if not found
+    color: data.color,
+    icon: data.icon
   };
 };
 
-// Function to add a new category with color
-export const addCategory = (category: string, color: string = "#9b87f5"): void => {
+// Function to add a new category with color and optional icon
+export const addCategory = (category: string, color: string = "#9b87f5", icon: string | null = null): void => {
   // In a real app, this would update a database
   // For now, we just make sure our mock data includes this category
-  // and store the color
+  // and store the color and icon
   if (!getAllCategories().includes(category)) {
-    categoryColors[category] = color;
+    categoryData[category] = { color, icon };
     
     const sampleWorkout: Workout = {
       id: generateId(),
@@ -216,17 +225,16 @@ export const addCategory = (category: string, color: string = "#9b87f5"): void =
   }
 };
 
-// Function to update a category name and/or color
-export const updateCategory = (oldName: string, newName: string, color: string): void => {
-  // Update category color
+// Function to update a category name, color, and/or icon
+export const updateCategory = (oldName: string, newName: string, color: string, icon: string | null): void => {
+  // Update category info
   if (oldName === newName) {
-    // Just updating the color
-    categoryColors[oldName] = color;
+    // Just updating the color/icon
+    categoryData[oldName] = { color, icon };
   } else {
-    // Changing name and possibly color
-    const oldColor = categoryColors[oldName];
-    delete categoryColors[oldName];
-    categoryColors[newName] = color;
+    // Changing name and possibly color/icon
+    delete categoryData[oldName];
+    categoryData[newName] = { color, icon };
     
     // Update all workouts with this category
     workouts.forEach(workout => {
