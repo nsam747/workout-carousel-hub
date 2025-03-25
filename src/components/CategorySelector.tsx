@@ -1,6 +1,5 @@
-
 import React, { useState } from "react";
-import { Plus, Edit, Check, Icons } from "lucide-react";
+import { Plus, Edit, Check } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
@@ -14,7 +13,6 @@ import { Input } from "@/components/ui/input";
 import { addCategory, updateCategory, getCategoryInfo } from "@/lib/mockData";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { Icon } from "lucide-react";
 import * as LucideIcons from "lucide-react";
 
 interface CategorySelectorProps {
@@ -23,21 +21,20 @@ interface CategorySelectorProps {
   onSelectCategory: (category: string) => void;
 }
 
-// Available category icons (subset of Lucide icons)
+// Available category icons (subset of Lucide icons that actually exist)
 const CATEGORY_ICONS = [
   { name: "Dumbbell", icon: LucideIcons.Dumbbell },
-  { name: "Running", icon: LucideIcons.Running },
-  { name: "Smile", icon: LucideIcons.Smile },
+  { name: "Activity", icon: LucideIcons.Activity },
   { name: "Heart", icon: LucideIcons.Heart },
   { name: "Flame", icon: LucideIcons.Flame },
   { name: "Bike", icon: LucideIcons.Bike },
   { name: "Trophy", icon: LucideIcons.Trophy },
   { name: "Timer", icon: LucideIcons.Timer },
-  { name: "Yoga", icon: LucideIcons.Yoga },
-  { name: "Stretching", icon: LucideIcons.Stretch },
-  { name: "Activity", icon: LucideIcons.Activity },
-  { name: "Mountain", icon: LucideIcons.Mountain },
+  { name: "Footprints", icon: LucideIcons.Footprints },
   { name: "Waves", icon: LucideIcons.Waves },
+  { name: "Mountain", icon: LucideIcons.Mountain },
+  { name: "Leaf", icon: LucideIcons.Leaf },
+  { name: "Brain", icon: LucideIcons.Brain },
 ];
 
 const CATEGORY_COLORS = [

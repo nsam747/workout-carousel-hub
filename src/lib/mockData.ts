@@ -65,8 +65,8 @@ interface CategoryData {
 
 let categoryData: Record<string, CategoryData> = {
   "Strength": { color: "#ea384c", icon: "Dumbbell" },
-  "Cardio": { color: "#0EA5E9", icon: "Running" },
-  "Flexibility": { color: "#10B981", icon: "Stretch" },
+  "Cardio": { color: "#0EA5E9", icon: "Activity" },
+  "Flexibility": { color: "#10B981", icon: "Leaf" },
   "Other": { color: "#9b87f5", icon: null }
 };
 
