@@ -1,5 +1,6 @@
 
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import CalendarCarousel from "@/components/CalendarCarousel";
 import WorkoutList from "@/components/WorkoutList";
 import { Button } from "@/components/ui/button";
@@ -7,6 +8,7 @@ import { PlusCircle } from "lucide-react";
 
 const Index = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const navigate = useNavigate();
 
   return (
     <div className="bg-gradient-to-b from-background to-secondary/50 min-h-screen">
@@ -29,6 +31,7 @@ const Index = () => {
           <Button 
             size="lg" 
             className="rounded-full h-14 w-14 shadow-lg bg-primary"
+            onClick={() => navigate("/add-workout")}
           >
             <PlusCircle className="h-6 w-6" />
             <span className="sr-only">Add new workout</span>

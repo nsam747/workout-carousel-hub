@@ -1,254 +1,189 @@
+import { v4 as uuidv4 } from 'uuid';
 
-import { format, subDays, addDays } from "date-fns";
-
-export type Exercise = {
+export interface Workout {
   id: string;
-  name: string;
-  sets?: number;
-  reps?: number;
-  weight?: number;
-  duration?: number;
-  notes?: string;
-  mediaUrls?: string[];
-};
-
-export type Workout = {
-  id: string;
-  date: Date;
   title: string;
-  category: "strength" | "cardio" | "flexibility" | "hiit" | "recovery";
+  date: Date;
+  category: string;
   exercises: Exercise[];
   completed: boolean;
+}
+
+export interface Exercise {
+  id: string;
+  name: string;
+  type: string;
+  sets: ExerciseSet[];
+  duration: number;
+  notes: string;
+  media: string[];
+}
+
+export interface ExerciseSet {
+  id: string;
+  setNumber: number;
+  reps: number;
+  weight: number;
+  notes?: string;
+}
+
+const generateId = (): string => {
+  return uuidv4();
 };
 
-// Generate dates for the last 5 days and the next 5 days
 const today = new Date();
-today.setHours(0, 0, 0, 0);
+const yesterday = new Date(today);
+yesterday.setDate(today.getDate() - 1);
+const twoDaysAgo = new Date(today);
+twoDaysAgo.setDate(today.getDate() - 2);
 
-export const dateRange = Array.from({ length: 11 }, (_, i) => {
-  const date = i < 5 ? subDays(today, 5 - i) : addDays(today, i - 5);
-  return {
-    date,
-    dayName: format(date, "EEE"),
-    dayNumber: format(date, "d"),
-    isToday: i === 5,
-  };
-});
-
-// Generate mock workout data
-export const mockWorkouts: Workout[] = [
+let workouts: Workout[] = [
   {
-    id: "1",
-    date: subDays(today, 4),
-    title: "Full Body Strength",
-    category: "strength",
-    completed: true,
+    id: generateId(),
+    title: "Morning Yoga",
+    date: yesterday,
+    category: "Flexibility",
     exercises: [
       {
-        id: "1-1",
-        name: "Barbell Squat",
-        sets: 4,
-        reps: 8,
-        weight: 185,
-        notes: "Focus on form, keep chest up",
-        mediaUrls: ["https://images.unsplash.com/photo-1566241440091-ec10de8db2e1?w=500&auto=format"],
-      },
-      {
-        id: "1-2",
-        name: "Bench Press",
-        sets: 4,
-        reps: 10,
-        weight: 135,
-        notes: "Increase weight next session",
-      },
-      {
-        id: "1-3",
-        name: "Bent Over Row",
-        sets: 3,
-        reps: 12,
-        weight: 115,
-      },
-    ],
-  },
-  {
-    id: "2",
-    date: subDays(today, 3),
-    title: "HIIT Circuit",
-    category: "hiit",
-    completed: true,
-    exercises: [
-      {
-        id: "2-1",
-        name: "Burpees",
-        sets: 3,
-        reps: 15,
-        notes: "30 sec rest between sets",
-      },
-      {
-        id: "2-2",
-        name: "Mountain Climbers",
-        duration: 45,
-        notes: "45 seconds on, 15 seconds rest",
-        mediaUrls: ["https://images.unsplash.com/photo-1434682881908-b43d0467b798?w=500&auto=format"],
-      },
-      {
-        id: "2-3",
-        name: "Box Jumps",
-        sets: 4,
-        reps: 12,
-      },
-    ],
-  },
-  {
-    id: "3",
-    date: subDays(today, 1),
-    title: "Yoga Flow",
-    category: "flexibility",
-    completed: true,
-    exercises: [
-      {
-        id: "3-1",
-        name: "Sun Salutation",
-        sets: 3,
-        notes: "Focus on breathing",
-      },
-      {
-        id: "3-2",
-        name: "Warrior Sequence",
-        duration: 10,
-        notes: "Hold each pose for 30 seconds",
-        mediaUrls: ["https://images.unsplash.com/photo-1575052814086-f385e2e2ad1b?w=500&auto=format"],
-      },
-    ],
-  },
-  {
-    id: "4",
-    date: today,
-    title: "Upper Body Focus",
-    category: "strength",
-    completed: false,
-    exercises: [
-      {
-        id: "4-1",
-        name: "Pull-ups",
-        sets: 4,
-        reps: 8,
-        notes: "Use assistance band if needed",
-      },
-      {
-        id: "4-2",
-        name: "Shoulder Press",
-        sets: 4,
-        reps: 10,
-        weight: 65,
-        mediaUrls: ["https://images.unsplash.com/photo-1532029837206-abbe2b7620e3?w=500&auto=format"],
-      },
-      {
-        id: "4-3",
-        name: "Bicep Curls",
-        sets: 3,
-        reps: 12,
-        weight: 35,
-      },
-    ],
-  },
-  {
-    id: "5",
-    date: today,
-    title: "5K Run",
-    category: "cardio",
-    completed: false,
-    exercises: [
-      {
-        id: "5-1",
-        name: "Outdoor Run",
+        id: generateId(),
+        name: "Sun Salutations",
+        type: "Yoga",
+        sets: [],
         duration: 30,
-        notes: "Maintain steady pace, aim for negative splits",
+        notes: "Focus on breathing",
+        media: [],
       },
     ],
+    completed: true,
   },
   {
-    id: "6",
-    date: addDays(today, 1),
-    title: "Lower Body Focus",
-    category: "strength",
-    completed: false,
+    id: generateId(),
+    title: "Evening Run",
+    date: today,
+    category: "Cardio",
     exercises: [
       {
-        id: "6-1",
-        name: "Deadlift",
-        sets: 5,
-        reps: 5,
-        weight: 225,
-        notes: "Focus on hip hinge movement",
-      },
-      {
-        id: "6-2",
-        name: "Leg Press",
-        sets: 3,
-        reps: 12,
-        weight: 300,
-      },
-      {
-        id: "6-3",
-        name: "Calf Raises",
-        sets: 3,
-        reps: 15,
-        weight: 100,
-        mediaUrls: ["https://images.unsplash.com/photo-1434608519344-49d77a699e1d?w=500&auto=format"],
+        id: generateId(),
+        name: "Treadmill Run",
+        type: "Running",
+        sets: [],
+        duration: 45,
+        notes: "Maintain pace",
+        media: [],
       },
     ],
+    completed: false,
   },
   {
-    id: "7",
-    date: addDays(today, 3),
-    title: "Recovery Session",
-    category: "recovery",
-    completed: false,
+    id: generateId(),
+    title: "Strength Training",
+    date: twoDaysAgo,
+    category: "Strength",
     exercises: [
       {
-        id: "7-1",
-        name: "Foam Rolling",
-        duration: 15,
-        notes: "Focus on tight areas",
+        id: generateId(),
+        name: "Bench Press",
+        type: "Strength",
+        sets: [
+          { id: generateId(), setNumber: 1, reps: 8, weight: 100 },
+          { id: generateId(), setNumber: 2, reps: 8, weight: 100 },
+          { id: generateId(), setNumber: 3, reps: 6, weight: 100 },
+        ],
+        duration: 0,
+        notes: "Controlled movements",
+        media: [],
       },
       {
-        id: "7-2",
-        name: "Static Stretching",
-        duration: 15,
-        notes: "Hold each stretch for 30 seconds",
+        id: generateId(),
+        name: "Squats",
+        type: "Strength",
+        sets: [
+          { id: generateId(), setNumber: 1, reps: 10, weight: 150 },
+          { id: generateId(), setNumber: 2, reps: 8, weight: 150 },
+          { id: generateId(), setNumber: 3, reps: 6, weight: 150 },
+        ],
+        duration: 0,
+        notes: "Full range of motion",
+        media: [],
       },
     ],
+    completed: true,
   },
 ];
 
-// Function to get workouts for a specific date
 export const getWorkoutsByDate = (date: Date): Workout[] => {
-  // Reset hours, minutes, seconds, and milliseconds for comparison
-  const targetDate = new Date(date);
-  targetDate.setHours(0, 0, 0, 0);
-  
-  return mockWorkouts.filter(workout => {
-    const workoutDate = new Date(workout.date);
-    workoutDate.setHours(0, 0, 0, 0);
-    return workoutDate.getTime() === targetDate.getTime();
-  });
+  return workouts.filter(
+    (workout) =>
+      workout.date.getFullYear() === date.getFullYear() &&
+      workout.date.getMonth() === date.getMonth() &&
+      workout.date.getDate() === date.getDate()
+  );
 };
 
-// Get category color
-export const getCategoryColor = (category: Workout["category"]): string => {
+export const getCategoryColor = (category: string): string => {
   switch (category) {
-    case "strength":
-      return "bg-blue-100 text-blue-800 border-blue-200";
-    case "cardio":
-      return "bg-red-100 text-red-800 border-red-200";
-    case "flexibility":
-      return "bg-purple-100 text-purple-800 border-purple-200";
-    case "hiit":
-      return "bg-orange-100 text-orange-800 border-orange-200";
-    case "recovery":
-      return "bg-green-100 text-green-800 border-green-200";
+    case "Strength":
+      return "border-red-500";
+    case "Cardio":
+      return "border-blue-500";
+    case "Flexibility":
+      return "border-green-500";
     default:
-      return "bg-gray-100 text-gray-800 border-gray-200";
+      return "border-gray-500";
   }
+};
+
+// Function to get all unique categories from workouts
+export const getAllCategories = (): string[] => {
+  const categories = workouts.map((workout) => workout.category);
+  const uniqueCategories = [...new Set(categories)];
+  return uniqueCategories;
+};
+
+// Function to add a new category
+export const addCategory = (category: string): void => {
+  // In a real app, this would update a database
+  // For now, we just make sure our mock data includes this category
+  // when we get categories by calling getAllCategories()
+  if (!getAllCategories().includes(category)) {
+    const sampleWorkout: Workout = {
+      id: generateId(),
+      title: "Sample Workout",
+      date: new Date(),
+      category,
+      exercises: [],
+      completed: false,
+    };
+    workouts.push(sampleWorkout);
+  }
+};
+
+// Function to create a new workout
+export const createWorkout = (workout: Partial<Workout>): Workout => {
+  const newWorkout: Workout = {
+    id: generateId(),
+    title: workout.title || "New Workout",
+    date: workout.date || new Date(),
+    category: workout.category || "Other",
+    exercises: workout.exercises || [],
+    completed: workout.completed || false,
+  };
+  
+  workouts.push(newWorkout);
+  return newWorkout;
+};
+
+// Function to get unique exercise types
+export const getExerciseTypes = (): string[] => {
+  const types = [
+    "Strength",
+    "Cardio",
+    "Flexibility",
+    "Balance",
+    "HIIT",
+    "Plyometric",
+    "Bodyweight",
+    "Other"
+  ];
+  return types;
 };
