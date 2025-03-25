@@ -11,9 +11,17 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
 import { addCategory, updateCategory, getCategoryInfo } from "@/lib/mockData";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import * as LucideIcons from "lucide-react";
 
 interface CategorySelectorProps {
   categories: string[];
@@ -34,6 +42,25 @@ const CATEGORY_COLORS = [
   "#6366F1", // Indigo
 ];
 
+// Common icons that might be useful for workout categories
+const COMMON_ICONS = [
+  "activity",
+  "dumbbell",
+  "heart",
+  "running",
+  "stretching",
+  "bike",
+  "swimming",
+  "tennis",
+  "yoga",
+  "barbell",
+  "target",
+  "globe",
+  "mountain",
+  "timer",
+  "flame"
+];
+
 const CategorySelector: React.FC<CategorySelectorProps> = ({
   categories,
   selectedCategory,
@@ -42,6 +69,7 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
   const [newCategory, setNewCategory] = useState("");
   const [editingCategory, setEditingCategory] = useState("");
   const [selectedColor, setSelectedColor] = useState(CATEGORY_COLORS[0]);
+  const [selectedIcon, setSelectedIcon] = useState<string | undefined>(undefined);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   
@@ -58,6 +86,17 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
     // Return black for bright colors, white for dark colors
     return luminance > 0.5 ? "#000000" : "#FFFFFF";
   };
+
+  // Get complementary border color (same hue but different opacity)
+  const getBorderColor = (hexColor: string) => {
+    // Convert hex to RGB
+    const r = parseInt(hexColor.slice(1, 3), 16);
+    const g = parseInt(hexColor.slice(3, 5), 16);
+    const b = parseInt(hexColor.slice(5, 7), 16);
+    
+    // Return the same color with 70% opacity for border
+    return `rgba(${r}, ${g}, ${b}, 0.7)`;
+  };
   
   const handleAddCategory = () => {
     if (!newCategory.trim()) {
@@ -70,9 +109,10 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
       return;
     }
     
-    addCategory(newCategory.trim(), selectedColor);
+    addCategory(newCategory.trim(), selectedColor, selectedIcon);
     toast.success(`Added category: ${newCategory}`);
     setNewCategory("");
+    setSelectedIcon(undefined);
     setIsAddDialogOpen(false);
   };
   
@@ -87,7 +127,7 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
       return;
     }
     
-    updateCategory(selectedCategory, editingCategory, selectedColor);
+    updateCategory(selectedCategory, editingCategory, selectedColor, selectedIcon);
     toast.success(`Updated category: ${editingCategory}`);
     onSelectCategory(editingCategory);
     setIsEditDialogOpen(false);
@@ -99,8 +139,43 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
     const categoryInfo = getCategoryInfo(selectedCategory);
     setEditingCategory(selectedCategory);
     setSelectedColor(categoryInfo.color);
+    setSelectedIcon(categoryInfo.icon);
     setIsEditDialogOpen(true);
   };
+
+  const renderIconSelector = (isEdit: boolean) => (
+    <div>
+      <label className="text-sm font-medium mb-2 block">Select Icon (Optional)</label>
+      <div className="grid grid-cols-5 gap-2 max-h-48 overflow-y-auto p-1 border rounded-md">
+        <div 
+          key="none" 
+          className={cn(
+            "flex items-center justify-center w-10 h-10 rounded cursor-pointer transition-all border-2",
+            !selectedIcon ? "border-black scale-110" : "border-transparent hover:border-gray-300"
+          )}
+          onClick={() => setSelectedIcon(undefined)}
+        >
+          <span className="text-xs text-gray-400">None</span>
+        </div>
+        {COMMON_ICONS.map((icon) => {
+          const IconComponent = (LucideIcons as any)[icon];
+          return (
+            <div
+              key={icon}
+              className={cn(
+                "flex items-center justify-center w-10 h-10 rounded cursor-pointer transition-all border-2",
+                selectedIcon === icon ? "border-black scale-110" : "border-transparent hover:border-gray-300"
+              )}
+              onClick={() => setSelectedIcon(icon)}
+              title={icon}
+            >
+              {IconComponent && <IconComponent className="h-5 w-5" />}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
   
   return (
     <div className="space-y-2">
@@ -153,6 +228,9 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
                     ))}
                   </div>
                 </div>
+                
+                {renderIconSelector(false)}
+                
                 <div className="flex justify-end gap-2">
                   <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
                     Cancel
@@ -202,6 +280,9 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
                 ))}
               </div>
             </div>
+            
+            {renderIconSelector(true)}
+            
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
                 Cancel
@@ -217,25 +298,34 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
       <div className="flex flex-wrap gap-2">
         {categories.map((category) => {
           const categoryInfo = getCategoryInfo(category);
+          // Dynamically get icon component if it exists
+          const CategoryIcon = categoryInfo.icon && (LucideIcons as any)[categoryInfo.icon] 
+            ? (LucideIcons as any)[categoryInfo.icon] 
+            : null;
+          
+          const isSelected = selectedCategory === category;
+          const bgOpacity = isSelected ? 1 : 0.7; // More solid color for selected
+          
           return (
             <Badge
               key={category}
-              variant={selectedCategory === category ? "default" : "outline"}
+              variant={isSelected ? "default" : "outline"}
               className={cn(
-                "cursor-pointer transition-all",
-                selectedCategory === category ? "bg-primary" : ""
+                "cursor-pointer transition-all flex items-center gap-1 border-2",
+                isSelected ? "bg-primary scale-105" : ""
               )}
               onClick={() => onSelectCategory(category)}
               style={
-                selectedCategory !== category && categoryInfo
+                !isSelected && categoryInfo
                   ? {
-                      backgroundColor: categoryInfo.color,
+                      backgroundColor: `${categoryInfo.color}${bgOpacity < 1 ? Math.round(bgOpacity * 255).toString(16) : ''}`,
                       color: getContrastColor(categoryInfo.color),
-                      borderColor: "transparent"
+                      borderColor: getBorderColor(categoryInfo.color)
                     }
                   : {}
               }
             >
+              {CategoryIcon && <CategoryIcon className="h-3.5 w-3.5" />}
               {category}
             </Badge>
           );
