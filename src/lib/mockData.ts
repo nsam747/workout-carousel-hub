@@ -1,4 +1,6 @@
+
 import { v4 as uuidv4 } from 'uuid';
+import { addDays, format } from 'date-fns';
 
 export interface Workout {
   id: string;
@@ -26,6 +28,18 @@ export interface ExerciseSet {
   weight: number;
   notes?: string;
 }
+
+// Generate a date range for the carousel (today +/- 14 days)
+export const dateRange = Array.from({ length: 29 }, (_, i) => {
+  const date = addDays(new Date(), i - 14);
+  const isToday = i === 14;
+  return {
+    date,
+    dayName: format(date, 'EEE'),
+    dayNumber: format(date, 'd'),
+    isToday
+  };
+});
 
 const generateId = (): string => {
   return uuidv4();

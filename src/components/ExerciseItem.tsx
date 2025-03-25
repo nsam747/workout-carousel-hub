@@ -13,6 +13,11 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
 
   const toggleExpanded = () => setExpanded(!expanded);
 
+  // Helper to get total reps/weight from sets if available
+  const getTotalSets = () => exercise.sets?.length || 0;
+  const hasReps = exercise.sets?.some(set => set.reps > 0);
+  const hasWeight = exercise.sets?.some(set => set.weight > 0);
+
   return (
     <div className="mb-3 rounded-md bg-white/90 border border-border shadow-sm overflow-hidden animate-slide-up animation-delay-100">
       <div 
@@ -22,25 +27,25 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
         <div className="flex-1">
           <h4 className="font-medium">{exercise.name}</h4>
           <div className="flex items-center text-sm text-muted-foreground mt-1 space-x-3">
-            {exercise.sets && (
+            {getTotalSets() > 0 && (
               <div className="flex items-center">
                 <Hash className="h-3 w-3 mr-1" />
-                <span>{exercise.sets} sets</span>
+                <span>{getTotalSets()} sets</span>
               </div>
             )}
-            {exercise.reps && (
+            {hasReps && (
               <div className="flex items-center">
                 <Hash className="h-3 w-3 mr-1" />
-                <span>{exercise.reps} reps</span>
+                <span>With reps</span>
               </div>
             )}
-            {exercise.weight && (
+            {hasWeight && (
               <div className="flex items-center">
                 <Dumbbell className="h-3 w-3 mr-1" />
-                <span>{exercise.weight} lbs</span>
+                <span>With weights</span>
               </div>
             )}
-            {exercise.duration && (
+            {exercise.duration > 0 && (
               <div className="flex items-center">
                 <Clock className="h-3 w-3 mr-1" />
                 <span>{exercise.duration} min</span>
@@ -73,11 +78,11 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
             </div>
           )}
 
-          {exercise.mediaUrls && exercise.mediaUrls.length > 0 && (
+          {exercise.media && exercise.media.length > 0 && (
             <div className="space-y-2">
               <p className="text-sm font-medium">Media</p>
               <div className="grid grid-cols-2 gap-2">
-                {exercise.mediaUrls.map((url, index) => (
+                {exercise.media.map((url, index) => (
                   <div 
                     key={index} 
                     className="rounded-md overflow-hidden aspect-video border border-border relative"
