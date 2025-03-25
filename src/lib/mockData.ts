@@ -1,4 +1,3 @@
-
 import { v4 as uuidv4 } from 'uuid';
 import { addDays, format } from 'date-fns';
 
@@ -29,6 +28,11 @@ export interface ExerciseSet {
   notes?: string;
 }
 
+export interface CategoryInfo {
+  name: string;
+  color: string;
+}
+
 // Generate a date range for the carousel (today +/- 14 days)
 export const dateRange = Array.from({ length: 29 }, (_, i) => {
   const date = addDays(new Date(), i - 14);
@@ -50,6 +54,14 @@ const yesterday = new Date(today);
 yesterday.setDate(today.getDate() - 1);
 const twoDaysAgo = new Date(today);
 twoDaysAgo.setDate(today.getDate() - 2);
+
+// Store category colors
+let categoryColors: Record<string, string> = {
+  "Strength": "#ea384c",
+  "Cardio": "#0EA5E9",
+  "Flexibility": "#10B981",
+  "Other": "#9b87f5"
+};
 
 let workouts: Workout[] = [
   {
@@ -125,6 +137,28 @@ let workouts: Workout[] = [
   },
 ];
 
+// Store all exercises for reuse
+let savedExercises: Exercise[] = [];
+
+// Initialize saved exercises from workouts
+workouts.forEach(workout => {
+  workout.exercises.forEach(exercise => {
+    if (!savedExercises.some(e => e.name === exercise.name && e.type === exercise.type)) {
+      // Create a copy without the sets and other workout-specific data
+      const savedExercise: Exercise = {
+        id: generateId(),
+        name: exercise.name,
+        type: exercise.type,
+        sets: [],
+        duration: 0,
+        notes: "",
+        media: []
+      };
+      savedExercises.push(savedExercise);
+    }
+  });
+});
+
 export const getWorkoutsByDate = (date: Date): Workout[] => {
   return workouts.filter(
     (workout) =>
@@ -154,12 +188,22 @@ export const getAllCategories = (): string[] => {
   return uniqueCategories;
 };
 
-// Function to add a new category
-export const addCategory = (category: string): void => {
+// Function to get category info (name and color)
+export const getCategoryInfo = (category: string): CategoryInfo => {
+  return {
+    name: category,
+    color: categoryColors[category] || "#9b87f5" // Default purple if not found
+  };
+};
+
+// Function to add a new category with color
+export const addCategory = (category: string, color: string = "#9b87f5"): void => {
   // In a real app, this would update a database
   // For now, we just make sure our mock data includes this category
-  // when we get categories by calling getAllCategories()
+  // and store the color
   if (!getAllCategories().includes(category)) {
+    categoryColors[category] = color;
+    
     const sampleWorkout: Workout = {
       id: generateId(),
       title: "Sample Workout",
@@ -169,6 +213,27 @@ export const addCategory = (category: string): void => {
       completed: false,
     };
     workouts.push(sampleWorkout);
+  }
+};
+
+// Function to update a category name and/or color
+export const updateCategory = (oldName: string, newName: string, color: string): void => {
+  // Update category color
+  if (oldName === newName) {
+    // Just updating the color
+    categoryColors[oldName] = color;
+  } else {
+    // Changing name and possibly color
+    const oldColor = categoryColors[oldName];
+    delete categoryColors[oldName];
+    categoryColors[newName] = color;
+    
+    // Update all workouts with this category
+    workouts.forEach(workout => {
+      if (workout.category === oldName) {
+        workout.category = newName;
+      }
+    });
   }
 };
 
@@ -200,4 +265,27 @@ export const getExerciseTypes = (): string[] => {
     "Other"
   ];
   return types;
+};
+
+// Function to get all saved exercises
+export const getSavedExercises = (): Exercise[] => {
+  return [...savedExercises];
+};
+
+// Function to add a new saved exercise
+export const saveExercise = (exercise: Exercise): void => {
+  // Don't save duplicates
+  if (!savedExercises.some(e => e.name === exercise.name && e.type === exercise.type)) {
+    // Create a copy without the specific workout details
+    const savedExercise: Exercise = {
+      id: generateId(),
+      name: exercise.name,
+      type: exercise.type,
+      sets: [],
+      duration: 0,
+      notes: "",
+      media: []
+    };
+    savedExercises.push(savedExercise);
+  }
 };
