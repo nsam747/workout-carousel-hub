@@ -51,7 +51,7 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout }) => {
   const renderCategoryIcon = (iconName: string | null, color: string) => {
     if (!iconName) return null;
     
-    // @ts-ignore - We know these icons exist in lucide-react
+    // Get the icon component by name
     const IconComponent = (LucideIcons as any)[iconName];
     if (!IconComponent) return null;
     

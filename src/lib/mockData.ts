@@ -63,6 +63,7 @@ interface CategoryData {
   icon: string | null;
 }
 
+// Update with valid Lucide icon names
 let categoryData: Record<string, CategoryData> = {
   "Strength": { color: "#ea384c", icon: "Dumbbell" },
   "Cardio": { color: "#0EA5E9", icon: "Activity" },
