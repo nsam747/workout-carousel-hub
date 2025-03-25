@@ -26,20 +26,11 @@ export interface ExerciseSet {
   reps: number;
   weight: number;
   notes?: string;
-  performanceMetrics?: PerformanceMetric[];
-}
-
-export interface PerformanceMetric {
-  id: string;
-  type: 'Weight' | 'Distance' | 'Duration' | 'Repetitions' | 'RestTime';
-  value: number;
-  unit?: string;
 }
 
 export interface CategoryInfo {
   name: string;
   color: string;
-  icon?: string;
 }
 
 // Generate a date range for the carousel (today +/- 14 days)
@@ -64,19 +55,12 @@ yesterday.setDate(today.getDate() - 1);
 const twoDaysAgo = new Date(today);
 twoDaysAgo.setDate(today.getDate() - 2);
 
-// Store category colors and icons
+// Store category colors
 let categoryColors: Record<string, string> = {
   "Strength": "#ea384c",
   "Cardio": "#0EA5E9",
   "Flexibility": "#10B981",
   "Other": "#9b87f5"
-};
-
-let categoryIcons: Record<string, string> = {
-  "Strength": "dumbbell",
-  "Cardio": "heart",
-  "Flexibility": "stretching",
-  "Other": "activity"
 };
 
 let workouts: Workout[] = [
@@ -204,25 +188,21 @@ export const getAllCategories = (): string[] => {
   return uniqueCategories;
 };
 
-// Function to get category info (name, color, and icon)
+// Function to get category info (name and color)
 export const getCategoryInfo = (category: string): CategoryInfo => {
   return {
     name: category,
-    color: categoryColors[category] || "#9b87f5", // Default purple if not found
-    icon: categoryIcons[category] || undefined
+    color: categoryColors[category] || "#9b87f5" // Default purple if not found
   };
 };
 
-// Function to add a new category with color and optional icon
-export const addCategory = (category: string, color: string = "#9b87f5", icon?: string): void => {
+// Function to add a new category with color
+export const addCategory = (category: string, color: string = "#9b87f5"): void => {
   // In a real app, this would update a database
   // For now, we just make sure our mock data includes this category
-  // and store the color and icon
+  // and store the color
   if (!getAllCategories().includes(category)) {
     categoryColors[category] = color;
-    if (icon) {
-      categoryIcons[category] = icon;
-    }
     
     const sampleWorkout: Workout = {
       id: generateId(),
@@ -236,27 +216,17 @@ export const addCategory = (category: string, color: string = "#9b87f5", icon?: 
   }
 };
 
-// Function to update a category name, color, and/or icon
-export const updateCategory = (oldName: string, newName: string, color: string, icon?: string): void => {
-  // Update category color and icon
+// Function to update a category name and/or color
+export const updateCategory = (oldName: string, newName: string, color: string): void => {
+  // Update category color
   if (oldName === newName) {
-    // Just updating the color and/or icon
+    // Just updating the color
     categoryColors[oldName] = color;
-    if (icon !== undefined) {
-      categoryIcons[oldName] = icon;
-    }
   } else {
-    // Changing name and possibly color and icon
+    // Changing name and possibly color
     const oldColor = categoryColors[oldName];
-    const oldIcon = categoryIcons[oldName];
     delete categoryColors[oldName];
-    delete categoryIcons[oldName];
     categoryColors[newName] = color;
-    if (icon !== undefined) {
-      categoryIcons[newName] = icon;
-    } else if (oldIcon) {
-      categoryIcons[newName] = oldIcon;
-    }
     
     // Update all workouts with this category
     workouts.forEach(workout => {
@@ -318,25 +288,4 @@ export const saveExercise = (exercise: Exercise): void => {
     };
     savedExercises.push(savedExercise);
   }
-};
-
-// Function to get available units for a performance metric type
-export const getUnitsForMetricType = (type: string): string[] => {
-  switch (type) {
-    case 'Weight':
-      return ['kg', 'lbs'];
-    case 'Distance':
-      return ['m', 'km', 'ft', 'mi'];
-    case 'Duration':
-      return ['min', 'sec', 'hr'];
-    case 'RestTime':
-      return ['min', 'sec'];
-    default:
-      return [];
-  }
-};
-
-// Function to get all available performance metric types
-export const getPerformanceMetricTypes = (): string[] => {
-  return ['Weight', 'Distance', 'Duration', 'Repetitions', 'RestTime'];
 };

@@ -5,7 +5,6 @@ import { Check, ChevronDown, ChevronUp } from "lucide-react";
 import ExerciseItem from "./ExerciseItem";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import * as LucideIcons from "lucide-react";
 
 interface WorkoutCardProps {
   workout: Workout;
@@ -30,22 +29,6 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout }) => {
     // Return black for bright colors, white for dark colors
     return luminance > 0.5 ? "#000000" : "#FFFFFF";
   };
-
-  // Get complementary border color (same hue but different opacity)
-  const getBorderColor = (hexColor: string) => {
-    // Convert hex to RGB
-    const r = parseInt(hexColor.slice(1, 3), 16);
-    const g = parseInt(hexColor.slice(3, 5), 16);
-    const b = parseInt(hexColor.slice(5, 7), 16);
-    
-    // Return the same color with 70% opacity for border
-    return `rgba(${r}, ${g}, ${b}, 0.7)`;
-  };
-
-  // Dynamically get icon component if it exists
-  const CategoryIcon = categoryInfo.icon && (LucideIcons as any)[categoryInfo.icon] ? 
-    (LucideIcons as any)[categoryInfo.icon] : 
-    null;
   
   return (
     <div className="mb-4 rounded-xl overflow-hidden glass-card animate-scale-in">
@@ -58,14 +41,13 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout }) => {
           <div className="flex items-center mb-1">
             <h3 className="font-semibold text-lg mr-3">{workout.title}</h3>
             <span 
-              className="workout-tag flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border-2"
+              className="workout-tag"
               style={{ 
                 backgroundColor: categoryInfo.color,
                 color: getContrastColor(categoryInfo.color),
-                borderColor: getBorderColor(categoryInfo.color)
+                borderColor: "transparent"
               }}
             >
-              {CategoryIcon && <CategoryIcon className="h-3.5 w-3.5" />}
               {workout.category}
             </span>
           </div>
