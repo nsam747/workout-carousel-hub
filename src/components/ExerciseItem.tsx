@@ -4,7 +4,6 @@ import { Exercise } from "@/lib/mockData";
 import { ChevronDown, ChevronUp, Clock, Dumbbell, Hash, StickyNote, Ruler, Timer, Repeat, Clock3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ExerciseItemProps {
   exercise: Exercise;
@@ -12,7 +11,6 @@ interface ExerciseItemProps {
 
 const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
   const [expanded, setExpanded] = useState(false);
-  const isMobile = useIsMobile();
 
   const toggleExpanded = () => setExpanded(!expanded);
 
@@ -96,7 +94,7 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
                 <Dumbbell className="h-4 w-4 mr-1.5" />
                 <span>Performance</span>
               </div>
-              <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-2'} gap-2`}>
+              <div className="grid grid-cols-2 gap-2">
                 {exercise.metrics.map((metric, index) => (
                   <div key={index} className="bg-muted/50 p-2 rounded-md">
                     <div className="flex items-center justify-between">
@@ -127,7 +125,7 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
           {exercise.media && exercise.media.length > 0 && (
             <div className="space-y-2">
               <p className="text-sm font-medium">Media</p>
-              <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-2'} gap-2`}>
+              <div className="grid grid-cols-2 gap-2">
                 {exercise.media.map((url, index) => (
                   <div 
                     key={index} 

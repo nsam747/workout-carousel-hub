@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import { Trash, ChevronDown, ChevronUp, Image, Edit, Plus, Copy, X, Pen } from "lucide-react";
+import { Trash, ChevronDown, ChevronUp, Image, Edit, Plus, Copy, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Exercise } from "@/lib/mockData";
@@ -15,7 +15,6 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useIsMobile } from "@/hooks/use-mobile";
 import PerformanceMetricForm, { PerformanceMetric } from "./PerformanceMetricForm";
 
 interface ExerciseListItemProps {
@@ -40,8 +39,6 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
   const [newMetricType, setNewMetricType] = useState("weight");
   const [newMetricValue, setNewMetricValue] = useState<number>(0);
   const [newMetricUnit, setNewMetricUnit] = useState("kg");
-  const [editingMetricId, setEditingMetricId] = useState<string | null>(null);
-  const isMobile = useIsMobile();
   
   // Add a new empty set directly
   const handleAddEmptySet = () => {
@@ -58,74 +55,26 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
   // Set a set as active for editing
   const handleSetClick = (setId: string) => {
     setActiveSetId(activeSetId === setId ? null : setId);
-    // Clear any metric editing when changing sets
-    setEditingMetricId(null);
-  };
-  
-  // Start editing a specific metric
-  const handleEditMetric = (setId: string, metricId: string) => {
-    // Set the active set first
-    setActiveSetId(setId);
-    
-    // Find the metric to edit
-    const set = sets.find(s => s.id === setId);
-    const metric = set?.metrics.find(m => m.id === metricId);
-    
-    if (metric) {
-      // Set the current values in the form
-      setNewMetricType(metric.type);
-      setNewMetricValue(metric.value);
-      setNewMetricUnit(metric.unit);
-      // Set this metric as being edited
-      setEditingMetricId(metricId);
-    }
   };
   
   // Add metric to an existing set
   const handleAddMetricToSet = (setId: string) => {
     if (!newMetricType || newMetricValue === undefined) return;
     
-    if (editingMetricId) {
-      // Update existing metric
-      setSets(prevSets => 
-        prevSets.map(set => 
-          set.id === setId 
-            ? { 
-                ...set, 
-                metrics: set.metrics.map(metric => 
-                  metric.id === editingMetricId 
-                    ? {
-                        ...metric,
-                        type: newMetricType,
-                        value: newMetricValue,
-                        unit: newMetricUnit
-                      }
-                    : metric
-                )
-              }
-            : set
-        )
-      );
-      
-      // Reset editing state
-      setEditingMetricId(null);
-    } else {
-      // Add new metric
-      const newMetric: PerformanceMetric = {
-        id: generateId(),
-        type: newMetricType,
-        value: newMetricValue,
-        unit: newMetricUnit
-      };
-      
-      setSets(prevSets => 
-        prevSets.map(set => 
-          set.id === setId 
-            ? { ...set, metrics: [...set.metrics, newMetric] }
-            : set
-        )
-      );
-    }
+    const newMetric: PerformanceMetric = {
+      id: generateId(),
+      type: newMetricType,
+      value: newMetricValue,
+      unit: newMetricUnit
+    };
+    
+    setSets(prevSets => 
+      prevSets.map(set => 
+        set.id === setId 
+          ? { ...set, metrics: [...set.metrics, newMetric] }
+          : set
+      )
+    );
     
     // Reset inputs
     setNewMetricValue(0);
@@ -196,11 +145,6 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
           : set
       )
     );
-    
-    // Clear editing state if this metric was being edited
-    if (editingMetricId === metricId) {
-      setEditingMetricId(null);
-    }
   };
 
   const handleDuplicateSet = (setToDuplicate: SetData) => {
@@ -212,11 +156,6 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
       }))
     };
     setSets([...sets, duplicatedSet]);
-  };
-  
-  const handleCancelEdit = () => {
-    setEditingMetricId(null);
-    setNewMetricValue(0);
   };
 
   // Format metric for display
@@ -362,43 +301,28 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
                               {set.metrics.map(metric => (
                                 <Badge 
                                   key={metric.id} 
-                                  variant={editingMetricId === metric.id ? "default" : "secondary"}
+                                  variant="secondary" 
                                   className="flex items-center gap-1 capitalize pr-1"
                                 >
                                   <span>{metric.type}: {formatMetric(metric)}</span>
-                                  <div className="flex items-center">
-                                    {editingMetricId !== metric.id && (
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-4 w-4"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleEditMetric(set.id, metric.id);
-                                        }}
-                                      >
-                                        <Pen className="h-2.5 w-2.5" />
-                                      </Button>
-                                    )}
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="h-4 w-4"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleRemoveMetric(set.id, metric.id);
-                                      }}
-                                    >
-                                      <X className="h-2.5 w-2.5" />
-                                    </Button>
-                                  </div>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-4 w-4 ml-1"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleRemoveMetric(set.id, metric.id);
+                                    }}
+                                  >
+                                    <X className="h-2.5 w-2.5" />
+                                  </Button>
                                 </Badge>
                               ))}
                             </div>
                           )}
                           
                           {/* Inline metric editor */}
-                          <div className={`${isMobile ? 'space-y-3' : 'flex items-end gap-2'} mt-2`}>
+                          <div className="flex items-end gap-2 mt-2">
                             <div className="space-y-1 flex-1">
                               <Label htmlFor={`metric-type-${set.id}`} className="text-xs">Type</Label>
                               <Select 
@@ -472,7 +396,7 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
                               </div>
                             )}
                             
-                            <div className={`flex ${isMobile ? 'justify-end' : 'items-center'} gap-1 ${isMobile ? 'mt-2' : ''}`}>
+                            <div className="flex items-center gap-1">
                               <Button 
                                 variant="outline" 
                                 size="sm" 
@@ -482,7 +406,8 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
                                   handleAddMetricToSet(set.id);
                                 }}
                               >
-                                {editingMetricId ? 'Update' : <Plus className="h-3 w-3" />}
+                                <Plus className="h-3 w-3" />
+                                <span className="sr-only">Add</span>
                               </Button>
                               
                               <Button 
@@ -491,11 +416,7 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
                                 className="h-8"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  if (editingMetricId) {
-                                    handleCancelEdit();
-                                  } else {
-                                    setActiveSetId(null);
-                                  }
+                                  setActiveSetId(null);
                                 }}
                               >
                                 <X className="h-3 w-3" />
