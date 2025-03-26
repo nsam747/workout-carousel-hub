@@ -35,18 +35,26 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
   const [notes, setNotes] = useState(exercise.notes || "");
   const [sets, setSets] = useState<SetData[]>([]);
   const [showAddMetric, setShowAddMetric] = useState(false);
-  const [editingSetId, setEditingSetId] = useState<string | null>(null);
+  const [activeSetId, setActiveSetId] = useState<string | null>(null);
   const [newMetricType, setNewMetricType] = useState("weight");
   const [newMetricValue, setNewMetricValue] = useState<number>(0);
   const [newMetricUnit, setNewMetricUnit] = useState("kg");
   
   // Add a new empty set directly
   const handleAddEmptySet = () => {
+    const newSetId = generateId();
     const newSet: SetData = {
-      id: generateId(),
+      id: newSetId,
       metrics: []
     };
     setSets([...sets, newSet]);
+    // Automatically activate the new set for editing
+    setActiveSetId(newSetId);
+  };
+  
+  // Set a set as active for editing
+  const handleSetClick = (setId: string) => {
+    setActiveSetId(activeSetId === setId ? null : setId);
   };
   
   // Add metric to an existing set
@@ -98,11 +106,11 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
   
   // Original method for adding metrics via the form
   const handleAddMetric = (metric: PerformanceMetric) => {
-    if (editingSetId) {
+    if (activeSetId) {
       // Adding a metric to an existing set
       setSets(prevSets => 
         prevSets.map(set => 
-          set.id === editingSetId 
+          set.id === activeSetId 
             ? { ...set, metrics: [...set.metrics, metric] }
             : set
         )
@@ -116,11 +124,14 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
       setSets([...sets, newSet]);
     }
     setShowAddMetric(false);
-    setEditingSetId(null);
+    setActiveSetId(null);
   };
 
   const handleRemoveSet = (setId: string) => {
     setSets(sets.filter(set => set.id !== setId));
+    if (activeSetId === setId) {
+      setActiveSetId(null);
+    }
   };
   
   const handleRemoveMetric = (setId: string, metricId: string) => {
@@ -208,16 +219,36 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
                   {sets.map((set, index) => (
                     <div 
                       key={set.id}
-                      className="p-2 bg-muted/50 rounded-md"
+                      className={`p-2 ${activeSetId === set.id ? 'bg-secondary/80' : 'bg-muted/50'} rounded-md transition-colors`}
                     >
                       <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs font-medium">Set {index + 1}</span>
+                        <div 
+                          className="flex items-center cursor-pointer" 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSetClick(set.id);
+                          }}
+                        >
+                          <span className="text-xs font-medium">Set {index + 1}</span>
+                          {activeSetId !== set.id && (
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-6 w-6 ml-1"
+                            >
+                              <Edit className="h-3 w-3" />
+                            </Button>
+                          )}
+                        </div>
                         <div className="flex items-center gap-1">
                           <Button 
                             variant="ghost" 
                             size="icon" 
                             className="h-6 w-6"
-                            onClick={() => handleDuplicateSet(set)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDuplicateSet(set);
+                            }}
                           >
                             <Copy className="h-3 w-3" />
                             <span className="sr-only">Duplicate</span>
@@ -226,7 +257,10 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
                             variant="ghost" 
                             size="icon" 
                             className="h-6 w-6"
-                            onClick={() => handleRemoveSet(set.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRemoveSet(set.id);
+                            }}
                           >
                             <Trash className="h-3 w-3 text-destructive" />
                             <span className="sr-only">Remove</span>
@@ -234,136 +268,178 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
                         </div>
                       </div>
                       
-                      <div className="flex flex-wrap gap-2 mb-2">
-                        {set.metrics.map(metric => (
-                          <Badge 
-                            key={metric.id} 
-                            variant="secondary" 
-                            className="flex items-center gap-1 capitalize pr-1"
-                          >
-                            <span>{metric.type}: {formatMetric(metric)}</span>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-4 w-4 ml-1"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleRemoveMetric(set.id, metric.id);
-                              }}
+                      {activeSetId !== set.id ? (
+                        // Display-only view of metrics
+                        <div className="flex flex-wrap gap-2">
+                          {set.metrics.map(metric => (
+                            <Badge 
+                              key={metric.id} 
+                              variant="secondary" 
+                              className="flex items-center gap-1 capitalize pr-1"
                             >
-                              <X className="h-2.5 w-2.5" />
-                            </Button>
-                          </Badge>
-                        ))}
-                      </div>
-                      
-                      {/* Inline metric editor */}
-                      <div className="flex items-end gap-2 mt-2">
-                        <div className="space-y-1 flex-1">
-                          <Label htmlFor={`metric-type-${set.id}`} className="text-xs">Type</Label>
-                          <Select 
-                            value={newMetricType} 
-                            onValueChange={handleMetricTypeChange}
-                          >
-                            <SelectTrigger id={`metric-type-${set.id}`} className="h-8">
-                              <SelectValue placeholder="Type" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="weight">Weight</SelectItem>
-                              <SelectItem value="distance">Distance</SelectItem>
-                              <SelectItem value="duration">Duration</SelectItem>
-                              <SelectItem value="repetitions">Repetitions</SelectItem>
-                              <SelectItem value="restTime">Rest Time</SelectItem>
-                            </SelectContent>
-                          </Select>
+                              <span>{metric.type}: {formatMetric(metric)}</span>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-4 w-4 ml-1"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleRemoveMetric(set.id, metric.id);
+                                }}
+                              >
+                                <X className="h-2.5 w-2.5" />
+                              </Button>
+                            </Badge>
+                          ))}
                         </div>
-                        
-                        <div className="space-y-1 flex-1">
-                          <Label htmlFor={`metric-value-${set.id}`} className="text-xs">Value</Label>
-                          <Input
-                            id={`metric-value-${set.id}`}
-                            type="number"
-                            min={0}
-                            step={newMetricType === "weight" ? 2.5 : 1}
-                            value={newMetricValue}
-                            onChange={(e) => setNewMetricValue(Number(e.target.value))}
-                            className="h-8"
-                          />
-                        </div>
-                        
-                        {newMetricType !== "repetitions" && (
-                          <div className="space-y-1 flex-1">
-                            <Label htmlFor={`metric-unit-${set.id}`} className="text-xs">Unit</Label>
-                            <Select 
-                              value={newMetricUnit} 
-                              onValueChange={setNewMetricUnit}
-                            >
-                              <SelectTrigger id={`metric-unit-${set.id}`} className="h-8">
-                                <SelectValue placeholder="Unit" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {newMetricType === "weight" && (
-                                  <>
-                                    <SelectItem value="kg">kg</SelectItem>
-                                    <SelectItem value="lb">lb</SelectItem>
-                                  </>
-                                )}
-                                {newMetricType === "distance" && (
-                                  <>
-                                    <SelectItem value="km">km</SelectItem>
-                                    <SelectItem value="miles">miles</SelectItem>
-                                  </>
-                                )}
-                                {newMetricType === "duration" && (
-                                  <>
-                                    <SelectItem value="seconds">seconds</SelectItem>
-                                    <SelectItem value="minutes">minutes</SelectItem>
-                                    <SelectItem value="hours">hours</SelectItem>
-                                  </>
-                                )}
-                                {newMetricType === "restTime" && (
-                                  <>
-                                    <SelectItem value="seconds">seconds</SelectItem>
-                                    <SelectItem value="minutes">minutes</SelectItem>
-                                  </>
-                                )}
-                              </SelectContent>
-                            </Select>
+                      ) : (
+                        // Edit mode - show metrics and inline editor
+                        <div>
+                          {/* Show existing metrics */}
+                          {set.metrics.length > 0 && (
+                            <div className="flex flex-wrap gap-2 mb-3">
+                              {set.metrics.map(metric => (
+                                <Badge 
+                                  key={metric.id} 
+                                  variant="secondary" 
+                                  className="flex items-center gap-1 capitalize pr-1"
+                                >
+                                  <span>{metric.type}: {formatMetric(metric)}</span>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-4 w-4 ml-1"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleRemoveMetric(set.id, metric.id);
+                                    }}
+                                  >
+                                    <X className="h-2.5 w-2.5" />
+                                  </Button>
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
+                          
+                          {/* Inline metric editor */}
+                          <div className="flex items-end gap-2 mt-2">
+                            <div className="space-y-1 flex-1">
+                              <Label htmlFor={`metric-type-${set.id}`} className="text-xs">Type</Label>
+                              <Select 
+                                value={newMetricType} 
+                                onValueChange={handleMetricTypeChange}
+                              >
+                                <SelectTrigger id={`metric-type-${set.id}`} className="h-8">
+                                  <SelectValue placeholder="Type" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="weight">Weight</SelectItem>
+                                  <SelectItem value="distance">Distance</SelectItem>
+                                  <SelectItem value="duration">Duration</SelectItem>
+                                  <SelectItem value="repetitions">Repetitions</SelectItem>
+                                  <SelectItem value="restTime">Rest Time</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            
+                            <div className="space-y-1 flex-1">
+                              <Label htmlFor={`metric-value-${set.id}`} className="text-xs">Value</Label>
+                              <Input
+                                id={`metric-value-${set.id}`}
+                                type="number"
+                                min={0}
+                                step={newMetricType === "weight" ? 2.5 : 1}
+                                value={newMetricValue}
+                                onChange={(e) => setNewMetricValue(Number(e.target.value))}
+                                className="h-8"
+                              />
+                            </div>
+                            
+                            {newMetricType !== "repetitions" && (
+                              <div className="space-y-1 flex-1">
+                                <Label htmlFor={`metric-unit-${set.id}`} className="text-xs">Unit</Label>
+                                <Select 
+                                  value={newMetricUnit} 
+                                  onValueChange={setNewMetricUnit}
+                                >
+                                  <SelectTrigger id={`metric-unit-${set.id}`} className="h-8">
+                                    <SelectValue placeholder="Unit" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {newMetricType === "weight" && (
+                                      <>
+                                        <SelectItem value="kg">kg</SelectItem>
+                                        <SelectItem value="lb">lb</SelectItem>
+                                      </>
+                                    )}
+                                    {newMetricType === "distance" && (
+                                      <>
+                                        <SelectItem value="km">km</SelectItem>
+                                        <SelectItem value="miles">miles</SelectItem>
+                                      </>
+                                    )}
+                                    {newMetricType === "duration" && (
+                                      <>
+                                        <SelectItem value="seconds">seconds</SelectItem>
+                                        <SelectItem value="minutes">minutes</SelectItem>
+                                        <SelectItem value="hours">hours</SelectItem>
+                                      </>
+                                    )}
+                                    {newMetricType === "restTime" && (
+                                      <>
+                                        <SelectItem value="seconds">seconds</SelectItem>
+                                        <SelectItem value="minutes">minutes</SelectItem>
+                                      </>
+                                    )}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            )}
+                            
+                            <div className="flex items-center gap-1">
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="h-8"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleAddMetricToSet(set.id);
+                                }}
+                              >
+                                <Plus className="h-3 w-3" />
+                                <span className="sr-only">Add</span>
+                              </Button>
+                              
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="h-8"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setActiveSetId(null);
+                                }}
+                              >
+                                <X className="h-3 w-3" />
+                                <span className="sr-only">Cancel</span>
+                              </Button>
+                            </div>
                           </div>
-                        )}
-                        
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="h-8"
-                          onClick={() => handleAddMetricToSet(set.id)}
-                        >
-                          <Plus className="h-3 w-3" />
-                          <span className="sr-only">Add</span>
-                        </Button>
-                      </div>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
               ) : null}
 
-              {showAddMetric ? (
-                <div className="border rounded-md p-3 mb-3 bg-card">
-                  <PerformanceMetricForm
-                    onSave={handleAddMetric}
-                    onCancel={() => {
-                      setShowAddMetric(false);
-                      setEditingSetId(null);
-                    }}
-                    previousMetrics={sets.flatMap(set => set.metrics)}
-                  />
-                </div>
-              ) : (
+              {!activeSetId && (
                 <Button 
                   variant="outline" 
                   size="sm" 
                   className="h-7 text-xs mb-3" 
-                  onClick={handleAddEmptySet}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleAddEmptySet();
+                  }}
                 >
                   <Plus className="h-3 w-3 mr-1" />
                   Add set
