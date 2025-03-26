@@ -69,7 +69,7 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout }) => {
           <div className="flex items-center mb-1">
             <h3 className="font-semibold text-lg mr-3">{workout.title}</h3>
             <span 
-              className="workout-tag flex items-center"
+              className="workout-tag flex items-center text-xs py-1 px-2 rounded-full"
               style={{ 
                 backgroundColor: categoryInfo.color,
                 color: getContrastColor(categoryInfo.color),

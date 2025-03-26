@@ -19,6 +19,7 @@ export interface Exercise {
   duration: number;
   notes: string;
   media: string[];
+  metrics?: PerformanceMetric[];
 }
 
 export interface ExerciseSet {
@@ -27,6 +28,13 @@ export interface ExerciseSet {
   reps: number;
   weight: number;
   notes?: string;
+}
+
+export interface PerformanceMetric {
+  id: string;
+  type: string; // 'weight', 'distance', 'duration', 'repetitions', 'restTime'
+  value: number;
+  unit: string; // 'kg', 'lb', 'km', 'miles', 'seconds', 'minutes', 'hours', 'reps'
 }
 
 export interface CategoryInfo {
@@ -86,6 +94,14 @@ let workouts: Workout[] = [
         duration: 30,
         notes: "Focus on breathing",
         media: [],
+        metrics: [
+          {
+            id: generateId(),
+            type: "duration",
+            value: 30,
+            unit: "minutes"
+          }
+        ]
       },
     ],
     completed: true,
@@ -104,6 +120,20 @@ let workouts: Workout[] = [
         duration: 45,
         notes: "Maintain pace",
         media: [],
+        metrics: [
+          {
+            id: generateId(),
+            type: "distance",
+            value: 5,
+            unit: "km"
+          },
+          {
+            id: generateId(),
+            type: "duration",
+            value: 45,
+            unit: "minutes"
+          }
+        ]
       },
     ],
     completed: false,
@@ -126,6 +156,26 @@ let workouts: Workout[] = [
         duration: 0,
         notes: "Controlled movements",
         media: [],
+        metrics: [
+          {
+            id: generateId(),
+            type: "weight",
+            value: 100,
+            unit: "kg"
+          },
+          {
+            id: generateId(),
+            type: "repetitions",
+            value: 8,
+            unit: "reps"
+          },
+          {
+            id: generateId(),
+            type: "repetitions",
+            value: 8,
+            unit: "reps"
+          }
+        ]
       },
       {
         id: generateId(),
@@ -139,6 +189,20 @@ let workouts: Workout[] = [
         duration: 0,
         notes: "Full range of motion",
         media: [],
+        metrics: [
+          {
+            id: generateId(),
+            type: "weight",
+            value: 150,
+            unit: "kg"
+          },
+          {
+            id: generateId(),
+            type: "repetitions",
+            value: 10,
+            unit: "reps"
+          }
+        ]
       },
     ],
     completed: true,

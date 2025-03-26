@@ -1,11 +1,12 @@
 
 import React, { useState } from "react";
-import { Trash, ChevronDown, ChevronUp, Image, Edit } from "lucide-react";
+import { Trash, ChevronDown, ChevronUp, Image, Edit, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Exercise } from "@/lib/mockData";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
+import PerformanceMetricForm, { PerformanceMetric } from "./PerformanceMetricForm";
 
 interface ExerciseListItemProps {
   exercise: Exercise;
@@ -18,7 +19,23 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
 }) => {
   const [expanded, setExpanded] = useState(false);
   const [notes, setNotes] = useState(exercise.notes || "");
+  const [metrics, setMetrics] = useState<PerformanceMetric[]>([]);
+  const [showAddMetric, setShowAddMetric] = useState(false);
   
+  const handleAddMetric = (metric: PerformanceMetric) => {
+    setMetrics([...metrics, metric]);
+    setShowAddMetric(false);
+  };
+
+  const handleRemoveMetric = (id: string) => {
+    setMetrics(metrics.filter(metric => metric.id !== id));
+  };
+
+  // Format metric for display
+  const formatMetric = (metric: PerformanceMetric) => {
+    return `${metric.value} ${metric.unit}`;
+  };
+
   return (
     <Card className="overflow-hidden animate-scale-in">
       <div className="p-3 flex items-center justify-between cursor-pointer" onClick={() => setExpanded(!expanded)}>
@@ -67,12 +84,50 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
             {/* Performance metrics section */}
             <div>
               <h4 className="text-sm font-medium mb-2">Performance</h4>
-              <div className="flex flex-wrap gap-2">
-                <Button variant="outline" size="sm" className="h-7 text-xs">
-                  <Edit className="h-3 w-3 mr-1" />
+              
+              {metrics.length > 0 ? (
+                <div className="space-y-2 mb-3">
+                  {metrics.map((metric, index) => (
+                    <div 
+                      key={metric.id}
+                      className="flex items-center justify-between p-2 bg-muted/50 rounded-md"
+                    >
+                      <div>
+                        <span className="text-xs font-medium">Set {index + 1}</span>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <Badge variant="secondary" className="text-xs capitalize">
+                            {metric.type}
+                          </Badge>
+                          <span className="text-sm">{formatMetric(metric)}</span>
+                        </div>
+                      </div>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-6 w-6"
+                        onClick={() => handleRemoveMetric(metric.id)}
+                      >
+                        <Trash className="h-3 w-3 text-destructive" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+
+              {showAddMetric ? (
+                <div className="border rounded-md p-3 mb-3 bg-card">
+                  <PerformanceMetricForm
+                    onSave={handleAddMetric}
+                    onCancel={() => setShowAddMetric(false)}
+                    previousMetrics={metrics}
+                  />
+                </div>
+              ) : (
+                <Button variant="outline" size="sm" className="h-7 text-xs mb-3" onClick={() => setShowAddMetric(true)}>
+                  <Plus className="h-3 w-3 mr-1" />
                   Add set
                 </Button>
-              </div>
+              )}
             </div>
             
             {/* Notes section */}
