@@ -362,6 +362,47 @@ const mockCategories: CategoryInfo[] = [
   { name: "Other", color: "#9B59B6", icon: "HelpCircle" },
 ];
 
+// Function to create a new category
+export const createCategory = (category: CategoryInfo): void => {
+  // Check if the category already exists
+  const existingIndex = mockCategories.findIndex(cat => cat.name === category.name);
+  
+  if (existingIndex > -1) {
+    // Replace existing category
+    mockCategories[existingIndex] = category;
+  } else {
+    // Add new category
+    mockCategories.push(category);
+  }
+};
+
+// Function to update an existing category
+export const updateCategory = (updateInfo: {
+  oldName: string;
+  newName: string;
+  color: string;
+  icon: string | null;
+}): void => {
+  const { oldName, newName, color, icon } = updateInfo;
+  const existingIndex = mockCategories.findIndex(cat => cat.name === oldName);
+  
+  if (existingIndex > -1) {
+    // Update category data
+    mockCategories[existingIndex] = {
+      name: newName,
+      color: color,
+      icon: icon
+    };
+    
+    // Update all workouts that use this category
+    mockWorkouts.forEach(workout => {
+      if (workout.category === oldName) {
+        workout.category = newName;
+      }
+    });
+  }
+};
+
 // Function to get workouts by date
 export const getWorkoutsByDate = (date: Date): Workout[] => {
   return mockWorkouts.filter((workout) => {
