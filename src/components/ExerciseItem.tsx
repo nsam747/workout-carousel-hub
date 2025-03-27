@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import { Exercise } from "@/lib/mockData";
+import { Exercise, PerformanceMetric } from "@/lib/mockData";
 import { ChevronDown, ChevronUp, Clock, Dumbbell, Hash, StickyNote, Ruler, Timer, Repeat, Clock3, Edit, Image, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -52,7 +52,7 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
   };
 
   // Helper to sort metrics by priority
-  const sortMetrics = (metrics: any[]) => {
+  const sortMetrics = (metrics: PerformanceMetric[]) => {
     const priorityOrder: Record<string, number> = {
       "weight": 1,
       "duration": 2,
@@ -90,7 +90,7 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
     if (!exercise.metrics || exercise.metrics.length === 0) return null;
     
     // Group metrics by set
-    const metricsBySet: { [key: number]: any[] } = {};
+    const metricsBySet: { [key: number]: PerformanceMetric[] } = {};
     exercise.metrics.forEach(metric => {
       const setIndex = metric.setIndex || 0;
       if (!metricsBySet[setIndex]) metricsBySet[setIndex] = [];

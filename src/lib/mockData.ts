@@ -1,3 +1,4 @@
+
 import { v4 as uuidv4 } from 'uuid';
 
 export interface Workout {
@@ -17,12 +18,21 @@ export interface Exercise {
   notes?: string;
   duration: number;
   media: string[];
+  metrics?: PerformanceMetric[];  // Add metrics property
 }
 
 export interface Set {
   id: string;
   reps: number;
   weight: number;
+}
+
+export interface PerformanceMetric {
+  id: string;
+  type: string;
+  value: number;
+  unit: string;
+  setIndex?: number;
 }
 
 export interface CategoryInfo {
