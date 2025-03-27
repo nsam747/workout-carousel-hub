@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, Plus, Tag, ArrowLeft, Check } from "lucide-react";
+import { Calendar as CalendarIcon, Plus, Tag, ArrowLeft, Check, Edit, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -13,13 +12,22 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { Workout, Exercise, getAllCategories, createWorkout } from "@/lib/mockData";
+import { Workout, Exercise, getAllCategories, createWorkout, createCategory, getCategoryInfo } from "@/lib/mockData";
 import ExerciseListItem from "@/components/ExerciseListItem";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import AddExerciseForm from "@/components/AddExerciseForm";
 import CategorySelector from "@/components/CategorySelector";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import * as LucideIcons from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
 
 const AddWorkout = () => {
   const navigate = useNavigate();
@@ -32,13 +40,31 @@ const AddWorkout = () => {
   const [showLongPressMenu, setShowLongPressMenu] = useState(false);
   const [longPressCategory, setLongPressCategory] = useState<string>("");
   
-  // Initialize with the first category
+  // New state for category management
+  const [isAddingCategory, setIsAddingCategory] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [newCategoryColor, setNewCategoryColor] = useState("#9b87f5");
+  const [newCategoryIcon, setNewCategoryIcon] = useState<string | null>("Activity");
+  const [availableIcons, setAvailableIcons] = useState<string[]>([]);
+  const [editedCategoryName, setEditedCategoryName] = useState("");
+  const [editedCategoryColor, setEditedCategoryColor] = useState("");
+  const [editedCategoryIcon, setEditedCategoryIcon] = useState<string | null>(null);
+  
+  // Initialize with the first category and collect available icons
   useEffect(() => {
     const allCategories = getAllCategories();
     setCategories(allCategories);
     if (allCategories.length > 0 && selectedCategory === "") {
       setSelectedCategory(allCategories[0]);
     }
+    
+    // Collect available Lucide icons for selection
+    const iconNames = Object.keys(LucideIcons)
+      .filter(key => typeof LucideIcons[key as keyof typeof LucideIcons] === "function")
+      .filter(name => !name.includes("Svelte") && !name.includes("Vue") && name !== "Icon")
+      .sort();
+    
+    setAvailableIcons(iconNames);
   }, [selectedCategory]);
   
   const handleSaveWorkout = () => {
@@ -85,7 +111,136 @@ const AddWorkout = () => {
   
   const handleLongPress = (category: string) => {
     setLongPressCategory(category);
+    // Set edited values when opening the edit dialog
+    const categoryInfo = getCategoryInfo(category);
+    setEditedCategoryName(category);
+    setEditedCategoryColor(categoryInfo.color);
+    setEditedCategoryIcon(categoryInfo.icon);
     setShowLongPressMenu(true);
+  };
+  
+  const handleAddCategory = () => {
+    if (!newCategoryName.trim()) {
+      toast.error("Please enter a category name");
+      return;
+    }
+    
+    const newCategory = {
+      name: newCategoryName.trim(),
+      color: newCategoryColor,
+      icon: newCategoryIcon
+    };
+    
+    createCategory(newCategory);
+    setCategories(getAllCategories());
+    setSelectedCategory(newCategoryName.trim());
+    setNewCategoryName("");
+    setNewCategoryColor("#9b87f5");
+    setNewCategoryIcon("Activity");
+    setIsAddingCategory(false);
+    toast.success("Category added successfully!");
+  };
+  
+  const handleUpdateCategory = () => {
+    if (!editedCategoryName.trim()) {
+      toast.error("Please enter a category name");
+      return;
+    }
+    
+    const updatedCategory = {
+      oldName: longPressCategory,
+      newName: editedCategoryName.trim(),
+      color: editedCategoryColor,
+      icon: editedCategoryIcon
+    };
+    
+    // This would be implemented in mockData.ts
+    // updateCategory(updatedCategory);
+    
+    // For now, simulating by removing old and adding new
+    const categoryInfo = {
+      name: editedCategoryName.trim(),
+      color: editedCategoryColor,
+      icon: editedCategoryIcon
+    };
+    
+    createCategory(categoryInfo);
+    
+    setCategories(getAllCategories());
+    if (longPressCategory === selectedCategory) {
+      setSelectedCategory(editedCategoryName.trim());
+    }
+    
+    setShowLongPressMenu(false);
+    toast.success("Category updated successfully!");
+  };
+  
+  // Sample color palette for category selection
+  const colorPalette = [
+    "#9b87f5", // Primary Purple
+    "#F97316", // Bright Orange
+    "#0EA5E9", // Ocean Blue
+    "#F59E0B", // Amber
+    "#10B981", // Emerald
+    "#8B5CF6", // Vivid Purple
+    "#EC4899", // Pink
+    "#EF4444", // Red
+    "#6366F1", // Indigo
+    "#06B6D4", // Cyan
+  ];
+  
+  const renderIconSelection = (
+    selectedIcon: string | null,
+    onSelectIcon: (iconName: string | null) => void,
+    showClearButton = true
+  ) => {
+    // Limited icon selection to keep the UI manageable
+    const popularIcons = [
+      "Activity", "Barbell", "Bike", "Dumbbell", "Flame", "Heart", 
+      "Mountain", "Music", "Ruler", "Smile", "Timer", "Trophy", 
+      "Zap", "Home", "Star", "Target", "Sun", "Moon", 
+      "Coffee", "Award", "Flag", "Heart", "Gift"
+    ];
+    
+    return (
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <Label className="text-sm font-medium">Icon</Label>
+          {showClearButton && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-7 px-2 text-xs"
+              onClick={() => onSelectIcon(null)}
+            >
+              Clear
+            </Button>
+          )}
+        </div>
+        <div className="grid grid-cols-6 gap-2">
+          {popularIcons.map(iconName => {
+            const IconComponent = (LucideIcons as any)[iconName];
+            return (
+              <Button
+                key={iconName}
+                variant={selectedIcon === iconName ? "default" : "outline"}
+                size="sm"
+                className="p-2 h-10 w-10"
+                onClick={() => onSelectIcon(iconName)}
+                title={iconName}
+              >
+                {IconComponent && <IconComponent className="h-5 w-5" />}
+              </Button>
+            );
+          })}
+        </div>
+        {availableIcons.length > popularIcons.length && (
+          <p className="text-xs text-muted-foreground mt-2">
+            Showing common icons. {availableIcons.length - popularIcons.length} more available.
+          </p>
+        )}
+      </div>
+    );
   };
   
   return (
@@ -156,6 +311,22 @@ const AddWorkout = () => {
           
           {/* Category selection */}
           <div>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center">
+                <Tag className="h-4 w-4 mr-2" />
+                <span className="text-sm font-medium">Category</span>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="text-xs h-7 px-2"
+                onClick={() => setIsAddingCategory(true)}
+              >
+                <Plus className="h-3 w-3 mr-1" />
+                New Category
+              </Button>
+            </div>
+            
             <CategorySelector 
               categories={categories}
               selectedCategory={selectedCategory}
@@ -211,16 +382,125 @@ const AddWorkout = () => {
         </div>
       </div>
       
-      {/* Category Edit Dialog */}
+      {/* Add Category Dialog */}
+      <Dialog open={isAddingCategory} onOpenChange={setIsAddingCategory}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add New Category</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="category-name">Name</Label>
+              <Input 
+                id="category-name" 
+                value={newCategoryName} 
+                onChange={(e) => setNewCategoryName(e.target.value)} 
+                placeholder="Category name" 
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Color</Label>
+              <div className="flex flex-wrap gap-2">
+                {colorPalette.map(color => (
+                  <button
+                    key={color}
+                    type="button"
+                    className={cn(
+                      "w-8 h-8 rounded-full",
+                      newCategoryColor === color && "ring-2 ring-primary ring-offset-2"
+                    )}
+                    style={{ backgroundColor: color }}
+                    onClick={() => setNewCategoryColor(color)}
+                    aria-label={color}
+                  />
+                ))}
+                
+                <Input
+                  type="color"
+                  value={newCategoryColor}
+                  onChange={(e) => setNewCategoryColor(e.target.value)}
+                  className="w-8 h-8 p-0 overflow-hidden"
+                  title="Custom color"
+                />
+              </div>
+            </div>
+            
+            {/* Icon selection */}
+            {renderIconSelection(newCategoryIcon, setNewCategoryIcon)}
+            
+            <div className="flex justify-end gap-2 pt-4">
+              <Button 
+                variant="outline" 
+                onClick={() => setIsAddingCategory(false)}
+              >
+                Cancel
+              </Button>
+              <Button onClick={handleAddCategory}>
+                Add Category
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Edit Category Dialog */}
       <Dialog open={showLongPressMenu} onOpenChange={setShowLongPressMenu}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Edit Category</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
-            <p>This is where category editing will be implemented in the future.</p>
-            <div className="flex justify-end">
-              <Button onClick={() => setShowLongPressMenu(false)}>Close</Button>
+            <div className="space-y-2">
+              <Label htmlFor="edit-category-name">Name</Label>
+              <Input 
+                id="edit-category-name" 
+                value={editedCategoryName} 
+                onChange={(e) => setEditedCategoryName(e.target.value)} 
+                placeholder="Category name" 
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Color</Label>
+              <div className="flex flex-wrap gap-2">
+                {colorPalette.map(color => (
+                  <button
+                    key={color}
+                    type="button"
+                    className={cn(
+                      "w-8 h-8 rounded-full",
+                      editedCategoryColor === color && "ring-2 ring-primary ring-offset-2"
+                    )}
+                    style={{ backgroundColor: color }}
+                    onClick={() => setEditedCategoryColor(color)}
+                    aria-label={color}
+                  />
+                ))}
+                
+                <Input
+                  type="color"
+                  value={editedCategoryColor}
+                  onChange={(e) => setEditedCategoryColor(e.target.value)}
+                  className="w-8 h-8 p-0 overflow-hidden"
+                  title="Custom color"
+                />
+              </div>
+            </div>
+            
+            {/* Icon selection */}
+            {renderIconSelection(editedCategoryIcon, setEditedCategoryIcon)}
+            
+            <div className="flex justify-end gap-2 pt-4">
+              <Button 
+                variant="outline" 
+                onClick={() => setShowLongPressMenu(false)}
+              >
+                Cancel
+              </Button>
+              <Button onClick={handleUpdateCategory}>
+                Update Category
+              </Button>
             </div>
           </div>
         </DialogContent>

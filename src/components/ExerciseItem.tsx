@@ -1,7 +1,7 @@
 
 import React, { useState } from "react";
 import { Exercise, PerformanceMetric } from "@/lib/mockData";
-import { ChevronDown, ChevronUp, Clock, Dumbbell, Hash, StickyNote, Ruler, Timer, Repeat, Clock3, Edit, Image, Save } from "lucide-react";
+import { ChevronDown, ChevronUp, Clock, Dumbbell, Hash, StickyNote, Ruler, Timer, Repeat, Clock3, Edit, Image, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -30,8 +30,33 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
 
   // Helper to get total reps/weight from sets if available
   const getTotalSets = () => exercise.sets?.length || 0;
-  const hasReps = exercise.sets?.some(set => set.reps > 0);
-  const hasWeight = exercise.sets?.some(set => set.weight > 0);
+  
+  // Helper to get rep and weight ranges
+  const getRepRange = () => {
+    if (!exercise.sets || !exercise.sets.some(set => set.reps > 0)) return null;
+    
+    const reps = exercise.sets
+      .filter(set => set.reps > 0)
+      .map(set => set.reps);
+    
+    const minReps = Math.min(...reps);
+    const maxReps = Math.max(...reps);
+    
+    return minReps === maxReps ? `${minReps} reps` : `${minReps}-${maxReps} reps`;
+  };
+  
+  const getWeightRange = () => {
+    if (!exercise.sets || !exercise.sets.some(set => set.weight > 0)) return null;
+    
+    const weights = exercise.sets
+      .filter(set => set.weight > 0)
+      .map(set => set.weight);
+    
+    const minWeight = Math.min(...weights);
+    const maxWeight = Math.max(...weights);
+    
+    return minWeight === maxWeight ? `${minWeight}kg` : `${minWeight}-${maxWeight}kg`;
+  };
   
   // Helper to get icon for metric type
   const getMetricIcon = (type: string) => {
@@ -137,16 +162,16 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
                 <span>{getTotalSets()} sets</span>
               </div>
             )}
-            {hasReps && (
+            {getRepRange() && (
               <div className="flex items-center">
                 <Repeat className="h-3 w-3 mr-1" />
-                <span>With reps</span>
+                <span>{getRepRange()}</span>
               </div>
             )}
-            {hasWeight && (
+            {getWeightRange() && (
               <div className="flex items-center">
                 <Dumbbell className="h-3 w-3 mr-1" />
-                <span>With weights</span>
+                <span>{getWeightRange()}</span>
               </div>
             )}
             {exercise.duration > 0 && (
@@ -324,7 +349,7 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
             </div>
           )}
           
-          {/* Save button to collapse section */}
+          {/* Close button to collapse section */}
           <div className="flex justify-center mt-4">
             <Button
               variant="ghost"
@@ -335,8 +360,8 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
                 setExpanded(false);
               }}
             >
-              <Save className="h-3.5 w-3.5 mr-1" />
-              Save & Close
+              <X className="h-3.5 w-3.5 mr-1" />
+              Close
             </Button>
           </div>
         </div>
