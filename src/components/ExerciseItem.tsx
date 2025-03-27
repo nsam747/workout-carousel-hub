@@ -112,39 +112,62 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
 
   // Generate a compact summary of all sets and metrics
   const generateCompactSummary = () => {
-    if (!exercise.metrics || exercise.metrics.length === 0) return null;
+    // If there are metrics, use them
+    if (exercise.metrics && exercise.metrics.length > 0) {
+      // Group metrics by set
+      const metricsBySet: { [key: number]: PerformanceMetric[] } = {};
+      exercise.metrics.forEach(metric => {
+        const setIndex = metric.setIndex || 0;
+        if (!metricsBySet[setIndex]) metricsBySet[setIndex] = [];
+        metricsBySet[setIndex].push(metric);
+      });
+      
+      return (
+        <div className="flex flex-wrap gap-1 mt-1">
+          {Object.entries(metricsBySet).map(([setIndex, metrics]) => {
+            const sortedMetrics = sortMetrics(metrics);
+            return (
+              <Badge 
+                key={setIndex} 
+                variant="outline" 
+                className="text-xs flex items-center"
+              >
+                <span className="mr-1">Set {parseInt(setIndex) + 1}:</span>
+                {sortedMetrics.map((metric, idx) => (
+                  <span key={metric.id} className="flex items-center">
+                    {idx > 0 && " · "}
+                    {getMetricIcon(metric.type)}
+                    {metric.value} {metric.unit}
+                  </span>
+                ))}
+              </Badge>
+            );
+          })}
+        </div>
+      );
+    }
     
-    // Group metrics by set
-    const metricsBySet: { [key: number]: PerformanceMetric[] } = {};
-    exercise.metrics.forEach(metric => {
-      const setIndex = metric.setIndex || 0;
-      if (!metricsBySet[setIndex]) metricsBySet[setIndex] = [];
-      metricsBySet[setIndex].push(metric);
-    });
-    
-    return (
-      <div className="flex flex-wrap gap-1 mt-1">
-        {Object.entries(metricsBySet).map(([setIndex, metrics]) => {
-          const sortedMetrics = sortMetrics(metrics);
-          return (
-            <Badge 
-              key={setIndex} 
-              variant="outline" 
-              className="text-xs flex items-center"
-            >
-              <span className="mr-1">Set {parseInt(setIndex) + 1}:</span>
-              {sortedMetrics.map((metric, idx) => (
-                <span key={metric.id} className="flex items-center">
-                  {idx > 0 && " · "}
-                  {getMetricIcon(metric.type)}
-                  {metric.value} {metric.unit}
-                </span>
-              ))}
+    // If there are no metrics but there are sets, show the rep/weight info directly
+    if (exercise.sets && exercise.sets.length > 0) {
+      return (
+        <div className="flex flex-wrap gap-1 mt-1">
+          {getRepRange() && (
+            <Badge variant="outline" className="text-xs flex items-center">
+              <Repeat className="h-3 w-3 mr-1" />
+              {getRepRange()}
             </Badge>
-          );
-        })}
-      </div>
-    );
+          )}
+          {getWeightRange() && (
+            <Badge variant="outline" className="text-xs flex items-center">
+              <Dumbbell className="h-3 w-3 mr-1" />
+              {getWeightRange()}
+            </Badge>
+          )}
+        </div>
+      );
+    }
+    
+    return null;
   };
 
   return (
@@ -312,6 +335,35 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
                         </span>
                       </div>
                     )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {/* Display sets if there are no metrics */}
+          {(!exercise.metrics || exercise.metrics.length === 0) && exercise.sets && exercise.sets.length > 0 && (
+            <div className="mb-3">
+              <div className="flex items-center text-sm font-medium mb-2">
+                <Hash className="h-4 w-4 mr-1.5" />
+                <span>Sets</span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {exercise.sets.map((set, index) => (
+                  <div key={index} className="bg-muted/50 p-2 rounded-md">
+                    <Badge variant="outline" className="text-xs mb-1">Set {index + 1}</Badge>
+                    <div className="flex items-center justify-between text-sm">
+                      <div className="flex items-center">
+                        <Repeat className="h-3 w-3 mr-1" />
+                        <span>{set.reps} reps</span>
+                      </div>
+                      {set.weight > 0 && (
+                        <div className="flex items-center">
+                          <Dumbbell className="h-3 w-3 mr-1" />
+                          <span>{set.weight}kg</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
