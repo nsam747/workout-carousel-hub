@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -72,7 +73,6 @@
     --glass-card-background: rgba(0, 0, 0, 0.3);
     --glass-card-border: rgba(0, 0, 0, 0.2);
   }
-}
 
   body {
     @apply bg-background text-foreground;
