@@ -1,6 +1,4 @@
-
 import { v4 as uuidv4 } from 'uuid';
-import { addDays, format } from 'date-fns';
 
 export interface Workout {
   id: string;
@@ -15,26 +13,16 @@ export interface Exercise {
   id: string;
   name: string;
   type: string;
-  sets: ExerciseSet[];
+  sets?: Set[];
+  notes?: string;
   duration: number;
-  notes: string;
   media: string[];
-  metrics?: PerformanceMetric[];
 }
 
-export interface ExerciseSet {
+export interface Set {
   id: string;
-  setNumber: number;
   reps: number;
   weight: number;
-  notes?: string;
-}
-
-export interface PerformanceMetric {
-  id: string;
-  type: string; // 'weight', 'distance', 'duration', 'repetitions', 'restTime'
-  value: number;
-  unit: string; // 'kg', 'lb', 'km', 'miles', 'seconds', 'minutes', 'hours', 'reps'
 }
 
 export interface CategoryInfo {
@@ -43,322 +31,451 @@ export interface CategoryInfo {
   icon: string | null;
 }
 
-// Generate a date range for the carousel (today +/- 14 days)
-export const dateRange = Array.from({ length: 29 }, (_, i) => {
-  const date = addDays(new Date(), i - 14);
-  const isToday = i === 14;
-  return {
-    date,
-    dayName: format(date, 'EEE'),
-    dayNumber: format(date, 'd'),
-    isToday
-  };
-});
-
-const generateId = (): string => {
-  return uuidv4();
-};
-
-const today = new Date();
-const yesterday = new Date(today);
-yesterday.setDate(today.getDate() - 1);
-const twoDaysAgo = new Date(today);
-twoDaysAgo.setDate(today.getDate() - 2);
-
-// Store category information
-interface CategoryData {
-  color: string;
-  icon: string | null;
-}
-
-// Update with valid Lucide icon names
-let categoryData: Record<string, CategoryData> = {
-  "Strength": { color: "#ea384c", icon: "Dumbbell" },
-  "Cardio": { color: "#0EA5E9", icon: "Activity" },
-  "Flexibility": { color: "#10B981", icon: "Leaf" },
-  "Other": { color: "#9b87f5", icon: null }
-};
-
-let workouts: Workout[] = [
+// Mock data
+let mockWorkouts: Workout[] = [
   {
-    id: generateId(),
+    id: uuidv4(),
     title: "Morning Yoga",
-    date: yesterday,
-    category: "Flexibility",
+    date: new Date(),
+    category: "Yoga",
     exercises: [
       {
-        id: generateId(),
+        id: uuidv4(),
         name: "Sun Salutations",
-        type: "Yoga",
-        sets: [],
-        duration: 30,
+        type: "Warm-up",
+        sets: [{ id: uuidv4(), reps: 10, weight: 0 }],
         notes: "Focus on breathing",
+        duration: 15,
         media: [],
-        metrics: [
-          {
-            id: generateId(),
-            type: "duration",
-            value: 30,
-            unit: "minutes"
-          }
-        ]
+      },
+      {
+        id: uuidv4(),
+        name: "Downward Dog",
+        type: "Stretch",
+        sets: [{ id: uuidv4(), reps: 1, weight: 0 }],
+        notes: "Hold for 5 breaths",
+        duration: 5,
+        media: [],
       },
     ],
     completed: true,
   },
   {
-    id: generateId(),
-    title: "Evening Run",
-    date: today,
+    id: uuidv4(),
+    title: "Afternoon Run",
+    date: new Date(),
     category: "Cardio",
     exercises: [
       {
-        id: generateId(),
+        id: uuidv4(),
         name: "Treadmill Run",
-        type: "Running",
-        sets: [],
-        duration: 45,
-        notes: "Maintain pace",
+        type: "Cardio",
+        sets: [{ id: uuidv4(), reps: 30, weight: 0 }],
+        notes: "Moderate pace",
+        duration: 30,
         media: [],
-        metrics: [
-          {
-            id: generateId(),
-            type: "distance",
-            value: 5,
-            unit: "km"
-          },
-          {
-            id: generateId(),
-            type: "duration",
-            value: 45,
-            unit: "minutes"
-          }
-        ]
       },
     ],
     completed: false,
   },
   {
-    id: generateId(),
-    title: "Strength Training",
-    date: twoDaysAgo,
-    category: "Strength",
+    id: uuidv4(),
+    title: "Evening Lift",
+    date: new Date(),
+    category: "Strength Training",
     exercises: [
       {
-        id: generateId(),
+        id: uuidv4(),
         name: "Bench Press",
-        type: "Strength",
+        type: "Chest",
         sets: [
-          { id: generateId(), setNumber: 1, reps: 8, weight: 100 },
-          { id: generateId(), setNumber: 2, reps: 8, weight: 100 },
-          { id: generateId(), setNumber: 3, reps: 6, weight: 100 },
+          { id: uuidv4(), reps: 8, weight: 70 },
+          { id: uuidv4(), reps: 8, weight: 70 },
+          { id: uuidv4(), reps: 8, weight: 70 },
         ],
-        duration: 0,
         notes: "Controlled movements",
+        duration: 20,
         media: [],
-        metrics: [
-          {
-            id: generateId(),
-            type: "weight",
-            value: 100,
-            unit: "kg"
-          },
-          {
-            id: generateId(),
-            type: "repetitions",
-            value: 8,
-            unit: "reps"
-          },
-          {
-            id: generateId(),
-            type: "repetitions",
-            value: 8,
-            unit: "reps"
-          }
-        ]
       },
       {
-        id: generateId(),
-        name: "Squats",
-        type: "Strength",
+        id: uuidv4(),
+        name: "Bicep Curls",
+        type: "Arms",
         sets: [
-          { id: generateId(), setNumber: 1, reps: 10, weight: 150 },
-          { id: generateId(), setNumber: 2, reps: 8, weight: 150 },
-          { id: generateId(), setNumber: 3, reps: 6, weight: 150 },
+          { id: uuidv4(), reps: 10, weight: 30 },
+          { id: uuidv4(), reps: 10, weight: 30 },
+          { id: uuidv4(), reps: 10, weight: 30 },
         ],
-        duration: 0,
-        notes: "Full range of motion",
+        notes: "Use proper form",
+        duration: 15,
         media: [],
-        metrics: [
-          {
-            id: generateId(),
-            type: "weight",
-            value: 150,
-            unit: "kg"
-          },
-          {
-            id: generateId(),
-            type: "repetitions",
-            value: 10,
-            unit: "reps"
-          }
-        ]
+      },
+    ],
+    completed: false,
+  },
+  {
+    id: uuidv4(),
+    title: "Core workout",
+    date: new Date('2024-07-07'),
+    category: "Core",
+    exercises: [
+      {
+        id: uuidv4(),
+        name: "Crunches",
+        type: "Abs",
+        sets: [
+          { id: uuidv4(), reps: 20, weight: 0 },
+          { id: uuidv4(), reps: 20, weight: 0 },
+          { id: uuidv4(), reps: 20, weight: 0 },
+        ],
+        notes: "Engage core",
+        duration: 10,
+        media: [],
+      },
+    ],
+    completed: true,
+  },
+  {
+    id: uuidv4(),
+    title: "Leg day",
+    date: new Date('2024-07-06'),
+    category: "Strength Training",
+    exercises: [
+      {
+        id: uuidv4(),
+        name: "Squats",
+        type: "Legs",
+        sets: [
+          { id: uuidv4(), reps: 12, weight: 50 },
+          { id: uuidv4(), reps: 10, weight: 60 },
+          { id: uuidv4(), reps: 8, weight: 70 },
+        ],
+        notes: "Keep back straight",
+        duration: 25,
+        media: [],
+      },
+    ],
+    completed: true,
+  },
+  {
+    id: uuidv4(),
+    title: "Swimming",
+    date: new Date('2024-07-06'),
+    category: "Cardio",
+    exercises: [
+      {
+        id: uuidv4(),
+        name: "Freestyle",
+        type: "Swimming",
+        sets: [{ id: uuidv4(), reps: 40, weight: 0 }],
+        notes: "Maintain rhythm",
+        duration: 40,
+        media: [],
+      },
+    ],
+    completed: true,
+  },
+  {
+    id: uuidv4(),
+    title: "Restorative Yoga",
+    date: new Date('2024-07-05'),
+    category: "Yoga",
+    exercises: [
+      {
+        id: uuidv4(),
+        name: "Child's Pose",
+        type: "Stretch",
+        sets: [{ id: uuidv4(), reps: 1, weight: 0 }],
+        notes: "Relax and breathe",
+        duration: 10,
+        media: [],
+      },
+    ],
+    completed: true,
+  },
+  {
+    id: uuidv4(),
+    title: "Rock Climbing",
+    date: new Date('2024-07-04'),
+    category: "Other",
+    exercises: [
+      {
+        id: uuidv4(),
+        name: "Top Rope Climb",
+        type: "Climbing",
+        sets: [{ id: uuidv4(), reps: 1, weight: 0 }],
+        notes: "Focus on technique",
+        duration: 60,
+        media: [],
+      },
+    ],
+    completed: true,
+  },
+  {
+    id: uuidv4(),
+    title: "Cycling",
+    date: new Date('2024-07-03'),
+    category: "Cardio",
+    exercises: [
+      {
+        id: uuidv4(),
+        name: "Outdoor Ride",
+        type: "Cycling",
+        sets: [{ id: uuidv4(), reps: 60, weight: 0 }],
+        notes: "Enjoy the scenery",
+        duration: 60,
+        media: [],
+      },
+    ],
+    completed: true,
+  },
+  {
+    id: uuidv4(),
+    title: "Pilates",
+    date: new Date('2024-07-02'),
+    category: "Core",
+    exercises: [
+      {
+        id: uuidv4(),
+        name: "The Hundred",
+        type: "Abs",
+        sets: [{ id: uuidv4(), reps: 100, weight: 0 }],
+        notes: "Engage core",
+        duration: 15,
+        media: [],
+      },
+    ],
+    completed: true,
+  },
+  {
+    id: uuidv4(),
+    title: "Strength and Conditioning",
+    date: new Date('2024-07-01'),
+    category: "Strength Training",
+    exercises: [
+      {
+        id: uuidv4(),
+        name: "Deadlifts",
+        type: "Back",
+        sets: [
+          { id: uuidv4(), reps: 5, weight: 100 },
+          { id: uuidv4(), reps: 5, weight: 100 },
+          { id: uuidv4(), reps: 5, weight: 100 },
+        ],
+        notes: "Maintain form",
+        duration: 30,
+        media: [],
       },
     ],
     completed: true,
   },
 ];
 
-// Store all exercises for reuse
-let savedExercises: Exercise[] = [];
+let savedExercises: Exercise[] = [
+  {
+    id: uuidv4(),
+    name: "Push-ups",
+    type: "Chest",
+    duration: 0,
+    media: [],
+  },
+  {
+    id: uuidv4(),
+    name: "Squats",
+    type: "Legs",
+    duration: 0,
+    media: [],
+  },
+  {
+    id: uuidv4(),
+    name: "Plank",
+    type: "Core",
+    duration: 0,
+    media: [],
+  },
+  {
+    id: uuidv4(),
+    name: "Bicep Curls",
+    type: "Arms",
+    duration: 0,
+    media: [],
+  },
+  {
+    id: uuidv4(),
+    name: "Bench Press",
+    type: "Chest",
+    duration: 0,
+    media: [],
+  },
+  {
+    id: uuidv4(),
+    name: "Deadlifts",
+    type: "Back",
+    duration: 0,
+    media: [],
+  },
+  {
+    id: uuidv4(),
+    name: "Lunges",
+    type: "Legs",
+    duration: 0,
+    media: [],
+  },
+  {
+    id: uuidv4(),
+    name: "Crunches",
+    type: "Core",
+    duration: 0,
+    media: [],
+  },
+  {
+    id: uuidv4(),
+    name: "Pull-ups",
+    type: "Back",
+    duration: 0,
+    media: [],
+  },
+  {
+    id: uuidv4(),
+    name: "Overhead Press",
+    type: "Shoulders",
+    duration: 0,
+    media: [],
+  },
+];
 
-// Initialize saved exercises from workouts
-workouts.forEach(workout => {
-  workout.exercises.forEach(exercise => {
-    if (!savedExercises.some(e => e.name === exercise.name && e.type === exercise.type)) {
-      // Create a copy without the sets and other workout-specific data
-      const savedExercise: Exercise = {
-        id: generateId(),
-        name: exercise.name,
-        type: exercise.type,
-        sets: [],
-        duration: 0,
-        notes: "",
-        media: []
-      };
-      savedExercises.push(savedExercise);
-    }
-  });
-});
+const mockCategories: CategoryInfo[] = [
+  { name: "Strength Training", color: "#FF5733", icon: "Dumbbell" },
+  { name: "Cardio", color: "#3498DB", icon: "Activity" },
+  { name: "Yoga", color: "#2ECC71", icon: "Yoga" },
+  { name: "Core", color: "#F1C40F", icon: "Tornado" },
+  { name: "Other", color: "#9B59B6", icon: "HelpCircle" },
+];
 
+// Function to get workouts by date
 export const getWorkoutsByDate = (date: Date): Workout[] => {
-  return workouts.filter(
-    (workout) =>
+  return mockWorkouts.filter((workout) => {
+    return (
       workout.date.getFullYear() === date.getFullYear() &&
       workout.date.getMonth() === date.getMonth() &&
       workout.date.getDate() === date.getDate()
-  );
+    );
+  });
 };
 
-export const getCategoryColor = (category: string): string => {
-  switch (category) {
-    case "Strength":
-      return "border-red-500";
-    case "Cardio":
-      return "border-blue-500";
-    case "Flexibility":
-      return "border-green-500";
-    default:
-      return "border-gray-500";
-  }
-};
-
-// Function to get all unique categories from workouts
+// Function to get all categories
 export const getAllCategories = (): string[] => {
-  const categories = workouts.map((workout) => workout.category);
-  const uniqueCategories = [...new Set(categories)];
-  return uniqueCategories;
+  return mockCategories.map((category) => category.name);
 };
 
-// Function to get category info (name, color, and icon)
-export const getCategoryInfo = (category: string): CategoryInfo => {
-  const data = categoryData[category] || { color: "#9b87f5", icon: null };
-  return {
-    name: category,
-    color: data.color,
-    icon: data.icon
-  };
-};
-
-// Function to add a new category with color and optional icon
-export const addCategory = (category: string, color: string = "#9b87f5", icon: string | null = null): void => {
-  // In a real app, this would update a database
-  // For now, we just make sure our mock data includes this category
-  // and store the color and icon
-  if (!getAllCategories().includes(category)) {
-    categoryData[category] = { color, icon };
-    
-    const sampleWorkout: Workout = {
-      id: generateId(),
-      title: "Sample Workout",
-      date: new Date(),
-      category,
-      exercises: [],
-      completed: false,
-    };
-    workouts.push(sampleWorkout);
-  }
-};
-
-// Function to update a category name, color, and/or icon
-export const updateCategory = (oldName: string, newName: string, color: string, icon: string | null): void => {
-  // Update category info
-  if (oldName === newName) {
-    // Just updating the color/icon
-    categoryData[oldName] = { color, icon };
-  } else {
-    // Changing name and possibly color/icon
-    delete categoryData[oldName];
-    categoryData[newName] = { color, icon };
-    
-    // Update all workouts with this category
-    workouts.forEach(workout => {
-      if (workout.category === oldName) {
-        workout.category = newName;
-      }
-    });
-  }
+// Function to get category info
+export const getCategoryInfo = (categoryName: string): CategoryInfo => {
+  const category = mockCategories.find((cat) => cat.name === categoryName);
+  return category || { name: "Other", color: "#9B59B6", icon: "HelpCircle" };
 };
 
 // Function to create a new workout
 export const createWorkout = (workout: Partial<Workout>): Workout => {
   const newWorkout: Workout = {
-    id: generateId(),
-    title: workout.title || "New Workout",
+    id: uuidv4(),
+    title: workout.title || "Workout",
     date: workout.date || new Date(),
     category: workout.category || "Other",
     exercises: workout.exercises || [],
     completed: workout.completed || false,
   };
-  
-  workouts.push(newWorkout);
+  mockWorkouts.push(newWorkout);
   return newWorkout;
 };
 
-// Function to get unique exercise types
+// Function to get exercise types
 export const getExerciseTypes = (): string[] => {
-  const types = [
-    "Strength",
-    "Cardio",
-    "Flexibility",
-    "Balance",
-    "HIIT",
-    "Plyometric",
-    "Bodyweight",
-    "Other"
-  ];
-  return types;
+  const types = savedExercises.map(exercise => exercise.type);
+  return [...new Set(types)]; // Remove duplicates
 };
 
-// Function to get all saved exercises
+// Function to get saved exercises
 export const getSavedExercises = (): Exercise[] => {
-  return [...savedExercises];
+  return savedExercises;
 };
 
-// Function to add a new saved exercise
+// Function to save an exercise
 export const saveExercise = (exercise: Exercise): void => {
-  // Don't save duplicates
-  if (!savedExercises.some(e => e.name === exercise.name && e.type === exercise.type)) {
-    // Create a copy without the specific workout details
-    const savedExercise: Exercise = {
-      id: generateId(),
-      name: exercise.name,
-      type: exercise.type,
-      sets: [],
-      duration: 0,
-      notes: "",
-      media: []
-    };
-    savedExercises.push(savedExercise);
+  const existingIndex = savedExercises.findIndex(ex => ex.id === exercise.id);
+  
+  if (existingIndex > -1) {
+    // Replace existing exercise
+    savedExercises[existingIndex] = exercise;
+  } else {
+    // Add new exercise
+    savedExercises.push(exercise);
   }
+};
+
+// Generate date range for the calendar
+const getDaysInMonth = (month: number, year: number) => {
+  return new Date(year, month, 0).getDate();
+};
+
+const today = new Date();
+const currentYear = today.getFullYear();
+const currentMonth = today.getMonth();
+const currentDay = today.getDate();
+
+export const dateRange: {
+  date: Date;
+  dayNumber: number;
+  dayName: string;
+  isToday: boolean;
+}[] = [];
+
+for (let i = -30; i <= 30; i++) {
+  const date = new Date(currentYear, currentMonth, currentDay + i);
+  const dayNumber = date.getDate();
+  const dayName = date.toLocaleDateString("en-US", { weekday: "short" });
+  const isToday = i === 0;
+
+  dateRange.push({
+    date,
+    dayNumber,
+    dayName,
+    isToday,
+  });
+}
+
+// Add these new functions to retrieve yesterday's and past week's workouts
+export const getWorkoutsForYesterday = (): Workout[] => {
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  
+  // Set to beginning of the day
+  yesterday.setHours(0, 0, 0, 0);
+  
+  return mockWorkouts.filter(workout => {
+    const workoutDate = new Date(workout.date);
+    return (
+      workoutDate.getFullYear() === yesterday.getFullYear() &&
+      workoutDate.getMonth() === yesterday.getMonth() &&
+      workoutDate.getDate() === yesterday.getDate()
+    );
+  });
+};
+
+export const getWorkoutsForPastWeek = (): Workout[] => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const twoDaysAgo = new Date(today);
+  twoDaysAgo.setDate(today.getDate() - 2);
+  
+  const sixDaysAgo = new Date(today);
+  sixDaysAgo.setDate(today.getDate() - 6);
+  
+  return mockWorkouts.filter(workout => {
+    const workoutDate = new Date(workout.date);
+    workoutDate.setHours(0, 0, 0, 0);
+    
+    // Between 2 and 6 days ago
+    return workoutDate >= sixDaysAgo && workoutDate <= twoDaysAgo;
+  });
 };

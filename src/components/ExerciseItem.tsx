@@ -1,9 +1,20 @@
 
 import React, { useState } from "react";
 import { Exercise } from "@/lib/mockData";
-import { ChevronDown, ChevronUp, Clock, Dumbbell, Hash, StickyNote, Ruler, Timer, Repeat, Clock3 } from "lucide-react";
+import { ChevronDown, ChevronUp, Clock, Dumbbell, Hash, StickyNote, Ruler, Timer, Repeat, Clock3, Edit, Image, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
+import { Card } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 
 interface ExerciseItemProps {
   exercise: Exercise;
@@ -11,6 +22,9 @@ interface ExerciseItemProps {
 
 const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
   const [expanded, setExpanded] = useState(false);
+  const [editingMetricId, setEditingMetricId] = useState<string | null>(null);
+  const [editedMetricValue, setEditedMetricValue] = useState<number>(0);
+  const [editedMetricUnit, setEditedMetricUnit] = useState<string>("");
 
   const toggleExpanded = () => setExpanded(!expanded);
 
@@ -37,6 +51,77 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
     }
   };
 
+  // Helper to sort metrics by priority
+  const sortMetrics = (metrics: any[]) => {
+    const priorityOrder: Record<string, number> = {
+      "weight": 1,
+      "duration": 2,
+      "distance": 3,
+      "repetitions": 4,
+      "restTime": 5
+    };
+    
+    return [...metrics].sort((a, b) => 
+      (priorityOrder[a.type] || 99) - (priorityOrder[b.type] || 99)
+    );
+  };
+
+  // Function to handle metric edit start
+  const handleEditMetric = (metricId: string, currentValue: number, currentUnit: string) => {
+    setEditingMetricId(metricId);
+    setEditedMetricValue(currentValue);
+    setEditedMetricUnit(currentUnit);
+  };
+
+  // Function to save edited metric
+  const handleSaveMetricEdit = (metricId: string, metricIndex: number, setIndex: number) => {
+    // In a real app, you would update the metric in the database
+    // For mock data, we'd need to modify the exercise object
+    console.log(`Updated metric ${metricId} with value: ${editedMetricValue} ${editedMetricUnit}`);
+    setEditingMetricId(null);
+  };
+
+  // Check if exercise has notes or media
+  const hasNotes = exercise.notes && exercise.notes.trim().length > 0;
+  const hasMedia = exercise.media && exercise.media.length > 0;
+
+  // Generate a compact summary of all sets and metrics
+  const generateCompactSummary = () => {
+    if (!exercise.metrics || exercise.metrics.length === 0) return null;
+    
+    // Group metrics by set
+    const metricsBySet: { [key: number]: any[] } = {};
+    exercise.metrics.forEach(metric => {
+      const setIndex = metric.setIndex || 0;
+      if (!metricsBySet[setIndex]) metricsBySet[setIndex] = [];
+      metricsBySet[setIndex].push(metric);
+    });
+    
+    return (
+      <div className="flex flex-wrap gap-1 mt-1">
+        {Object.entries(metricsBySet).map(([setIndex, metrics]) => {
+          const sortedMetrics = sortMetrics(metrics);
+          return (
+            <Badge 
+              key={setIndex} 
+              variant="outline" 
+              className="text-xs flex items-center"
+            >
+              <span className="mr-1">Set {parseInt(setIndex) + 1}:</span>
+              {sortedMetrics.map((metric, idx) => (
+                <span key={metric.id} className="flex items-center">
+                  {idx > 0 && " · "}
+                  {getMetricIcon(metric.type)}
+                  {metric.value} {metric.unit}
+                </span>
+              ))}
+            </Badge>
+          );
+        })}
+      </div>
+    );
+  };
+
   return (
     <div className="mb-3 rounded-md bg-white/90 border border-border shadow-sm overflow-hidden animate-slide-up animation-delay-100">
       <div 
@@ -45,7 +130,7 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
       >
         <div className="flex-1">
           <h4 className="font-medium">{exercise.name}</h4>
-          <div className="flex items-center text-sm text-muted-foreground mt-1 space-x-3">
+          <div className="flex flex-wrap items-center text-sm text-muted-foreground mt-1 gap-2">
             {getTotalSets() > 0 && (
               <div className="flex items-center">
                 <Hash className="h-3 w-3 mr-1" />
@@ -70,7 +155,20 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
                 <span>{exercise.duration} min</span>
               </div>
             )}
+            {hasNotes && (
+              <div className="flex items-center">
+                <StickyNote className="h-3 w-3 mr-1" />
+              </div>
+            )}
+            {hasMedia && (
+              <div className="flex items-center">
+                <Image className="h-3 w-3 mr-1" />
+              </div>
+            )}
           </div>
+          
+          {/* Compact summary of all sets */}
+          {!expanded && generateCompactSummary()}
         </div>
         <Button
           variant="ghost"
@@ -95,17 +193,100 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
                 <span>Performance</span>
               </div>
               <div className="grid grid-cols-2 gap-2">
-                {exercise.metrics.map((metric, index) => (
+                {sortMetrics(exercise.metrics).map((metric, index) => (
                   <div key={index} className="bg-muted/50 p-2 rounded-md">
                     <div className="flex items-center justify-between">
-                      <Badge variant="outline" className="text-xs">Set {index + 1}</Badge>
+                      <Badge variant="outline" className="text-xs">Set {(metric.setIndex || 0) + 1}</Badge>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditMetric(metric.id, metric.value, metric.unit);
+                        }}
+                      >
+                        <Edit className="h-3 w-3" />
+                      </Button>
                     </div>
-                    <div className="mt-1.5 flex items-center">
-                      {getMetricIcon(metric.type)}
-                      <span className="text-sm">
-                        {metric.value} {metric.unit}
-                      </span>
-                    </div>
+                    {editingMetricId === metric.id ? (
+                      <div className="mt-1.5 space-y-2">
+                        <div className="flex items-end gap-2">
+                          <div className="flex-1">
+                            <Label htmlFor={`metric-value-${metric.id}`} className="text-xs">Value</Label>
+                            <Input
+                              id={`metric-value-${metric.id}`}
+                              type="number"
+                              min={0}
+                              step={metric.type === "weight" ? 2.5 : 1}
+                              value={editedMetricValue}
+                              onChange={(e) => setEditedMetricValue(Number(e.target.value))}
+                              className="h-7 text-sm"
+                            />
+                          </div>
+                          
+                          {metric.type !== "repetitions" && (
+                            <div className="flex-1">
+                              <Label htmlFor={`metric-unit-${metric.id}`} className="text-xs">Unit</Label>
+                              <Select 
+                                value={editedMetricUnit} 
+                                onValueChange={setEditedMetricUnit}
+                              >
+                                <SelectTrigger id={`metric-unit-${metric.id}`} className="h-7 text-sm">
+                                  <SelectValue placeholder="Unit" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {metric.type === "weight" && (
+                                    <>
+                                      <SelectItem value="kg">kg</SelectItem>
+                                      <SelectItem value="lb">lb</SelectItem>
+                                    </>
+                                  )}
+                                  {metric.type === "distance" && (
+                                    <>
+                                      <SelectItem value="km">km</SelectItem>
+                                      <SelectItem value="miles">miles</SelectItem>
+                                    </>
+                                  )}
+                                  {metric.type === "duration" && (
+                                    <>
+                                      <SelectItem value="seconds">seconds</SelectItem>
+                                      <SelectItem value="minutes">minutes</SelectItem>
+                                      <SelectItem value="hours">hours</SelectItem>
+                                    </>
+                                  )}
+                                  {metric.type === "restTime" && (
+                                    <>
+                                      <SelectItem value="seconds">seconds</SelectItem>
+                                      <SelectItem value="minutes">minutes</SelectItem>
+                                    </>
+                                  )}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          )}
+                          
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="h-7 px-2"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSaveMetricEdit(metric.id, index, metric.setIndex || 0);
+                            }}
+                          >
+                            Save
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="mt-1.5 flex items-center">
+                        {getMetricIcon(metric.type)}
+                        <span className="text-sm">
+                          {metric.value} {metric.unit}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -142,6 +323,22 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
               </div>
             </div>
           )}
+          
+          {/* Save button to collapse section */}
+          <div className="flex justify-center mt-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-xs h-7 flex items-center"
+              onClick={(e) => {
+                e.stopPropagation();
+                setExpanded(false);
+              }}
+            >
+              <Save className="h-3.5 w-3.5 mr-1" />
+              Save & Close
+            </Button>
+          </div>
         </div>
       )}
     </div>

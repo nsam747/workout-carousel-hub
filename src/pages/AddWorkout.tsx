@@ -1,8 +1,8 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, Plus, Tag, ArrowLeft, Save } from "lucide-react";
+import { Calendar as CalendarIcon, Plus, Tag, ArrowLeft, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -19,6 +19,7 @@ import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import AddExerciseForm from "@/components/AddExerciseForm";
 import CategorySelector from "@/components/CategorySelector";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const AddWorkout = () => {
   const navigate = useNavigate();
@@ -27,13 +28,22 @@ const AddWorkout = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [showAddExercise, setShowAddExercise] = useState(false);
-  const [categories] = useState(getAllCategories());
+  const [categories, setCategories] = useState(getAllCategories());
+  const [showLongPressMenu, setShowLongPressMenu] = useState(false);
+  const [longPressCategory, setLongPressCategory] = useState<string>("");
+  
+  // Initialize with the first category
+  useEffect(() => {
+    const allCategories = getAllCategories();
+    setCategories(allCategories);
+    if (allCategories.length > 0 && selectedCategory === "") {
+      setSelectedCategory(allCategories[0]);
+    }
+  }, [selectedCategory]);
   
   const handleSaveWorkout = () => {
-    if (!title.trim()) {
-      toast.error("Please enter a workout title");
-      return;
-    }
+    // Use "Workout" as the default title if none provided
+    const workoutTitle = title.trim() ? title.trim() : "Workout";
     
     if (!selectedCategory) {
       toast.error("Please select a category");
@@ -46,7 +56,7 @@ const AddWorkout = () => {
     }
     
     const newWorkout: Partial<Workout> = {
-      title,
+      title: workoutTitle,
       date: selectedDate,
       category: selectedCategory,
       exercises,
@@ -67,10 +77,22 @@ const AddWorkout = () => {
     setExercises(exercises.filter(exercise => exercise.id !== id));
   };
   
+  const handleExerciseUpdate = (updatedExercise: Exercise) => {
+    setExercises(prev => 
+      prev.map(ex => ex.id === updatedExercise.id ? updatedExercise : ex)
+    );
+  };
+  
+  const handleLongPress = (category: string) => {
+    setLongPressCategory(category);
+    setShowLongPressMenu(true);
+  };
+  
   return (
-    <div className="bg-gradient-to-b from-background to-secondary/50 min-h-screen">
-      <div className="max-w-2xl mx-auto px-4 py-8">
-        <header className="mb-6 flex items-center justify-between">
+    <div className="bg-gradient-to-b from-background to-secondary/50 min-h-screen pb-20">
+      {/* Sticky header */}
+      <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border/40 shadow-sm mb-6">
+        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
           <Button 
             variant="ghost" 
             size="icon" 
@@ -80,24 +102,26 @@ const AddWorkout = () => {
             <ArrowLeft className="h-5 w-5" />
             <span className="sr-only">Back</span>
           </Button>
-          <h1 className="text-2xl font-bold">New Workout</h1>
+          <h1 className="text-xl font-bold">New Workout</h1>
           <Button 
             onClick={handleSaveWorkout}
-            size="icon"
-            className="rounded-full h-10 w-10 bg-primary"
+            size="sm"
+            className="rounded-full bg-primary hover:bg-primary/90"
           >
-            <Save className="h-5 w-5" />
-            <span className="sr-only">Save workout</span>
+            <Check className="h-4 w-4 mr-1" />
+            Save
           </Button>
-        </header>
-        
+        </div>
+      </header>
+      
+      <div className="max-w-2xl mx-auto px-4">
         <div className="space-y-6">
           {/* Title input */}
           <div>
             <Input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Workout title"
+              placeholder="Workout title (optional)"
               className="text-lg font-medium"
             />
           </div>
@@ -136,6 +160,7 @@ const AddWorkout = () => {
               categories={categories}
               selectedCategory={selectedCategory}
               onSelectCategory={setSelectedCategory}
+              onLongPress={handleLongPress}
             />
           </div>
           
@@ -170,6 +195,7 @@ const AddWorkout = () => {
                     key={exercise.id} 
                     exercise={exercise}
                     onRemove={handleRemoveExercise}
+                    onExerciseUpdate={handleExerciseUpdate}
                   />
                 ))
               ) : (
@@ -184,6 +210,21 @@ const AddWorkout = () => {
           </div>
         </div>
       </div>
+      
+      {/* Category Edit Dialog */}
+      <Dialog open={showLongPressMenu} onOpenChange={setShowLongPressMenu}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Category</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <p>This is where category editing will be implemented in the future.</p>
+            <div className="flex justify-end">
+              <Button onClick={() => setShowLongPressMenu(false)}>Close</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
