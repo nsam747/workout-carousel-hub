@@ -166,7 +166,7 @@ const AddWorkout = () => {
               <div className="p-6">
                 <h2 className="text-lg font-semibold mb-4">Add Exercise</h2>
                 <AddExerciseForm 
-                  onAdd={handleAddExercise}
+                  onAddExercise={handleAddExercise}
                   onCancel={() => setIsAddingExercise(false)}
                 />
               </div>
