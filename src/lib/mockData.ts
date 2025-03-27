@@ -1,4 +1,3 @@
-
 import { v4 as uuidv4 } from 'uuid';
 
 export interface Workout {
@@ -382,6 +381,45 @@ export const getAllCategories = (): string[] => {
 export const getCategoryInfo = (categoryName: string): CategoryInfo => {
   const category = mockCategories.find((cat) => cat.name === categoryName);
   return category || { name: "Other", color: "#9B59B6", icon: "HelpCircle" };
+};
+
+// Function to create a new category
+export const createCategory = (categoryInfo: Omit<CategoryInfo, 'name'> & { name: string }): void => {
+  // Check if category with this name already exists
+  const existingIndex = mockCategories.findIndex(cat => cat.name === categoryInfo.name);
+  
+  if (existingIndex === -1) {
+    // Add new category if it doesn't exist
+    mockCategories.push({
+      name: categoryInfo.name,
+      color: categoryInfo.color,
+      icon: categoryInfo.icon
+    });
+  }
+};
+
+// Function to update an existing category
+export const updateCategory = (oldName: string, categoryInfo: Omit<CategoryInfo, 'name'> & { name: string }): void => {
+  // Find the category index
+  const categoryIndex = mockCategories.findIndex(cat => cat.name === oldName);
+  
+  if (categoryIndex !== -1) {
+    // Update the category
+    mockCategories[categoryIndex] = {
+      name: categoryInfo.name,
+      color: categoryInfo.color,
+      icon: categoryInfo.icon
+    };
+    
+    // Update all workouts that use this category
+    if (oldName !== categoryInfo.name) {
+      mockWorkouts.forEach(workout => {
+        if (workout.category === oldName) {
+          workout.category = categoryInfo.name;
+        }
+      });
+    }
+  }
 };
 
 // Function to create a new workout
