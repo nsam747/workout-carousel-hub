@@ -30,8 +30,31 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
 
   // Helper to get total reps/weight from sets if available
   const getTotalSets = () => exercise.sets?.length || 0;
-  const hasReps = exercise.sets?.some(set => set.reps > 0);
-  const hasWeight = exercise.sets?.some(set => set.weight > 0);
+  
+  // Get rep and weight ranges
+  const getRepRange = () => {
+    if (!exercise.sets || exercise.sets.length === 0) return null;
+    
+    const reps = exercise.sets.map(set => set.reps).filter(rep => rep > 0);
+    if (reps.length === 0) return null;
+    
+    const minReps = Math.min(...reps);
+    const maxReps = Math.max(...reps);
+    
+    return minReps === maxReps ? `${minReps} reps` : `${minReps}-${maxReps} reps`;
+  };
+  
+  const getWeightRange = () => {
+    if (!exercise.sets || exercise.sets.length === 0) return null;
+    
+    const weights = exercise.sets.map(set => set.weight).filter(weight => weight > 0);
+    if (weights.length === 0) return null;
+    
+    const minWeight = Math.min(...weights);
+    const maxWeight = Math.max(...weights);
+    
+    return minWeight === maxWeight ? `${minWeight}kg` : `${minWeight}-${maxWeight}kg`;
+  };
   
   // Helper to get icon for metric type
   const getMetricIcon = (type: string) => {
@@ -137,16 +160,16 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
                 <span>{getTotalSets()} sets</span>
               </div>
             )}
-            {hasReps && (
+            {getRepRange() && (
               <div className="flex items-center">
                 <Repeat className="h-3 w-3 mr-1" />
-                <span>With reps</span>
+                <span>{getRepRange()}</span>
               </div>
             )}
-            {hasWeight && (
+            {getWeightRange() && (
               <div className="flex items-center">
                 <Dumbbell className="h-3 w-3 mr-1" />
-                <span>With weights</span>
+                <span>{getWeightRange()}</span>
               </div>
             )}
             {exercise.duration > 0 && (
