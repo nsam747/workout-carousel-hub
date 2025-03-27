@@ -1,179 +1,230 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, PlusCircle, Save } from "lucide-react";
+import { format } from "date-fns";
+import { Calendar as CalendarIcon, Plus, Tag, ArrowLeft, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import CategorySelector from "@/components/CategorySelector";
-import AddExerciseForm from "@/components/AddExerciseForm";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+import { Workout, Exercise, getAllCategories, createWorkout } from "@/lib/mockData";
 import ExerciseListItem from "@/components/ExerciseListItem";
-import { getAllCategories } from "@/lib/mockData";
+import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
-
-interface Exercise {
-  id: string;
-  name: string;
-  type: string;
-  sets?: { id: string; reps: number; weight: number }[];
-  notes?: string;
-  duration: number;
-  media: string[];
-}
+import AddExerciseForm from "@/components/AddExerciseForm";
+import CategorySelector from "@/components/CategorySelector";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const AddWorkout = () => {
   const navigate = useNavigate();
   const [title, setTitle] = useState("");
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [exercises, setExercises] = useState<Exercise[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState(getAllCategories()[0] || "");
-  const [isAddingExercise, setIsAddingExercise] = useState(false);
+  const [showAddExercise, setShowAddExercise] = useState(false);
+  const [categories, setCategories] = useState(getAllCategories());
+  const [showLongPressMenu, setShowLongPressMenu] = useState(false);
+  const [longPressCategory, setLongPressCategory] = useState<string>("");
   
-  const handleAddExercise = (exercise: Exercise) => {
-    setExercises([...exercises, exercise]);
-    setIsAddingExercise(false);
-  };
-  
-  const handleRemoveExercise = (exerciseId: string) => {
-    setExercises(exercises.filter(exercise => exercise.id !== exerciseId));
-  };
+  // Initialize with the first category
+  useEffect(() => {
+    const allCategories = getAllCategories();
+    setCategories(allCategories);
+    if (allCategories.length > 0 && selectedCategory === "") {
+      setSelectedCategory(allCategories[0]);
+    }
+  }, [selectedCategory]);
   
   const handleSaveWorkout = () => {
-    // This would typically save to a database
-    // For now, we'll just show a success toast and navigate back
-    const workoutTitle = title.trim() || "Workout"; // Default to "Workout" if title is empty
+    // Use "Workout" as the default title if none provided
+    const workoutTitle = title.trim() ? title.trim() : "Workout";
     
-    toast.success("Workout saved successfully!", {
-      description: `'${workoutTitle}' has been added to your workouts.`,
-    });
+    if (!selectedCategory) {
+      toast.error("Please select a category");
+      return;
+    }
     
+    if (exercises.length === 0) {
+      toast.error("Please add at least one exercise");
+      return;
+    }
+    
+    const newWorkout: Partial<Workout> = {
+      title: workoutTitle,
+      date: selectedDate,
+      category: selectedCategory,
+      exercises,
+      completed: false,
+    };
+    
+    createWorkout(newWorkout);
+    toast.success("Workout saved successfully!");
     navigate("/");
   };
   
-  const handleCreateCategory = (categoryName: string) => {
-    // In a real app, you would add this to your database
-    console.log(`Created new category: ${categoryName}`);
-    // Select the new category immediately
-    setSelectedCategory(categoryName);
-    
-    toast.success("Category created", {
-      description: `New category '${categoryName}' has been created.`,
-    });
+  const handleAddExercise = (exercise: Exercise) => {
+    setExercises([...exercises, exercise]);
+    setShowAddExercise(false);
+  };
+  
+  const handleRemoveExercise = (id: string) => {
+    setExercises(exercises.filter(exercise => exercise.id !== id));
+  };
+  
+  const handleExerciseUpdate = (updatedExercise: Exercise) => {
+    setExercises(prev => 
+      prev.map(ex => ex.id === updatedExercise.id ? updatedExercise : ex)
+    );
+  };
+  
+  const handleLongPress = (category: string) => {
+    setLongPressCategory(category);
+    setShowLongPressMenu(true);
   };
   
   return (
     <div className="bg-gradient-to-b from-background to-secondary/50 min-h-screen pb-20">
       {/* Sticky header */}
-      <div className="bg-background/95 backdrop-blur-sm sticky top-0 z-10 border-b border-border/40 shadow-sm">
-        <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate(-1)}
-            className="rounded-full"
+      <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border/40 shadow-sm mb-6">
+        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => navigate("/")}
+            className="rounded-full h-10 w-10"
           >
             <ArrowLeft className="h-5 w-5" />
+            <span className="sr-only">Back</span>
           </Button>
-          
-          <h1 className="text-lg font-semibold">New Workout</h1>
-          
+          <h1 className="text-xl font-bold">New Workout</h1>
           <Button 
             onClick={handleSaveWorkout}
             size="sm"
-            className="rounded-full"
+            className="rounded-full bg-primary hover:bg-primary/90"
           >
-            <Save className="h-4 w-4 mr-2" />
+            <Check className="h-4 w-4 mr-1" />
             Save
           </Button>
         </div>
-      </div>
+      </header>
       
-      <div className="max-w-2xl mx-auto px-4 py-6">
+      <div className="max-w-2xl mx-auto px-4">
         <div className="space-y-6">
-          {/* Workout Title */}
+          {/* Title input */}
           <div>
-            <label htmlFor="title" className="block text-sm font-medium mb-2">
-              Workout Title
-            </label>
             <Input
-              id="title"
-              placeholder="e.g., Morning Cardio"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
+              placeholder="Workout title (optional)"
+              className="text-lg font-medium"
             />
           </div>
           
-          {/* Category Selector */}
-          <CategorySelector 
-            categories={getAllCategories()} 
-            selectedCategory={selectedCategory} 
-            onSelectCategory={setSelectedCategory}
-            onCreateCategory={handleCreateCategory}
-          />
+          {/* Date selection */}
+          <div className="flex items-center gap-4">
+            <span className="text-sm font-medium">Date:</span>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "justify-start text-left font-normal",
+                    !selectedDate && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={(date) => date && setSelectedDate(date)}
+                  initialFocus
+                  className="pointer-events-auto"
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
           
-          {/* Exercises */}
+          {/* Category selection */}
           <div>
-            <div className="flex items-center justify-between mb-2">
-              <h2 className="text-sm font-medium">Exercises</h2>
-              <Button
-                variant="ghost"
+            <CategorySelector 
+              categories={categories}
+              selectedCategory={selectedCategory}
+              onSelectCategory={setSelectedCategory}
+              onLongPress={handleLongPress}
+            />
+          </div>
+          
+          {/* Exercises list */}
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-medium">Exercises</h2>
+              <Button 
+                variant="outline" 
                 size="sm"
-                onClick={() => setIsAddingExercise(true)}
-                className="rounded-full h-8 w-8 p-0"
+                onClick={() => setShowAddExercise(true)}
+                className="gap-1"
               >
-                <PlusCircle className="h-5 w-5" />
+                <Plus className="h-4 w-4" />
+                Add Exercise
               </Button>
             </div>
             
-            {exercises.length === 0 ? (
-              <div className="bg-muted/50 rounded-lg p-8 text-center">
-                <p className="text-muted-foreground">No exercises added yet</p>
-                <Button 
-                  variant="outline" 
-                  onClick={() => setIsAddingExercise(true)}
-                  className="mt-4"
-                >
-                  <PlusCircle className="h-4 w-4 mr-2" />
-                  Add Exercise
-                </Button>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {exercises.map((exercise) => (
-                  <ExerciseListItem
-                    key={exercise.id}
-                    exercise={exercise}
-                    onRemove={handleRemoveExercise}
-                  />
-                ))}
-                
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsAddingExercise(true)}
-                  className="w-full mt-2"
-                >
-                  <PlusCircle className="h-4 w-4 mr-2" />
-                  Add Exercise
-                </Button>
-              </div>
-            )}
-          </div>
-        </div>
-        
-        {/* Add Exercise Form */}
-        {isAddingExercise && (
-          <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4">
-            <div className="bg-card rounded-t-xl sm:rounded-xl border border-border shadow-lg w-full max-w-lg max-h-[90vh] overflow-auto animate-in fade-in slide-in-from-bottom-5">
-              <div className="p-6">
-                <h2 className="text-lg font-semibold mb-4">Add Exercise</h2>
+            {showAddExercise ? (
+              <Card className="p-4 mb-4 animate-fade-in">
                 <AddExerciseForm 
                   onAddExercise={handleAddExercise}
-                  onCancel={() => setIsAddingExercise(false)}
+                  onCancel={() => setShowAddExercise(false)}
                 />
-              </div>
+              </Card>
+            ) : null}
+            
+            <div className="space-y-3">
+              {exercises.length > 0 ? (
+                exercises.map((exercise) => (
+                  <ExerciseListItem 
+                    key={exercise.id} 
+                    exercise={exercise}
+                    onRemove={handleRemoveExercise}
+                    onExerciseUpdate={handleExerciseUpdate}
+                  />
+                ))
+              ) : (
+                <div className="p-8 text-center rounded-xl bg-secondary/50 border border-border animate-fade-in">
+                  <h3 className="font-medium text-muted-foreground">No exercises added yet</h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Add exercises to your workout
+                  </p>
+                </div>
+              )}
             </div>
           </div>
-        )}
+        </div>
       </div>
+      
+      {/* Category Edit Dialog */}
+      <Dialog open={showLongPressMenu} onOpenChange={setShowLongPressMenu}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Category</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <p>This is where category editing will be implemented in the future.</p>
+            <div className="flex justify-end">
+              <Button onClick={() => setShowLongPressMenu(false)}>Close</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
