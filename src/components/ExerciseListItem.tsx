@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Trash, ChevronDown, ChevronUp, Image, Edit, Plus, Copy, X, Check, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -712,8 +713,8 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
                   setExpanded(false);
                 }}
               >
-                <X className="h-3.5 w-3.5 mr-1" />
-                Close
+                <Save className="h-3.5 w-3.5 mr-1" />
+                Save & Close
               </Button>
             </div>
           </div>

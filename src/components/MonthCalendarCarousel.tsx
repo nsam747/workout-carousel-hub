@@ -54,6 +54,7 @@ const MonthCalendarCarousel: React.FC<MonthCalendarCarouselProps> = ({
         classNames={{
           day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground",
           day_today: "bg-accent text-accent-foreground",
+          caption: "hidden", // Hide the default caption since we have our own header
         }}
       />
     </div>

@@ -1,35 +1,42 @@
 
 import React, { useState, useRef } from "react";
-import { Tag, Edit } from "lucide-react";
+import { Tag, Edit, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getCategoryInfo } from "@/lib/mockData";
+import { getCategoryInfo, getAllCategories } from "@/lib/mockData";
 import * as LucideIcons from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface CategorySelectorProps {
   categories: string[];
   selectedCategory: string;
   onSelectCategory: (category: string) => void;
-  onLongPress?: (category: string) => void;
+  onCreateCategory?: (categoryName: string) => void;
 }
 
 const CategorySelector: React.FC<CategorySelectorProps> = ({
   categories,
   selectedCategory,
   onSelectCategory,
-  onLongPress
+  onCreateCategory
 }) => {
   const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
   const [touchedCategory, setTouchedCategory] = useState<string | null>(null);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [editCategoryName, setEditCategoryName] = useState("");
+  const [currentEditCategory, setCurrentEditCategory] = useState("");
   
   // Function to handle mouse/touch down event
   const handleTouchStart = (category: string) => {
     setTouchedCategory(category);
-    if (onLongPress) {
-      const timer = setTimeout(() => {
-        onLongPress(category);
-      }, 500); // 500ms for long press
-      setLongPressTimer(timer);
-    }
+    const timer = setTimeout(() => {
+      handleEditCategory(category);
+    }, 500); // 500ms for long press
+    setLongPressTimer(timer);
   };
   
   // Function to handle mouse/touch up event
@@ -81,11 +88,45 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
     return <IconComponent size={14} color={color} className="mr-1" />;
   };
   
+  // Handle creating a new category
+  const handleCreateCategory = () => {
+    if (newCategoryName.trim() && onCreateCategory) {
+      onCreateCategory(newCategoryName.trim());
+      setNewCategoryName("");
+      setIsCreateDialogOpen(false);
+    }
+  };
+  
+  // Handle editing a category
+  const handleEditCategory = (category: string) => {
+    setCurrentEditCategory(category);
+    setEditCategoryName(category);
+    setIsEditDialogOpen(true);
+  };
+  
+  // Handle saving edited category
+  const handleSaveEditedCategory = () => {
+    // In a real app, you would update the category in the database
+    console.log(`Edited category from ${currentEditCategory} to ${editCategoryName}`);
+    setIsEditDialogOpen(false);
+  };
+  
   return (
     <div>
-      <div className="flex items-center text-sm font-medium mb-2">
-        <Tag className="h-4 w-4 mr-2" />
-        <span>Category</span>
+      <div className="flex items-center justify-between text-sm font-medium mb-2">
+        <div className="flex items-center">
+          <Tag className="h-4 w-4 mr-2" />
+          <span>Category</span>
+        </div>
+        
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="h-6 w-6 p-0 rounded-full"
+          onClick={() => setIsCreateDialogOpen(true)}
+        >
+          <Plus className="h-4 w-4" />
+        </Button>
       </div>
       
       <div className="flex flex-wrap gap-2">
@@ -113,8 +154,9 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
               onTouchMove={handleTouchMove}
               onContextMenu={(e) => {
                 e.preventDefault();
-                if (onLongPress) onLongPress(category);
+                handleEditCategory(category);
               }}
+              onDoubleClick={() => handleEditCategory(category)}
             >
               {categoryInfo.icon && renderCategoryIcon(categoryInfo.icon, textColor)}
               <span>{category}</span>
@@ -122,6 +164,63 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
           );
         })}
       </div>
+      
+      {/* Create Category Dialog */}
+      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Create New Category</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="name" className="text-right">
+                Name
+              </Label>
+              <Input
+                id="name"
+                value={newCategoryName}
+                onChange={(e) => setNewCategoryName(e.target.value)}
+                className="col-span-3"
+                placeholder="Category name"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleCreateCategory}>Create</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Edit Category Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Edit Category</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-name" className="text-right">
+                Name
+              </Label>
+              <Input
+                id="edit-name"
+                value={editCategoryName}
+                onChange={(e) => setEditCategoryName(e.target.value)}
+                className="col-span-3"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveEditedCategory}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
