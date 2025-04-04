@@ -10,7 +10,7 @@
  * - Collapsible exercise display
  * - Shows summary of sets, reps, weight, duration
  * - Displays notes and media attachments
- * - Allows editing performance metrics
+ * - Allows inline editing of performance metrics with highlighting
  * 
  * This component is used to display exercises within the WorkoutCard component
  * on the home page view.
@@ -233,7 +233,12 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
               </div>
               <div className="grid grid-cols-2 gap-2">
                 {sortMetrics(exercise.metrics).map((metric, index) => (
-                  <div key={index} className="bg-muted/50 p-2 rounded-md">
+                  <div 
+                    key={index} 
+                    className={`bg-muted/50 p-2 rounded-md transition-colors duration-200 ${
+                      editingMetricId === metric.id ? 'ring-2 ring-primary bg-secondary/20' : ''
+                    }`}
+                  >
                     <div className="flex items-center justify-between">
                       <Badge variant="outline" className="text-xs">Set {(metric.setIndex || 0) + 1}</Badge>
                       <Button
@@ -248,6 +253,8 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
                         <Edit className="h-3 w-3" />
                       </Button>
                     </div>
+
+                    {/* Metric display/edit section */}
                     {editingMetricId === metric.id ? (
                       <div className="mt-1.5 space-y-2">
                         <div className="flex items-end gap-2">
@@ -261,6 +268,7 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
                               value={editedMetricValue}
                               onChange={(e) => setEditedMetricValue(Number(e.target.value))}
                               className="h-7 text-sm"
+                              autoFocus
                             />
                           </div>
                           

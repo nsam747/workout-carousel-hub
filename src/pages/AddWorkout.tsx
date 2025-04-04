@@ -11,6 +11,7 @@
  * - Add/remove exercises to the workout
  * - Select from existing categories or create new ones
  * - Save the complete workout
+ * - Auto-focus newly added exercises with initial set
  * 
  * This component uses ExerciseListItem for listing exercises and
  * AddExerciseForm for adding new exercises.
@@ -43,14 +44,20 @@ const AddWorkout = () => {
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [selectedCategory, setSelectedCategory] = useState(getAllCategories()[0] || "");
   const [isAddingExercise, setIsAddingExercise] = useState(false);
+  const [lastAddedExerciseId, setLastAddedExerciseId] = useState<string | null>(null);
   
   const handleAddExercise = (exercise: Exercise) => {
-    setExercises([...exercises, exercise]);
+    // Add the new exercise and mark it as the last added one
+    setExercises(prevExercises => [...prevExercises, exercise]);
+    setLastAddedExerciseId(exercise.id);
     setIsAddingExercise(false);
   };
   
   const handleRemoveExercise = (exerciseId: string) => {
     setExercises(exercises.filter(exercise => exercise.id !== exerciseId));
+    if (lastAddedExerciseId === exerciseId) {
+      setLastAddedExerciseId(null);
+    }
   };
   
   const handleSaveWorkout = () => {
@@ -159,6 +166,7 @@ const AddWorkout = () => {
                     key={exercise.id}
                     exercise={exercise}
                     onRemove={handleRemoveExercise}
+                    isNewlyAdded={exercise.id === lastAddedExerciseId}
                   />
                 ))}
                 
