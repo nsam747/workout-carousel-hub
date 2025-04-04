@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface CategorySelectorProps {
@@ -229,28 +228,27 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
       
       {/* Create Category Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="w-full max-w-xs mx-auto p-4">
           <DialogHeader>
-            <DialogTitle>Create New Category</DialogTitle>
+            <DialogTitle className="text-center">Create New Category</DialogTitle>
           </DialogHeader>
           
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="name" className="text-right">
+          <div className="grid gap-4 py-2">
+            <div className="grid gap-2">
+              <Label htmlFor="name">
                 Name
               </Label>
               <Input
                 id="name"
                 value={newCategoryName}
                 onChange={(e) => setNewCategoryName(e.target.value)}
-                className="col-span-3"
                 placeholder="Category name"
               />
             </div>
             
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label className="text-right">Color</Label>
-              <div className="col-span-3 flex flex-wrap gap-2">
+            <div className="grid gap-2">
+              <Label>Color</Label>
+              <div className="flex flex-wrap gap-2 justify-center">
                 {colorOptions.map((color) => (
                   <button
                     key={color}
@@ -274,69 +272,55 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
               </div>
             </div>
             
-            <div className="grid grid-cols-4 items-start gap-4">
-              <Label className="text-right pt-2">Icon</Label>
-              <div className="col-span-3">
-                <Tabs defaultValue="all">
-                  <TabsList className="mb-2">
-                    <TabsTrigger value="all">All Icons</TabsTrigger>
-                    <TabsTrigger value="selected">Selected</TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="all">
-                    <ScrollArea className="h-[200px]">
-                      <div className="flex flex-wrap gap-2">
-                        {availableIcons.map((iconName) => {
-                          const IconComponent = (LucideIcons as any)[iconName];
-                          if (!IconComponent) return null;
-                          
-                          return (
-                            <button
-                              key={iconName}
-                              type="button"
-                              onClick={() => setNewCategoryIcon(iconName)}
-                              className={cn(
-                                "p-2 rounded-md transition-all",
-                                newCategoryIcon === iconName 
-                                  ? "bg-primary text-primary-foreground" 
-                                  : "bg-muted hover:bg-muted/80"
-                              )}
-                              aria-label={`Select icon ${iconName}`}
-                            >
-                              <IconComponent className="h-5 w-5" />
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </ScrollArea>
-                  </TabsContent>
-                  
-                  <TabsContent value="selected">
-                    <div className="p-4 flex justify-center items-center h-[200px] border rounded-md">
-                      {newCategoryIcon ? (
-                        <div className="flex flex-col items-center gap-2">
-                          {renderCategoryIcon(newCategoryIcon, "#000000")}
-                          <span className="text-sm">{newCategoryIcon}</span>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => setNewCategoryIcon(null)}
-                          >
-                            <X className="h-4 w-4 mr-2" />
-                            Remove
-                          </Button>
-                        </div>
-                      ) : (
-                        <span className="text-muted-foreground">No icon selected</span>
-                      )}
-                    </div>
-                  </TabsContent>
-                </Tabs>
-              </div>
+            <div className="grid gap-2">
+              <Label>Icon</Label>
+              <ScrollArea className="h-[200px] border rounded-md p-2">
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {availableIcons.map((iconName) => {
+                    const IconComponent = (LucideIcons as any)[iconName];
+                    if (!IconComponent) return null;
+                    
+                    return (
+                      <button
+                        key={iconName}
+                        type="button"
+                        onClick={() => setNewCategoryIcon(iconName)}
+                        className={cn(
+                          "p-2 rounded-md transition-all",
+                          newCategoryIcon === iconName 
+                            ? "bg-primary text-primary-foreground" 
+                            : "bg-muted hover:bg-muted/80"
+                        )}
+                        aria-label={`Select icon ${iconName}`}
+                      >
+                        <IconComponent className="h-5 w-5" />
+                      </button>
+                    );
+                  })}
+                </div>
+              </ScrollArea>
+              
+              {newCategoryIcon && (
+                <div className="flex items-center justify-center gap-2 mt-2">
+                  <div className="flex items-center gap-1">
+                    {renderCategoryIcon(newCategoryIcon, "#000000")}
+                    <span className="text-sm">{newCategoryIcon}</span>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setNewCategoryIcon(null)}
+                    className="h-7 px-2"
+                  >
+                    <X className="h-4 w-4 mr-1" />
+                    Remove
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
           
-          <DialogFooter>
+          <DialogFooter className="flex sm:justify-center gap-2 mt-4">
             <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
               Cancel
             </Button>
@@ -347,27 +331,26 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
       
       {/* Edit Category Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="w-full max-w-xs mx-auto p-4">
           <DialogHeader>
-            <DialogTitle>Edit Category</DialogTitle>
+            <DialogTitle className="text-center">Edit Category</DialogTitle>
           </DialogHeader>
           
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-name" className="text-right">
+          <div className="grid gap-4 py-2">
+            <div className="grid gap-2">
+              <Label htmlFor="edit-name">
                 Name
               </Label>
               <Input
                 id="edit-name"
                 value={editCategoryName}
                 onChange={(e) => setEditCategoryName(e.target.value)}
-                className="col-span-3"
               />
             </div>
             
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label className="text-right">Color</Label>
-              <div className="col-span-3 flex flex-wrap gap-2">
+            <div className="grid gap-2">
+              <Label>Color</Label>
+              <div className="flex flex-wrap gap-2 justify-center">
                 {colorOptions.map((color) => (
                   <button
                     key={color}
@@ -391,69 +374,55 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
               </div>
             </div>
             
-            <div className="grid grid-cols-4 items-start gap-4">
-              <Label className="text-right pt-2">Icon</Label>
-              <div className="col-span-3">
-                <Tabs defaultValue="all">
-                  <TabsList className="mb-2">
-                    <TabsTrigger value="all">All Icons</TabsTrigger>
-                    <TabsTrigger value="selected">Selected</TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="all">
-                    <ScrollArea className="h-[200px]">
-                      <div className="flex flex-wrap gap-2">
-                        {availableIcons.map((iconName) => {
-                          const IconComponent = (LucideIcons as any)[iconName];
-                          if (!IconComponent) return null;
-                          
-                          return (
-                            <button
-                              key={iconName}
-                              type="button"
-                              onClick={() => setEditCategoryIcon(iconName)}
-                              className={cn(
-                                "p-2 rounded-md transition-all",
-                                editCategoryIcon === iconName 
-                                  ? "bg-primary text-primary-foreground" 
-                                  : "bg-muted hover:bg-muted/80"
-                              )}
-                              aria-label={`Select icon ${iconName}`}
-                            >
-                              <IconComponent className="h-5 w-5" />
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </ScrollArea>
-                  </TabsContent>
-                  
-                  <TabsContent value="selected">
-                    <div className="p-4 flex justify-center items-center h-[200px] border rounded-md">
-                      {editCategoryIcon ? (
-                        <div className="flex flex-col items-center gap-2">
-                          {renderCategoryIcon(editCategoryIcon, "#000000")}
-                          <span className="text-sm">{editCategoryIcon}</span>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => setEditCategoryIcon(null)}
-                          >
-                            <X className="h-4 w-4 mr-2" />
-                            Remove
-                          </Button>
-                        </div>
-                      ) : (
-                        <span className="text-muted-foreground">No icon selected</span>
-                      )}
-                    </div>
-                  </TabsContent>
-                </Tabs>
-              </div>
+            <div className="grid gap-2">
+              <Label>Icon</Label>
+              <ScrollArea className="h-[200px] border rounded-md p-2">
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {availableIcons.map((iconName) => {
+                    const IconComponent = (LucideIcons as any)[iconName];
+                    if (!IconComponent) return null;
+                    
+                    return (
+                      <button
+                        key={iconName}
+                        type="button"
+                        onClick={() => setEditCategoryIcon(iconName)}
+                        className={cn(
+                          "p-2 rounded-md transition-all",
+                          editCategoryIcon === iconName 
+                            ? "bg-primary text-primary-foreground" 
+                            : "bg-muted hover:bg-muted/80"
+                        )}
+                        aria-label={`Select icon ${iconName}`}
+                      >
+                        <IconComponent className="h-5 w-5" />
+                      </button>
+                    );
+                  })}
+                </div>
+              </ScrollArea>
+              
+              {editCategoryIcon && (
+                <div className="flex items-center justify-center gap-2 mt-2">
+                  <div className="flex items-center gap-1">
+                    {renderCategoryIcon(editCategoryIcon, "#000000")}
+                    <span className="text-sm">{editCategoryIcon}</span>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setEditCategoryIcon(null)}
+                    className="h-7 px-2"
+                  >
+                    <X className="h-4 w-4 mr-1" />
+                    Remove
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
           
-          <DialogFooter>
+          <DialogFooter className="flex sm:justify-center gap-2 mt-4">
             <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
               Cancel
             </Button>
