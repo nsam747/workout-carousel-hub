@@ -1,4 +1,19 @@
 
+/**
+ * WorkoutCard Component
+ * 
+ * This component displays a workout card on the home page with
+ * basic information about the workout and its exercises.
+ * 
+ * Features:
+ * - Collapsible details about the workout
+ * - Shows workout title and category
+ * - Displays completion status
+ * - Lists all exercises in the workout
+ * 
+ * This component uses ExerciseItem to display individual exercises.
+ */
+
 import React, { useState } from "react";
 import { Workout, getCategoryInfo } from "@/lib/mockData";
 import { Check, ChevronDown, ChevronUp } from "lucide-react";

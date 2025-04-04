@@ -1,4 +1,21 @@
 
+/**
+ * PerformanceMetricForm Component
+ * 
+ * This component provides a form to create and edit performance metrics for exercises.
+ * Performance metrics track various exercise attributes like weight, distance, duration, repetitions, and rest time.
+ * 
+ * Features:
+ * - Create new performance metrics with type, value and appropriate units
+ * - Support for different unit options based on the metric type
+ * - Ability to duplicate metrics from previous entries
+ * - Validation to prevent saving invalid metrics
+ * 
+ * @prop onSave - Callback function when a metric is created/saved
+ * @prop onCancel - Callback function when the form is canceled
+ * @prop previousMetrics - Optional array of previous metrics for duplication
+ */
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +34,7 @@ export interface PerformanceMetric {
   type: string;
   value: number;
   unit: string;
+  setIndex?: number;
 }
 
 interface PerformanceMetricFormProps {

@@ -1,7 +1,24 @@
 
+/**
+ * ExerciseItem Component
+ * 
+ * This component displays exercise details within a workout card.
+ * It shows basic information about the exercise and allows users to
+ * expand to see additional details and performance metrics.
+ * 
+ * Features:
+ * - Collapsible exercise display
+ * - Shows summary of sets, reps, weight, duration
+ * - Displays notes and media attachments
+ * - Allows editing performance metrics
+ * 
+ * This component is used to display exercises within the WorkoutCard component
+ * on the home page view.
+ */
+
 import React, { useState } from "react";
 import { Exercise, PerformanceMetric } from "@/lib/mockData";
-import { ChevronDown, ChevronUp, Clock, Dumbbell, Hash, StickyNote, Ruler, Timer, Repeat, Clock3, Edit, Image, Save } from "lucide-react";
+import { ChevronDown, ChevronUp, Clock, Dumbbell, Hash, StickyNote, Ruler, Timer, Repeat, Edit, Image, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -14,7 +31,6 @@ import {
 } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
 
 interface ExerciseItemProps {
   exercise: Exercise;

@@ -1,4 +1,21 @@
 
+/**
+ * AddWorkout Page Component
+ * 
+ * This page allows users to create a new workout by adding:
+ * - Workout title
+ * - Workout category
+ * - Multiple exercises with their details
+ * 
+ * Features:
+ * - Add/remove exercises to the workout
+ * - Select from existing categories or create new ones
+ * - Save the complete workout
+ * 
+ * This component uses ExerciseListItem for listing exercises and
+ * AddExerciseForm for adding new exercises.
+ */
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, PlusCircle, Save } from "lucide-react";

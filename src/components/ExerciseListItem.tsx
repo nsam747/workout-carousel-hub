@@ -1,4 +1,22 @@
 
+/**
+ * ExerciseListItem Component
+ * 
+ * This component displays and manages individual exercises within a workout.
+ * It allows users to view exercise details, edit sets and performance metrics,
+ * and add notes or media.
+ * 
+ * Features:
+ * - Collapsible exercise details
+ * - Add, edit, duplicate, and remove sets of performance metrics
+ * - Inline editing of metric values and units
+ * - Edit exercise name and type
+ * - Add notes to exercises
+ * 
+ * This component uses PerformanceMetricForm for adding new metrics
+ * and manages the state of multiple performance metric sets.
+ */
+
 import React, { useState, useEffect } from "react";
 import { Trash, ChevronDown, ChevronUp, Image, Edit, Plus, Copy, X, Check, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -220,6 +238,9 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
 
   // Function to handle metric edit start
   const handleEditMetric = (setId: string, metricId: string, currentType: string, currentValue: number, currentUnit: string) => {
+    // When a metric is clicked, set it as the active editing metric
+    // Also make the parent set active if it's not already
+    setActiveSetId(setId);
     setEditingMetricId(metricId);
     setEditedMetricType(currentType);
     setEditedMetricValue(currentValue);
@@ -390,15 +411,16 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
                       </div>
                       
                       {activeSetId !== set.id ? (
-                        // Display-only view of metrics
+                        // Display-only view of metrics - Make each metric clickable for editing
                         <div className="flex flex-wrap gap-2">
                           {sortMetrics(set.metrics).map(metric => (
                             <Badge 
                               key={metric.id} 
                               variant="secondary" 
-                              className="flex items-center gap-1 capitalize pr-1"
+                              className="flex items-center gap-1 capitalize pr-1 cursor-pointer"
                               onClick={(e) => {
                                 e.stopPropagation();
+                                // Direct editing - This will activate the set and open this specific metric
                                 handleEditMetric(set.id, metric.id, metric.type, metric.value, metric.unit);
                               }}
                             >
@@ -530,7 +552,7 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
                                   <Badge 
                                     key={metric.id} 
                                     variant="secondary" 
-                                    className="flex items-center gap-1 capitalize pr-1"
+                                    className="flex items-center gap-1 capitalize pr-1 cursor-pointer"
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       handleEditMetric(set.id, metric.id, metric.type, metric.value, metric.unit);
