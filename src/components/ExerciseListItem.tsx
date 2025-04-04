@@ -1,4 +1,3 @@
-
 /**
  * ExerciseListItem Component
  * 
@@ -9,17 +8,23 @@
  * Features:
  * - Collapsible exercise details
  * - Add, edit, duplicate, and remove sets of performance metrics
- * - Inline editing of metric values and units with highlight-based editing
+ * - Inline editing of metric values and units
  * - Edit exercise name and type
  * - Add notes to exercises
- * - Auto-focuses newly added exercises and creates initial sets
  * 
  * This component uses PerformanceMetricForm for adding new metrics
  * and manages the state of multiple performance metric sets.
+ * 
+ * @documentation
+ * Performance Metrics Editing:
+ * - Clicking on a metric in any set opens it for editing
+ * - The edited metric remains visible while being edited, highlighted with a ring
+ * - Sets become active when one of their metrics is being edited
+ * - Provides appropriate unit options based on metric type
  */
 
 import React, { useState, useEffect } from "react";
-import { Trash, ChevronDown, ChevronUp, Image, Edit, Plus, Copy, X, Check, Save, Clock, Dumbbell, Hash, StickyNote, Ruler, Timer, Repeat } from "lucide-react";
+import { Trash, ChevronDown, ChevronUp, Image, Edit, Plus, Copy, X, Check, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Exercise, getExerciseTypes, saveExercise } from "@/lib/mockData";
@@ -37,12 +42,13 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import PerformanceMetricForm, { PerformanceMetric } from "./PerformanceMetricForm";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 interface ExerciseListItemProps {
   exercise: Exercise;
   onRemove: (id: string) => void;
   onExerciseUpdate?: (updatedExercise: Exercise) => void;
-  isNewlyAdded?: boolean;
+  autoExpand?: boolean; // New prop for auto-expanding exercises
 }
 
 interface SetData {
@@ -54,9 +60,9 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
   exercise,
   onRemove,
   onExerciseUpdate,
-  isNewlyAdded = false
+  autoExpand = false // Default to false
 }) => {
-  const [expanded, setExpanded] = useState(isNewlyAdded);
+  const [expanded, setExpanded] = useState(autoExpand);
   const [notes, setNotes] = useState(exercise.notes || "");
   const [sets, setSets] = useState<SetData[]>([]);
   const [showAddMetric, setShowAddMetric] = useState(false);
@@ -77,6 +83,11 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
   useEffect(() => {
     // Set notes from the exercise
     setNotes(exercise.notes || "");
+    
+    // Auto-expand if the prop is set to true
+    if (autoExpand) {
+      setExpanded(true);
+    }
     
     // Convert exercise sets to SetData format if available
     if (exercise.sets && exercise.sets.length > 0) {
@@ -111,15 +122,15 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
       });
       
       setSets(convertedSets);
-    } else if (isNewlyAdded) {
-      // Create an initial empty set for newly added exercises
-      const newSetId = generateId();
-      handleAddEmptySet(newSetId);
+    } else if (autoExpand) {
+      // If auto-expanding and no sets exist, create an empty set
+      handleAddEmptySet();
     }
-  }, [exercise, isNewlyAdded]);
+  }, [exercise, autoExpand]);
   
   // Add a new empty set directly
-  const handleAddEmptySet = (newSetId = generateId()) => {
+  const handleAddEmptySet = () => {
+    const newSetId = generateId();
     const newSet: SetData = {
       id: newSetId,
       metrics: []
@@ -127,7 +138,6 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
     setSets(prevSets => [...prevSets, newSet]);
     // Automatically activate the new set for editing
     setActiveSetId(newSetId);
-    return newSetId;
   };
   
   // Set a set as active for editing
@@ -273,11 +283,6 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
     
     setEditingMetricId(null);
   };
-  
-  // Cancel metric editing
-  const handleCancelMetricEdit = () => {
-    setEditingMetricId(null);
-  };
 
   // Function to sort metrics by priority
   const sortMetrics = (metrics: PerformanceMetric[]) => {
@@ -313,24 +318,6 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
     // Reset state
     setIsEditingExercise(false);
     toast.success("Exercise updated successfully");
-  };
-
-  // Helper to get icon for metric type
-  const getMetricIcon = (type: string) => {
-    switch (type) {
-      case "weight":
-        return <Dumbbell className="h-3 w-3 mr-1" />;
-      case "distance":
-        return <Ruler className="h-3 w-3 mr-1" />;
-      case "duration":
-        return <Clock className="h-3 w-3 mr-1" />;
-      case "repetitions":
-        return <Repeat className="h-3 w-3 mr-1" />;
-      case "restTime":
-        return <Timer className="h-3 w-3 mr-1" />;
-      default:
-        return <Hash className="h-3 w-3 mr-1" />;
-    }
   };
 
   return (
@@ -440,14 +427,16 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
                         </div>
                       </div>
                       
-                      {activeSetId !== set.id ? (
-                        // Display-only view of metrics - Make each metric clickable for editing
-                        <div className="flex flex-wrap gap-2">
-                          {sortMetrics(set.metrics).map(metric => (
+                      {/* Display metrics */}
+                      <div className="flex flex-wrap gap-2">
+                        {sortMetrics(set.metrics).map(metric => (
+                          <div key={metric.id} className="relative">
                             <Badge 
-                              key={metric.id} 
                               variant="secondary" 
-                              className="flex items-center gap-1 capitalize pr-1 cursor-pointer"
+                              className={cn(
+                                "flex items-center gap-1 capitalize pr-1 cursor-pointer",
+                                editingMetricId === metric.id && "ring-2 ring-primary"
+                              )}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 // Direct editing - This will activate the set and open this specific metric
@@ -467,254 +456,220 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
                                 <X className="h-2.5 w-2.5" />
                               </Button>
                             </Badge>
-                          ))}
-                        </div>
-                      ) : (
-                        // Edit mode - show metrics and inline editor
-                        <div>
-                          {/* Show existing metrics */}
-                          {set.metrics.length > 0 && (
-                            <div className="flex flex-wrap gap-2 mb-3">
-                              {sortMetrics(set.metrics).map(metric => (
-                                <div 
-                                  key={metric.id} 
-                                  className={`inline-flex items-center gap-1 px-2 py-1 rounded-md capitalize text-xs ${
-                                    editingMetricId === metric.id 
-                                    ? 'bg-primary/20 border border-primary ring-2 ring-primary/30' 
-                                    : 'bg-secondary'
-                                  }`}
-                                >
-                                  {editingMetricId === metric.id ? (
-                                    <div className="grid grid-cols-6 gap-2 items-end w-full p-1">
-                                      <div className="col-span-2">
-                                        <Label htmlFor={`edit-metric-type-${metric.id}`} className="text-xs">Type</Label>
-                                        <Select 
-                                          value={editedMetricType} 
-                                          onValueChange={setEditedMetricType}
-                                        >
-                                          <SelectTrigger id={`edit-metric-type-${metric.id}`} className="h-7 text-xs">
-                                            <SelectValue placeholder="Type" />
-                                          </SelectTrigger>
-                                          <SelectContent>
-                                            <SelectItem value="weight">Weight</SelectItem>
-                                            <SelectItem value="distance">Distance</SelectItem>
-                                            <SelectItem value="duration">Duration</SelectItem>
-                                            <SelectItem value="repetitions">Repetitions</SelectItem>
-                                            <SelectItem value="restTime">Rest Time</SelectItem>
-                                          </SelectContent>
-                                        </Select>
-                                      </div>
-                                      
-                                      <div className="col-span-2">
-                                        <Label htmlFor={`edit-metric-value-${metric.id}`} className="text-xs">Value</Label>
-                                        <Input
-                                          id={`edit-metric-value-${metric.id}`}
-                                          type="number"
-                                          min={0}
-                                          step={editedMetricType === "weight" ? 2.5 : 1}
-                                          value={editedMetricValue}
-                                          onChange={(e) => setEditedMetricValue(Number(e.target.value))}
-                                          className="h-7 text-xs"
-                                          autoFocus
-                                        />
-                                      </div>
-                                      
-                                      {editedMetricType !== "repetitions" && (
-                                        <div className="col-span-2">
-                                          <Label htmlFor={`edit-metric-unit-${metric.id}`} className="text-xs">Unit</Label>
-                                          <Select 
-                                            value={editedMetricUnit} 
-                                            onValueChange={setEditedMetricUnit}
-                                          >
-                                            <SelectTrigger id={`edit-metric-unit-${metric.id}`} className="h-7 text-xs">
-                                              <SelectValue placeholder="Unit" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                              {editedMetricType === "weight" && (
-                                                <>
-                                                  <SelectItem value="kg">kg</SelectItem>
-                                                  <SelectItem value="lb">lb</SelectItem>
-                                                </>
-                                              )}
-                                              {editedMetricType === "distance" && (
-                                                <>
-                                                  <SelectItem value="km">km</SelectItem>
-                                                  <SelectItem value="miles">miles</SelectItem>
-                                                </>
-                                              )}
-                                              {editedMetricType === "duration" && (
-                                                <>
-                                                  <SelectItem value="seconds">seconds</SelectItem>
-                                                  <SelectItem value="minutes">minutes</SelectItem>
-                                                  <SelectItem value="hours">hours</SelectItem>
-                                                </>
-                                              )}
-                                              {editedMetricType === "restTime" && (
-                                                <>
-                                                  <SelectItem value="seconds">seconds</SelectItem>
-                                                  <SelectItem value="minutes">minutes</SelectItem>
-                                                </>
-                                              )}
-                                            </SelectContent>
-                                          </Select>
-                                        </div>
-                                      )}
-                                      
-                                      <div className="col-span-6 flex justify-between mt-2">
-                                        <Button 
-                                          variant="outline" 
-                                          size="sm" 
-                                          className="h-7 px-2"
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleSaveMetricEdit(set.id, metric.id);
-                                          }}
-                                        >
-                                          <Check className="h-2.5 w-2.5 mr-1" />
-                                          Update
-                                        </Button>
-                                        
-                                        <Button 
-                                          variant="ghost" 
-                                          size="sm" 
-                                          className="h-7 px-2"
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleCancelMetricEdit();
-                                          }}
-                                        >
-                                          <X className="h-2.5 w-2.5" />
-                                          Cancel
-                                        </Button>
-                                      </div>
-                                    </div>
-                                  ) : (
-                                    <>
-                                      <span>{metric.type}: {formatMetric(metric)}</span>
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-4 w-4 ml-1"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleRemoveMetric(set.id, metric.id);
-                                        }}
+                            
+                            {/* Editing interface that appears below the metric when selected */}
+                            {editingMetricId === metric.id && (
+                              <div className="absolute top-full left-0 right-0 z-10 mt-1 p-2 bg-secondary/95 rounded-md shadow-md border border-border/50 animate-fade-in" style={{ minWidth: "240px" }}>
+                                <div className="flex flex-wrap items-end gap-2">
+                                  <div className="w-full sm:w-auto flex-1">
+                                    <Label htmlFor={`edit-metric-type-${metric.id}`} className="text-xs">Type</Label>
+                                    <Select 
+                                      value={editedMetricType} 
+                                      onValueChange={setEditedMetricType}
+                                    >
+                                      <SelectTrigger id={`edit-metric-type-${metric.id}`} className="h-7 text-xs">
+                                        <SelectValue placeholder="Type" />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="weight">Weight</SelectItem>
+                                        <SelectItem value="distance">Distance</SelectItem>
+                                        <SelectItem value="duration">Duration</SelectItem>
+                                        <SelectItem value="repetitions">Repetitions</SelectItem>
+                                        <SelectItem value="restTime">Rest Time</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                  
+                                  <div className="w-full sm:w-auto flex-1">
+                                    <Label htmlFor={`edit-metric-value-${metric.id}`} className="text-xs">Value</Label>
+                                    <Input
+                                      id={`edit-metric-value-${metric.id}`}
+                                      type="number"
+                                      min={0}
+                                      step={editedMetricType === "weight" ? 2.5 : 1}
+                                      value={editedMetricValue}
+                                      onChange={(e) => setEditedMetricValue(Number(e.target.value))}
+                                      className="h-7 text-xs"
+                                    />
+                                  </div>
+                                  
+                                  {editedMetricType !== "repetitions" && (
+                                    <div className="w-full sm:w-auto flex-1">
+                                      <Label htmlFor={`edit-metric-unit-${metric.id}`} className="text-xs">Unit</Label>
+                                      <Select 
+                                        value={editedMetricUnit} 
+                                        onValueChange={setEditedMetricUnit}
                                       >
-                                        <X className="h-2.5 w-2.5" />
-                                      </Button>
+                                        <SelectTrigger id={`edit-metric-unit-${metric.id}`} className="h-7 text-xs">
+                                          <SelectValue placeholder="Unit" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          {editedMetricType === "weight" && (
+                                            <>
+                                              <SelectItem value="kg">kg</SelectItem>
+                                              <SelectItem value="lb">lb</SelectItem>
+                                            </>
+                                          )}
+                                          {editedMetricType === "distance" && (
+                                            <>
+                                              <SelectItem value="km">km</SelectItem>
+                                              <SelectItem value="miles">miles</SelectItem>
+                                            </>
+                                          )}
+                                          {editedMetricType === "duration" && (
+                                            <>
+                                              <SelectItem value="seconds">seconds</SelectItem>
+                                              <SelectItem value="minutes">minutes</SelectItem>
+                                              <SelectItem value="hours">hours</SelectItem>
+                                            </>
+                                          )}
+                                          {editedMetricType === "restTime" && (
+                                            <>
+                                              <SelectItem value="seconds">seconds</SelectItem>
+                                              <SelectItem value="minutes">minutes</SelectItem>
+                                            </>
+                                          )}
+                                        </SelectContent>
+                                      </Select>
+                                    </div>
+                                  )}
+                                  
+                                  <div className="flex items-center gap-1 mt-auto">
+                                    <Button 
+                                      variant="outline" 
+                                      size="sm" 
+                                      className="h-7 px-2"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleSaveMetricEdit(set.id, metric.id);
+                                      }}
+                                    >
+                                      <Check className="h-2.5 w-2.5 mr-1" />
+                                      Update
+                                    </Button>
+                                    
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm" 
+                                      className="h-7 px-2"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setEditingMetricId(null);
+                                      }}
+                                    >
+                                      <X className="h-2.5 w-2.5" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                      
+                      {/* Add metrics UI when set is active */}
+                      {activeSetId === set.id && !editingMetricId && (
+                        <div className="grid grid-cols-3 sm:flex sm:flex-wrap sm:items-end gap-2 mt-2">
+                          <div className="col-span-1">
+                            <Label htmlFor={`metric-type-${set.id}`} className="text-xs">Type</Label>
+                            <Select 
+                              value={newMetricType} 
+                              onValueChange={handleMetricTypeChange}
+                            >
+                              <SelectTrigger id={`metric-type-${set.id}`} className="h-7 text-xs">
+                                <SelectValue placeholder="Type" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="weight">Weight</SelectItem>
+                                <SelectItem value="distance">Distance</SelectItem>
+                                <SelectItem value="duration">Duration</SelectItem>
+                                <SelectItem value="repetitions">Repetitions</SelectItem>
+                                <SelectItem value="restTime">Rest Time</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          
+                          <div className="col-span-1">
+                            <Label htmlFor={`metric-value-${set.id}`} className="text-xs">Value</Label>
+                            <Input
+                              id={`metric-value-${set.id}`}
+                              type="number"
+                              min={0}
+                              step={newMetricType === "weight" ? 2.5 : 1}
+                              value={newMetricValue}
+                              onChange={(e) => setNewMetricValue(Number(e.target.value))}
+                              className="h-7 text-xs"
+                            />
+                          </div>
+                          
+                          {newMetricType !== "repetitions" && (
+                            <div className="col-span-1">
+                              <Label htmlFor={`metric-unit-${set.id}`} className="text-xs">Unit</Label>
+                              <Select 
+                                value={newMetricUnit} 
+                                onValueChange={setNewMetricUnit}
+                              >
+                                <SelectTrigger id={`metric-unit-${set.id}`} className="h-7 text-xs">
+                                  <SelectValue placeholder="Unit" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {newMetricType === "weight" && (
+                                    <>
+                                      <SelectItem value="kg">kg</SelectItem>
+                                      <SelectItem value="lb">lb</SelectItem>
                                     </>
                                   )}
-                                </div>
-                              ))}
+                                  {newMetricType === "distance" && (
+                                    <>
+                                      <SelectItem value="km">km</SelectItem>
+                                      <SelectItem value="miles">miles</SelectItem>
+                                    </>
+                                  )}
+                                  {newMetricType === "duration" && (
+                                    <>
+                                      <SelectItem value="seconds">seconds</SelectItem>
+                                      <SelectItem value="minutes">minutes</SelectItem>
+                                      <SelectItem value="hours">hours</SelectItem>
+                                    </>
+                                  )}
+                                  {newMetricType === "restTime" && (
+                                    <>
+                                      <SelectItem value="seconds">seconds</SelectItem>
+                                      <SelectItem value="minutes">minutes</SelectItem>
+                                    </>
+                                  )}
+                                </SelectContent>
+                              </Select>
                             </div>
                           )}
                           
-                          {/* Only show inline metric editor if no metric is being edited */}
-                          {!editingMetricId && (
-                            <div className="grid grid-cols-3 sm:flex sm:flex-wrap sm:items-end gap-2 mt-2">
-                              <div className="col-span-1">
-                                <Label htmlFor={`metric-type-${set.id}`} className="text-xs">Type</Label>
-                                <Select 
-                                  value={newMetricType} 
-                                  onValueChange={handleMetricTypeChange}
-                                >
-                                  <SelectTrigger id={`metric-type-${set.id}`} className="h-7 text-xs">
-                                    <SelectValue placeholder="Type" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="weight">Weight</SelectItem>
-                                    <SelectItem value="distance">Distance</SelectItem>
-                                    <SelectItem value="duration">Duration</SelectItem>
-                                    <SelectItem value="repetitions">Repetitions</SelectItem>
-                                    <SelectItem value="restTime">Rest Time</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                              
-                              <div className="col-span-1">
-                                <Label htmlFor={`metric-value-${set.id}`} className="text-xs">Value</Label>
-                                <Input
-                                  id={`metric-value-${set.id}`}
-                                  type="number"
-                                  min={0}
-                                  step={newMetricType === "weight" ? 2.5 : 1}
-                                  value={newMetricValue}
-                                  onChange={(e) => setNewMetricValue(Number(e.target.value))}
-                                  className="h-7 text-xs"
-                                  autoFocus={isNewlyAdded}
-                                />
-                              </div>
-                              
-                              {newMetricType !== "repetitions" && (
-                                <div className="col-span-1">
-                                  <Label htmlFor={`metric-unit-${set.id}`} className="text-xs">Unit</Label>
-                                  <Select 
-                                    value={newMetricUnit} 
-                                    onValueChange={setNewMetricUnit}
-                                  >
-                                    <SelectTrigger id={`metric-unit-${set.id}`} className="h-7 text-xs">
-                                      <SelectValue placeholder="Unit" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {newMetricType === "weight" && (
-                                        <>
-                                          <SelectItem value="kg">kg</SelectItem>
-                                          <SelectItem value="lb">lb</SelectItem>
-                                        </>
-                                      )}
-                                      {newMetricType === "distance" && (
-                                        <>
-                                          <SelectItem value="km">km</SelectItem>
-                                          <SelectItem value="miles">miles</SelectItem>
-                                        </>
-                                      )}
-                                      {newMetricType === "duration" && (
-                                        <>
-                                          <SelectItem value="seconds">seconds</SelectItem>
-                                          <SelectItem value="minutes">minutes</SelectItem>
-                                          <SelectItem value="hours">hours</SelectItem>
-                                        </>
-                                      )}
-                                      {newMetricType === "restTime" && (
-                                        <>
-                                          <SelectItem value="seconds">seconds</SelectItem>
-                                          <SelectItem value="minutes">minutes</SelectItem>
-                                        </>
-                                      )}
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                              )}
-                              
-                              <div className="col-span-3 flex justify-between mt-2 sm:mt-0 sm:ml-auto">
-                                <Button 
-                                  variant="outline" 
-                                  size="sm" 
-                                  className="h-7 px-2"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleAddMetricToSet(set.id);
-                                  }}
-                                >
-                                  <Plus className="h-2.5 w-2.5 mr-1" />
-                                  Add
-                                </Button>
-                                
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm" 
-                                  className="h-7 px-2 ml-2"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setActiveSetId(null);
-                                  }}
-                                >
-                                  <X className="h-2.5 w-2.5" />
-                                  Done
-                                </Button>
-                              </div>
-                            </div>
-                          )}
+                          <div className="col-span-3 flex justify-between mt-2 sm:mt-0 sm:ml-auto">
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="h-7 px-2"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleAddMetricToSet(set.id);
+                              }}
+                            >
+                              <Plus className="h-2.5 w-2.5 mr-1" />
+                              Add
+                            </Button>
+                            
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="h-7 px-2 ml-2"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setActiveSetId(null);
+                              }}
+                            >
+                              <X className="h-2.5 w-2.5" />
+                              Done
+                            </Button>
+                          </div>
                         </div>
                       )}
                     </div>
@@ -738,6 +693,7 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
               )}
             </div>
             
+            {/* Keep the rest of the component the same */}
             {/* Notes section */}
             <div>
               <h4 className="text-sm font-medium mb-2">Notes</h4>
