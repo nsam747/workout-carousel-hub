@@ -21,6 +21,12 @@ import ExerciseItem from "./ExerciseItem";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import * as LucideIcons from "lucide-react";
+import { 
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 interface WorkoutCardProps {
   workout: Workout;
