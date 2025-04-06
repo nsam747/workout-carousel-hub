@@ -99,7 +99,7 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
   const hasNotes = exercise.notes && exercise.notes.trim().length > 0;
   const hasMedia = exercise.media && exercise.media.length > 0;
 
-  // NEW: Generate an enhanced summary of metrics across all sets
+  // Generate an enhanced summary of metrics across all sets
   const generateEnhancedSummary = () => {
     if (!exercise.metrics || exercise.metrics.length === 0) return null;
     
@@ -259,7 +259,7 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
         <div className="flex-1">
           <h4 className="font-medium">{exercise.name}</h4>
           
-          {/* Use the new enhanced summary instead of the old indicators */}
+          {/* Use the enhanced summary when collapsed */}
           {!expanded && generateEnhancedSummary()}
         </div>
         <Button
@@ -393,6 +393,7 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
             </div>
           )}
           
+          {/* Notes section */}
           {exercise.notes && (
             <div className="mb-3">
               <div className="flex items-center text-sm font-medium mb-1">
@@ -403,6 +404,7 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
             </div>
           )}
 
+          {/* Media section */}
           {exercise.media && exercise.media.length > 0 && (
             <div className="space-y-2">
               <p className="text-sm font-medium">Media</p>
