@@ -47,31 +47,6 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
   // Helper to get total reps/weight from sets if available
   const getTotalSets = () => exercise.sets?.length || 0;
   
-  // Get rep and weight ranges
-  const getRepRange = () => {
-    if (!exercise.sets || exercise.sets.length === 0) return null;
-    
-    const reps = exercise.sets.map(set => set.reps).filter(rep => rep > 0);
-    if (reps.length === 0) return null;
-    
-    const minReps = Math.min(...reps);
-    const maxReps = Math.max(...reps);
-    
-    return minReps === maxReps ? `${minReps} reps` : `${minReps}-${maxReps} reps`;
-  };
-  
-  const getWeightRange = () => {
-    if (!exercise.sets || exercise.sets.length === 0) return null;
-    
-    const weights = exercise.sets.map(set => set.weight).filter(weight => weight > 0);
-    if (weights.length === 0) return null;
-    
-    const minWeight = Math.min(...weights);
-    const maxWeight = Math.max(...weights);
-    
-    return minWeight === maxWeight ? `${minWeight}kg` : `${minWeight}-${maxWeight}kg`;
-  };
-  
   // Helper to get icon for metric type
   const getMetricIcon = (type: string) => {
     switch (type) {
@@ -94,8 +69,8 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
   const sortMetrics = (metrics: PerformanceMetric[]) => {
     const priorityOrder: Record<string, number> = {
       "weight": 1,
-      "duration": 2,
-      "distance": 3,
+      "distance": 2,
+      "duration": 3,
       "repetitions": 4,
       "restTime": 5
     };
@@ -124,7 +99,121 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
   const hasNotes = exercise.notes && exercise.notes.trim().length > 0;
   const hasMedia = exercise.media && exercise.media.length > 0;
 
-  // Generate a compact summary of all sets and metrics
+  // NEW: Generate an enhanced summary of metrics across all sets
+  const generateEnhancedSummary = () => {
+    if (!exercise.metrics || exercise.metrics.length === 0) return null;
+    
+    // Group metrics by type
+    const metricsByType: { [key: string]: number[] } = {};
+    
+    exercise.metrics.forEach(metric => {
+      if (!metricsByType[metric.type]) metricsByType[metric.type] = [];
+      metricsByType[metric.type].push(metric.value);
+    });
+    
+    // Ordered display of metrics
+    const orderedTypes = ["weight", "distance", "duration", "repetitions", "restTime"];
+    
+    return (
+      <div className="flex flex-wrap items-center text-sm text-muted-foreground mt-1 gap-2">
+        {/* Always show sets first */}
+        {getTotalSets() > 0 && (
+          <div className="flex items-center">
+            <Hash className="h-3 w-3 mr-1" />
+            <span>{getTotalSets()} sets</span>
+          </div>
+        )}
+        
+        {/* Then show other metrics in the specified order */}
+        {orderedTypes.map(type => {
+          const values = metricsByType[type];
+          if (!values || values.length === 0) return null;
+          
+          const min = Math.min(...values);
+          const max = Math.max(...values);
+          
+          switch(type) {
+            case "weight":
+              return (
+                <div key={type} className="flex items-center">
+                  <Dumbbell className="h-3 w-3 mr-1" />
+                  <span>
+                    {min === max ? `${min}kg` : `${min}-${max}kg`}
+                  </span>
+                </div>
+              );
+              
+            case "distance":
+              return (
+                <div key={type} className="flex items-center">
+                  <Ruler className="h-3 w-3 mr-1" />
+                  <span>
+                    {min === max ? 
+                      `${min}${values.length > 0 ? exercise.metrics.find(m => m.type === type)?.unit || 'km' : 'km'}` : 
+                      `${min}-${max}${values.length > 0 ? exercise.metrics.find(m => m.type === type)?.unit || 'km' : 'km'}`
+                    }
+                  </span>
+                </div>
+              );
+              
+            case "duration":
+              return (
+                <div key={type} className="flex items-center">
+                  <Clock className="h-3 w-3 mr-1" />
+                  <span>
+                    {min === max ? 
+                      `${min} ${values.length > 0 ? exercise.metrics.find(m => m.type === type)?.unit || 'sec' : 'sec'}` : 
+                      `${min}-${max} ${values.length > 0 ? exercise.metrics.find(m => m.type === type)?.unit || 'sec' : 'sec'}`
+                    }
+                  </span>
+                </div>
+              );
+              
+            case "repetitions":
+              return (
+                <div key={type} className="flex items-center">
+                  <Repeat className="h-3 w-3 mr-1" />
+                  <span>
+                    {min === max ? `${min} reps` : `${min}-${max} reps`}
+                  </span>
+                </div>
+              );
+              
+            case "restTime":
+              return (
+                <div key={type} className="flex items-center">
+                  <Timer className="h-3 w-3 mr-1" />
+                  <span>
+                    {min === max ? 
+                      `${min} ${values.length > 0 ? exercise.metrics.find(m => m.type === type)?.unit || 'sec' : 'sec'} rest` : 
+                      `${min}-${max} ${values.length > 0 ? exercise.metrics.find(m => m.type === type)?.unit || 'sec' : 'sec'} rest`
+                    }
+                  </span>
+                </div>
+              );
+              
+            default:
+              return null;
+          }
+        })}
+        
+        {/* Show notes and media indicators */}
+        {hasNotes && (
+          <div className="flex items-center">
+            <StickyNote className="h-3 w-3 mr-1" />
+          </div>
+        )}
+        
+        {hasMedia && (
+          <div className="flex items-center">
+            <Image className="h-3 w-3 mr-1" />
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // Generate a compact summary of all sets and metrics (existing functionality)
   const generateCompactSummary = () => {
     if (!exercise.metrics || exercise.metrics.length === 0) return null;
     
@@ -169,45 +258,9 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
       >
         <div className="flex-1">
           <h4 className="font-medium">{exercise.name}</h4>
-          <div className="flex flex-wrap items-center text-sm text-muted-foreground mt-1 gap-2">
-            {getTotalSets() > 0 && (
-              <div className="flex items-center">
-                <Hash className="h-3 w-3 mr-1" />
-                <span>{getTotalSets()} sets</span>
-              </div>
-            )}
-            {getRepRange() && (
-              <div className="flex items-center">
-                <Repeat className="h-3 w-3 mr-1" />
-                <span>{getRepRange()}</span>
-              </div>
-            )}
-            {getWeightRange() && (
-              <div className="flex items-center">
-                <Dumbbell className="h-3 w-3 mr-1" />
-                <span>{getWeightRange()}</span>
-              </div>
-            )}
-            {exercise.duration > 0 && (
-              <div className="flex items-center">
-                <Clock className="h-3 w-3 mr-1" />
-                <span>{exercise.duration} min</span>
-              </div>
-            )}
-            {hasNotes && (
-              <div className="flex items-center">
-                <StickyNote className="h-3 w-3 mr-1" />
-              </div>
-            )}
-            {hasMedia && (
-              <div className="flex items-center">
-                <Image className="h-3 w-3 mr-1" />
-              </div>
-            )}
-          </div>
           
-          {/* Compact summary of all sets */}
-          {!expanded && generateCompactSummary()}
+          {/* Use the new enhanced summary instead of the old indicators */}
+          {!expanded && generateEnhancedSummary()}
         </div>
         <Button
           variant="ghost"
