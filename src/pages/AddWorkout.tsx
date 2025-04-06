@@ -11,16 +11,10 @@
  * - Add/remove exercises to the workout
  * - Select from existing categories or create new ones
  * - Save the complete workout
- * - Auto-expand newly added exercises for immediate editing
+ * - Auto-focus newly added exercises with initial set
  * 
  * This component uses ExerciseListItem for listing exercises and
  * AddExerciseForm for adding new exercises.
- * 
- * @documentation
- * Exercise Auto-Expansion:
- * - When a new exercise is added, it automatically expands for editing
- * - Other exercises are collapsed to focus on the new one
- * - A new empty set is created for the newly added exercise
  */
 
 import React, { useState } from "react";
@@ -53,11 +47,8 @@ const AddWorkout = () => {
   const [lastAddedExerciseId, setLastAddedExerciseId] = useState<string | null>(null);
   
   const handleAddExercise = (exercise: Exercise) => {
-    // Collapse all existing exercises by clearing the lastAddedExerciseId
-    setLastAddedExerciseId(null);
-    
-    // Add the new exercise and set it as the last added
-    setExercises([...exercises, exercise]);
+    // Add the new exercise and mark it as the last added one
+    setExercises(prevExercises => [...prevExercises, exercise]);
     setLastAddedExerciseId(exercise.id);
     setIsAddingExercise(false);
   };
@@ -175,7 +166,7 @@ const AddWorkout = () => {
                     key={exercise.id}
                     exercise={exercise}
                     onRemove={handleRemoveExercise}
-                    autoExpand={exercise.id === lastAddedExerciseId}
+                    isNewlyAdded={exercise.id === lastAddedExerciseId}
                   />
                 ))}
                 

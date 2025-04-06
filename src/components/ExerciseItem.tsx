@@ -10,17 +10,10 @@
  * - Collapsible exercise display
  * - Shows summary of sets, reps, weight, duration
  * - Displays notes and media attachments
- * - Allows editing performance metrics
+ * - Allows inline editing of performance metrics with highlighting
  * 
  * This component is used to display exercises within the WorkoutCard component
  * on the home page view.
- * 
- * @documentation
- * When editing metrics:
- * - Maintains visibility of the metric being edited
- * - Highlights the metric currently being edited
- * - Provides inline editing controls for the metric
- * - Shows appropriate unit options based on metric type
  */
 
 import React, { useState } from "react";
@@ -38,7 +31,6 @@ import {
 } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
 
 interface ExerciseItemProps {
   exercise: Exercise;
@@ -178,14 +170,12 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
         <div className="flex-1">
           <h4 className="font-medium">{exercise.name}</h4>
           <div className="flex flex-wrap items-center text-sm text-muted-foreground mt-1 gap-2">
-            {
-              getTotalSets() > 0 && (
-                <div className="flex items-center">
-                  <Hash className="h-3 w-3 mr-1" />
-                  <span>{getTotalSets()} sets</span>
-                </div>
-              )
-            }
+            {getTotalSets() > 0 && (
+              <div className="flex items-center">
+                <Hash className="h-3 w-3 mr-1" />
+                <span>{getTotalSets()} sets</span>
+              </div>
+            )}
             {getRepRange() && (
               <div className="flex items-center">
                 <Repeat className="h-3 w-3 mr-1" />
@@ -245,10 +235,9 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
                 {sortMetrics(exercise.metrics).map((metric, index) => (
                   <div 
                     key={index} 
-                    className={cn(
-                      "bg-muted/50 p-2 rounded-md",
-                      editingMetricId === metric.id && "ring-2 ring-primary ring-offset-1"
-                    )}
+                    className={`bg-muted/50 p-2 rounded-md transition-colors duration-200 ${
+                      editingMetricId === metric.id ? 'ring-2 ring-primary bg-secondary/20' : ''
+                    }`}
                   >
                     <div className="flex items-center justify-between">
                       <Badge variant="outline" className="text-xs">Set {(metric.setIndex || 0) + 1}</Badge>
@@ -264,17 +253,10 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
                         <Edit className="h-3 w-3" />
                       </Button>
                     </div>
-                    
-                    <div className="mt-1.5 flex items-center">
-                      {getMetricIcon(metric.type)}
-                      <span className="text-sm">
-                        {metric.value} {metric.unit}
-                      </span>
-                    </div>
-                    
-                    {/* Editing interface that appears below the metric */}
-                    {editingMetricId === metric.id && (
-                      <div className="mt-2 pt-2 border-t border-border/30 space-y-2">
+
+                    {/* Metric display/edit section */}
+                    {editingMetricId === metric.id ? (
+                      <div className="mt-1.5 space-y-2">
                         <div className="flex items-end gap-2">
                           <div className="flex-1">
                             <Label htmlFor={`metric-value-${metric.id}`} className="text-xs">Value</Label>
@@ -286,6 +268,7 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
                               value={editedMetricValue}
                               onChange={(e) => setEditedMetricValue(Number(e.target.value))}
                               className="h-7 text-sm"
+                              autoFocus
                             />
                           </div>
                           
@@ -343,6 +326,13 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
                           </Button>
                         </div>
                       </div>
+                    ) : (
+                      <div className="mt-1.5 flex items-center">
+                        {getMetricIcon(metric.type)}
+                        <span className="text-sm">
+                          {metric.value} {metric.unit}
+                        </span>
+                      </div>
                     )}
                   </div>
                 ))}
@@ -350,17 +340,15 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
             </div>
           )}
           
-          {
-            exercise.notes && (
-              <div className="mb-3">
-                <div className="flex items-center text-sm font-medium mb-1">
-                  <StickyNote className="h-4 w-4 mr-1.5" />
-                  <span>Notes</span>
-                </div>
-                <p className="text-sm text-muted-foreground">{exercise.notes}</p>
+          {exercise.notes && (
+            <div className="mb-3">
+              <div className="flex items-center text-sm font-medium mb-1">
+                <StickyNote className="h-4 w-4 mr-1.5" />
+                <span>Notes</span>
               </div>
-            )
-          }
+              <p className="text-sm text-muted-foreground">{exercise.notes}</p>
+            </div>
+          )}
 
           {exercise.media && exercise.media.length > 0 && (
             <div className="space-y-2">
