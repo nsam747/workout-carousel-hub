@@ -259,8 +259,10 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
         <div className="flex-1">
           <h4 className="font-medium">{exercise.name}</h4>
           
-          {/* Use the enhanced summary when collapsed */}
-          {!expanded && generateEnhancedSummary()}
+          {/* Render the enhanced summary when collapsed - make sure it's displayed */}
+          {!expanded && (
+            <div className="summary-container">{generateEnhancedSummary()}</div>
+          )}
         </div>
         <Button
           variant="ghost"
