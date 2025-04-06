@@ -250,6 +250,29 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
     );
   };
 
+  // Debug function to check exercise metrics
+  const debugMetrics = () => {
+    console.log('Exercise:', exercise.name);
+    console.log('Metrics:', exercise.metrics);
+    if (exercise.metrics) {
+      const metricsByType: { [key: string]: number[] } = {};
+      exercise.metrics.forEach(metric => {
+        if (!metricsByType[metric.type]) metricsByType[metric.type] = [];
+        metricsByType[metric.type].push(metric.value);
+      });
+      console.log('Metrics by type:', metricsByType);
+    }
+    return null;
+  };
+
+  // Immediately call debug when component renders
+  React.useEffect(() => {
+    debugMetrics();
+  }, []);
+
+  // Always render the summary for debugging
+  const summaryContent = generateEnhancedSummary();
+
   return (
     <div className="mb-3 rounded-md bg-white/90 border border-border shadow-sm overflow-hidden animate-slide-up animation-delay-100">
       <div 
@@ -259,9 +282,11 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
         <div className="flex-1">
           <h4 className="font-medium">{exercise.name}</h4>
           
-          {/* Render the enhanced summary when collapsed - make sure it's displayed */}
+          {/* Render the enhanced summary when collapsed */}
           {!expanded && (
-            <div className="summary-container">{generateEnhancedSummary()}</div>
+            <div className="mt-1">
+              {summaryContent}
+            </div>
           )}
         </div>
         <Button
