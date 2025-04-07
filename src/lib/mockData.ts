@@ -17,13 +17,11 @@ export interface Exercise {
   notes?: string;
   duration: number;
   media: string[];
-  metrics?: PerformanceMetric[];  // Add metrics property
 }
 
 export interface Set {
   id: string;
-  reps: number;
-  weight: number;
+  metrics: PerformanceMetric[];
 }
 
 export interface PerformanceMetric {
@@ -31,7 +29,6 @@ export interface PerformanceMetric {
   type: string;
   value: number;
   unit: string;
-  setIndex?: number;
 }
 
 export interface CategoryInfo {
@@ -52,7 +49,14 @@ let mockWorkouts: Workout[] = [
         id: uuidv4(),
         name: "Sun Salutations",
         type: "Warm-up",
-        sets: [{ id: uuidv4(), reps: 10, weight: 0 }],
+        sets: [
+          { 
+            id: uuidv4(), 
+            metrics: [
+              { id: uuidv4(), type: "repetitions", value: 10, unit: "reps" }
+            ] 
+          }
+        ],
         notes: "Focus on breathing",
         duration: 15,
         media: [],
@@ -61,7 +65,14 @@ let mockWorkouts: Workout[] = [
         id: uuidv4(),
         name: "Downward Dog",
         type: "Stretch",
-        sets: [{ id: uuidv4(), reps: 1, weight: 0 }],
+        sets: [
+          { 
+            id: uuidv4(), 
+            metrics: [
+              { id: uuidv4(), type: "duration", value: 30, unit: "sec" }
+            ] 
+          }
+        ],
         notes: "Hold for 5 breaths",
         duration: 5,
         media: [],
@@ -79,7 +90,15 @@ let mockWorkouts: Workout[] = [
         id: uuidv4(),
         name: "Treadmill Run",
         type: "Cardio",
-        sets: [{ id: uuidv4(), reps: 30, weight: 0 }],
+        sets: [
+          { 
+            id: uuidv4(), 
+            metrics: [
+              { id: uuidv4(), type: "distance", value: 5, unit: "km" },
+              { id: uuidv4(), type: "duration", value: 30, unit: "min" }
+            ] 
+          }
+        ],
         notes: "Moderate pace",
         duration: 30,
         media: [],
@@ -98,9 +117,27 @@ let mockWorkouts: Workout[] = [
         name: "Bench Press",
         type: "Chest",
         sets: [
-          { id: uuidv4(), reps: 8, weight: 70 },
-          { id: uuidv4(), reps: 8, weight: 70 },
-          { id: uuidv4(), reps: 8, weight: 70 },
+          { 
+            id: uuidv4(), 
+            metrics: [
+              { id: uuidv4(), type: "weight", value: 70, unit: "kg" },
+              { id: uuidv4(), type: "repetitions", value: 8, unit: "reps" }
+            ] 
+          },
+          { 
+            id: uuidv4(), 
+            metrics: [
+              { id: uuidv4(), type: "weight", value: 75, unit: "kg" },
+              { id: uuidv4(), type: "repetitions", value: 6, unit: "reps" }
+            ] 
+          },
+          { 
+            id: uuidv4(), 
+            metrics: [
+              { id: uuidv4(), type: "weight", value: 80, unit: "kg" },
+              { id: uuidv4(), type: "repetitions", value: 4, unit: "reps" }
+            ] 
+          },
         ],
         notes: "Controlled movements",
         duration: 20,
@@ -111,9 +148,27 @@ let mockWorkouts: Workout[] = [
         name: "Bicep Curls",
         type: "Arms",
         sets: [
-          { id: uuidv4(), reps: 10, weight: 30 },
-          { id: uuidv4(), reps: 10, weight: 30 },
-          { id: uuidv4(), reps: 10, weight: 30 },
+          { 
+            id: uuidv4(), 
+            metrics: [
+              { id: uuidv4(), type: "weight", value: 30, unit: "kg" },
+              { id: uuidv4(), type: "repetitions", value: 10, unit: "reps" }
+            ] 
+          },
+          { 
+            id: uuidv4(), 
+            metrics: [
+              { id: uuidv4(), type: "weight", value: 32.5, unit: "kg" },
+              { id: uuidv4(), type: "repetitions", value: 8, unit: "reps" }
+            ] 
+          },
+          { 
+            id: uuidv4(), 
+            metrics: [
+              { id: uuidv4(), type: "weight", value: 35, unit: "kg" },
+              { id: uuidv4(), type: "repetitions", value: 6, unit: "reps" }
+            ] 
+          },
         ],
         notes: "Use proper form",
         duration: 15,
@@ -133,9 +188,24 @@ let mockWorkouts: Workout[] = [
         name: "Crunches",
         type: "Abs",
         sets: [
-          { id: uuidv4(), reps: 20, weight: 0 },
-          { id: uuidv4(), reps: 20, weight: 0 },
-          { id: uuidv4(), reps: 20, weight: 0 },
+          { 
+            id: uuidv4(), 
+            metrics: [
+              { id: uuidv4(), type: "repetitions", value: 20, unit: "reps" }
+            ] 
+          },
+          { 
+            id: uuidv4(), 
+            metrics: [
+              { id: uuidv4(), type: "repetitions", value: 20, unit: "reps" }
+            ] 
+          },
+          { 
+            id: uuidv4(), 
+            metrics: [
+              { id: uuidv4(), type: "repetitions", value: 20, unit: "reps" }
+            ] 
+          },
         ],
         notes: "Engage core",
         duration: 10,
@@ -155,9 +225,27 @@ let mockWorkouts: Workout[] = [
         name: "Squats",
         type: "Legs",
         sets: [
-          { id: uuidv4(), reps: 12, weight: 50 },
-          { id: uuidv4(), reps: 10, weight: 60 },
-          { id: uuidv4(), reps: 8, weight: 70 },
+          { 
+            id: uuidv4(), 
+            metrics: [
+              { id: uuidv4(), type: "weight", value: 50, unit: "kg" },
+              { id: uuidv4(), type: "repetitions", value: 12, unit: "reps" }
+            ] 
+          },
+          { 
+            id: uuidv4(), 
+            metrics: [
+              { id: uuidv4(), type: "weight", value: 60, unit: "kg" },
+              { id: uuidv4(), type: "repetitions", value: 10, unit: "reps" }
+            ] 
+          },
+          { 
+            id: uuidv4(), 
+            metrics: [
+              { id: uuidv4(), type: "weight", value: 70, unit: "kg" },
+              { id: uuidv4(), type: "repetitions", value: 8, unit: "reps" }
+            ] 
+          },
         ],
         notes: "Keep back straight",
         duration: 25,
@@ -176,7 +264,14 @@ let mockWorkouts: Workout[] = [
         id: uuidv4(),
         name: "Freestyle",
         type: "Swimming",
-        sets: [{ id: uuidv4(), reps: 40, weight: 0 }],
+        sets: [
+          { 
+            id: uuidv4(), 
+            metrics: [
+              { id: uuidv4(), type: "distance", value: 40, unit: "laps" }
+            ] 
+          }
+        ],
         notes: "Maintain rhythm",
         duration: 40,
         media: [],
@@ -194,7 +289,14 @@ let mockWorkouts: Workout[] = [
         id: uuidv4(),
         name: "Child's Pose",
         type: "Stretch",
-        sets: [{ id: uuidv4(), reps: 1, weight: 0 }],
+        sets: [
+          { 
+            id: uuidv4(), 
+            metrics: [
+              { id: uuidv4(), type: "duration", value: 600, unit: "sec" }
+            ] 
+          }
+        ],
         notes: "Relax and breathe",
         duration: 10,
         media: [],
@@ -212,7 +314,14 @@ let mockWorkouts: Workout[] = [
         id: uuidv4(),
         name: "Top Rope Climb",
         type: "Climbing",
-        sets: [{ id: uuidv4(), reps: 1, weight: 0 }],
+        sets: [
+          { 
+            id: uuidv4(), 
+            metrics: [
+              { id: uuidv4(), type: "duration", value: 60, unit: "min" }
+            ] 
+          }
+        ],
         notes: "Focus on technique",
         duration: 60,
         media: [],
@@ -230,7 +339,15 @@ let mockWorkouts: Workout[] = [
         id: uuidv4(),
         name: "Outdoor Ride",
         type: "Cycling",
-        sets: [{ id: uuidv4(), reps: 60, weight: 0 }],
+        sets: [
+          { 
+            id: uuidv4(), 
+            metrics: [
+              { id: uuidv4(), type: "distance", value: 15, unit: "km" },
+              { id: uuidv4(), type: "duration", value: 60, unit: "min" }
+            ] 
+          }
+        ],
         notes: "Enjoy the scenery",
         duration: 60,
         media: [],
@@ -248,7 +365,14 @@ let mockWorkouts: Workout[] = [
         id: uuidv4(),
         name: "The Hundred",
         type: "Abs",
-        sets: [{ id: uuidv4(), reps: 100, weight: 0 }],
+        sets: [
+          { 
+            id: uuidv4(), 
+            metrics: [
+              { id: uuidv4(), type: "repetitions", value: 100, unit: "reps" }
+            ] 
+          }
+        ],
         notes: "Engage core",
         duration: 15,
         media: [],
@@ -267,9 +391,27 @@ let mockWorkouts: Workout[] = [
         name: "Deadlifts",
         type: "Back",
         sets: [
-          { id: uuidv4(), reps: 5, weight: 100 },
-          { id: uuidv4(), reps: 5, weight: 100 },
-          { id: uuidv4(), reps: 5, weight: 100 },
+          { 
+            id: uuidv4(), 
+            metrics: [
+              { id: uuidv4(), type: "weight", value: 100, unit: "kg" },
+              { id: uuidv4(), type: "repetitions", value: 5, unit: "reps" }
+            ] 
+          },
+          { 
+            id: uuidv4(), 
+            metrics: [
+              { id: uuidv4(), type: "weight", value: 110, unit: "kg" },
+              { id: uuidv4(), type: "repetitions", value: 5, unit: "reps" }
+            ] 
+          },
+          { 
+            id: uuidv4(), 
+            metrics: [
+              { id: uuidv4(), type: "weight", value: 120, unit: "kg" },
+              { id: uuidv4(), type: "repetitions", value: 5, unit: "reps" }
+            ] 
+          },
         ],
         notes: "Maintain form",
         duration: 30,
