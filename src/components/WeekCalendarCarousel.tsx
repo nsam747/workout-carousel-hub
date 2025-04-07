@@ -1,27 +1,21 @@
 
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect } from "react";
 import { dateRange } from "@/lib/mockData";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { format, isBefore, isAfter, isSameDay } from "date-fns";
+import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { DateRange } from "./MonthCalendarCarousel";
 
 interface WeekCalendarCarouselProps {
   selectedDate: Date;
   onDateSelect: (date: Date) => void;
-  selectedDateRange?: DateRange;
-  onDateRangeSelect?: (range: DateRange) => void;
 }
 
 const WeekCalendarCarousel: React.FC<WeekCalendarCarouselProps> = ({
   selectedDate,
   onDateSelect,
-  selectedDateRange,
-  onDateRangeSelect
 }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const selectedDateRef = useRef<HTMLDivElement>(null);
-  const [selectionInProgress, setSelectionInProgress] = useState(false);
 
   // Scroll to selected date when component mounts or selectedDate changes
   useEffect(() => {
@@ -67,47 +61,6 @@ const WeekCalendarCarousel: React.FC<WeekCalendarCarouselProps> = ({
     );
   };
 
-  // Helper to check if a date is in the selected range
-  const isDateInRange = (date: Date) => {
-    if (!selectedDateRange || !selectedDateRange.from) return false;
-    
-    if (isSameDay(date, selectedDateRange.from)) return true;
-    
-    if (selectedDateRange.to) {
-      if (isSameDay(date, selectedDateRange.to)) return true;
-      
-      return (
-        (isAfter(date, selectedDateRange.from) && isBefore(date, selectedDateRange.to)) ||
-        (isAfter(date, selectedDateRange.to) && isBefore(date, selectedDateRange.from))
-      );
-    }
-    
-    return false;
-  };
-
-  const handleDateClick = (date: Date) => {
-    if (onDateRangeSelect) {
-      // If we're in range selection mode
-      if (!selectedDateRange || selectedDateRange.to) {
-        // Start a new range
-        onDateRangeSelect({ from: date });
-      } else {
-        // Complete the range
-        const from = selectedDateRange.from;
-        
-        // Ensure the range is always from earlier date to later date
-        if (isBefore(date, from)) {
-          onDateRangeSelect({ from: date, to: from });
-        } else {
-          onDateRangeSelect({ from, to: date });
-        }
-      }
-    } else {
-      // Single date selection
-      onDateSelect(date);
-    }
-  };
-
   const today = new Date();
   const isToday = (date: Date) => isSameDay(date, today);
 
@@ -128,12 +81,12 @@ const WeekCalendarCarousel: React.FC<WeekCalendarCarouselProps> = ({
         className="flex space-x-2 overflow-x-auto py-2 px-8 scrollbar-hide"
       >
         {dateRange.map((day, i) => {
-          const isSelected = onDateRangeSelect ? isDateInRange(day.date) : isSameDay(day.date, selectedDate);
+          const isSelected = isSameDay(day.date, selectedDate);
           
           return (
             <div
               key={i}
-              ref={!onDateRangeSelect && isSelected ? selectedDateRef : null}
+              ref={isSelected ? selectedDateRef : null}
               className={cn(
                 "flex flex-col items-center justify-center w-14 h-14 rounded-full cursor-pointer transition-colors relative",
                 isSelected
@@ -141,7 +94,7 @@ const WeekCalendarCarousel: React.FC<WeekCalendarCarouselProps> = ({
                   : "hover:bg-secondary/80",
                 day.isToday ? "ring-2 ring-primary/20" : ""
               )}
-              onClick={() => handleDateClick(day.date)}
+              onClick={() => onDateSelect(day.date)}
             >
               <span className="text-xs font-medium">{day.dayName}</span>
               <span className="text-lg font-bold">{day.dayNumber}</span>
