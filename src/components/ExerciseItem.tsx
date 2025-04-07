@@ -1,4 +1,3 @@
-
 /**
  * ExerciseItem Component
  * 
@@ -101,7 +100,43 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
 
   // Generate an enhanced summary of metrics across all sets
   const generateEnhancedSummary = () => {
-    if (!exercise.metrics || exercise.metrics.length === 0) return null;
+    // First check if we have any meaningful data to show
+    if (!exercise.metrics || exercise.metrics.length === 0) {
+      // If we have no metrics but have notes or media, show those indicators
+      if (hasNotes || hasMedia || getTotalSets() > 0) {
+        return (
+          <div className="flex flex-wrap items-center text-sm text-muted-foreground mt-1 gap-2">
+            {getTotalSets() > 0 && (
+              <div className="flex items-center">
+                <Hash className="h-3 w-3 mr-1" />
+                <span>{getTotalSets()} sets</span>
+              </div>
+            )}
+            
+            {hasNotes && (
+              <div className="flex items-center">
+                <StickyNote className="h-3 w-3 mr-1" />
+                <span>Notes</span>
+              </div>
+            )}
+            
+            {hasMedia && (
+              <div className="flex items-center">
+                <Image className="h-3 w-3 mr-1" />
+                <span>Media</span>
+              </div>
+            )}
+          </div>
+        );
+      }
+      
+      // If no data at all, show a minimal indicator
+      return (
+        <div className="text-xs text-muted-foreground mt-1">
+          No performance data recorded
+        </div>
+      );
+    }
     
     // Group metrics by type
     const metricsByType: { [key: string]: number[] } = {};
@@ -198,15 +233,19 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
         })}
         
         {/* Show notes and media indicators */}
-        {hasNotes && (
+        {hasNotes && !metricsByType["weight"] && !metricsByType["distance"] && 
+         !metricsByType["duration"] && !metricsByType["repetitions"] && !metricsByType["restTime"] && (
           <div className="flex items-center">
             <StickyNote className="h-3 w-3 mr-1" />
+            <span>Notes</span>
           </div>
         )}
         
-        {hasMedia && (
+        {hasMedia && !metricsByType["weight"] && !metricsByType["distance"] && 
+         !metricsByType["duration"] && !metricsByType["repetitions"] && !metricsByType["restTime"] && (
           <div className="flex items-center">
             <Image className="h-3 w-3 mr-1" />
+            <span>Media</span>
           </div>
         )}
       </div>
@@ -283,11 +322,7 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
           <h4 className="font-medium">{exercise.name}</h4>
           
           {/* Render the enhanced summary when collapsed */}
-          {!expanded && (
-            <div className="mt-1">
-              {summaryContent}
-            </div>
-          )}
+          {!expanded && summaryContent}
         </div>
         <Button
           variant="ghost"
