@@ -79,26 +79,43 @@ const MonthCalendarCarousel: React.FC<MonthCalendarCarouselProps> = ({
           </div>
         </div>
         
-        <Calendar
-          mode={onDateRangeSelect ? "range" : "single"}
-          selected={onDateRangeSelect ? selectedDateRange : selectedDate}
-          onSelect={(value) => {
-            if (onDateRangeSelect) {
-              value && onDateRangeSelect(value as DateRange);
-            } else {
-              value && onDateSelect(value as Date);
-            }
-          }}
-          month={currentMonth}
-          onMonthChange={setCurrentMonth}
-          className={cn("p-0 border-none")}
-          classNames={{
-            day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground",
-            day_today: "bg-accent text-accent-foreground",
-            caption: "hidden", // Hide the default caption since we have our own header
-          }}
-          numberOfMonths={1}
-        />
+        {onDateRangeSelect ? (
+          // Range selection mode
+          <Calendar
+            mode="range"
+            selected={selectedDateRange}
+            onSelect={(value) => {
+              if (value) onDateRangeSelect(value as DateRange);
+            }}
+            month={currentMonth}
+            onMonthChange={setCurrentMonth}
+            className={cn("p-0 border-none")}
+            classNames={{
+              day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground",
+              day_today: "bg-accent text-accent-foreground",
+              caption: "hidden", // Hide the default caption since we have our own header
+            }}
+            numberOfMonths={1}
+          />
+        ) : (
+          // Single date selection mode
+          <Calendar
+            mode="single"
+            selected={selectedDate}
+            onSelect={(value) => {
+              if (value) onDateSelect(value);
+            }}
+            month={currentMonth}
+            onMonthChange={setCurrentMonth}
+            className={cn("p-0 border-none")}
+            classNames={{
+              day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground",
+              day_today: "bg-accent text-accent-foreground",
+              caption: "hidden", // Hide the default caption since we have our own header
+            }}
+            numberOfMonths={1}
+          />
+        )}
       </div>
     </div>
   );

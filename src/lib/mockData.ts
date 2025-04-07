@@ -1,12 +1,31 @@
+
 import { v4 as uuidv4 } from 'uuid';
-import { subDays, isSameDay } from 'date-fns';
+import { subDays, isSameDay, isWithinInterval } from 'date-fns';
 import * as LucideIcons from "lucide-react";
+
+export interface PerformanceMetric {
+  id: string;
+  type: string; // weight, repetitions, duration, distance, restTime, etc
+  value: number;
+  unit: string; // kg, lb, reps, seconds, minutes, km, etc
+}
+
+export interface Set {
+  id: string;
+  reps: number;
+  weight: number;
+  metrics: PerformanceMetric[];
+}
 
 export interface Exercise {
   id: string;
   name: string;
-  sets: number;
-  reps: string;
+  type: string;
+  sets: Set[];
+  reps?: string; // Legacy field, keeping for backward compatibility
+  notes?: string;
+  duration: number;
+  media: string[];
 }
 
 export interface Workout {
@@ -45,7 +64,7 @@ const today = new Date();
 // Generate the date range for the week carousel
 export const dateRange = getDatesForWeek(today);
 
-// Mock category information
+// Mock category information with icons
 const categories: { [key: string]: CategoryInfo } = {
   "Full Body": { label: "Full Body", color: "#2563EB", icon: "Gymnastics" },
   "Upper Body": { label: "Upper Body", color: "#D97706", icon: "Man" },
@@ -59,6 +78,82 @@ export const getCategoryInfo = (category: string): CategoryInfo => {
   return categories[category] || { label: "Unknown", color: "#6B7280", icon: null };
 };
 
+export const getAllCategories = (): string[] => {
+  return Object.keys(categories);
+};
+
+export const createCategory = (categoryInfo: { name: string; color: string; icon: string | null }) => {
+  categories[categoryInfo.name] = {
+    label: categoryInfo.name,
+    color: categoryInfo.color,
+    icon: categoryInfo.icon
+  };
+};
+
+export const updateCategory = (oldName: string, categoryInfo: { name: string; color: string; icon: string | null }) => {
+  if (oldName !== categoryInfo.name) {
+    delete categories[oldName];
+  }
+  categories[categoryInfo.name] = {
+    label: categoryInfo.name,
+    color: categoryInfo.color,
+    icon: categoryInfo.icon
+  };
+};
+
+// Mock exercise types
+const exerciseTypes = [
+  "Strength", "Cardio", "Flexibility", "Balance", "Power", "Endurance", "Other"
+];
+
+export const getExerciseTypes = (): string[] => {
+  return exerciseTypes;
+};
+
+// Mock saved exercises
+const savedExercises: Exercise[] = [
+  {
+    id: uuidv4(),
+    name: "Push-ups",
+    type: "Strength",
+    sets: [],
+    notes: "",
+    duration: 0,
+    media: []
+  },
+  {
+    id: uuidv4(),
+    name: "Pull-ups",
+    type: "Strength",
+    sets: [],
+    notes: "",
+    duration: 0,
+    media: []
+  },
+  {
+    id: uuidv4(),
+    name: "Running",
+    type: "Cardio",
+    sets: [],
+    notes: "",
+    duration: 0,
+    media: []
+  }
+];
+
+export const getSavedExercises = (): Exercise[] => {
+  return savedExercises;
+};
+
+export const saveExercise = (exercise: Exercise) => {
+  const existingIndex = savedExercises.findIndex(ex => ex.id === exercise.id);
+  if (existingIndex >= 0) {
+    savedExercises[existingIndex] = exercise;
+  } else {
+    savedExercises.push(exercise);
+  }
+};
+
 // Mock workout data
 let workouts: Workout[] = [
   {
@@ -67,9 +162,66 @@ let workouts: Workout[] = [
     category: "Full Body",
     date: subDays(today, 2).toISOString().split('T')[0],
     exercises: [
-      { id: uuidv4(), name: "Squats", sets: 3, reps: "12" },
-      { id: uuidv4(), name: "Push-ups", sets: 3, reps: "Max" },
-      { id: uuidv4(), name: "Dumbbell Rows", sets: 3, reps: "10" },
+      { 
+        id: uuidv4(), 
+        name: "Squats", 
+        type: "Strength",
+        sets: [
+          { id: uuidv4(), reps: 12, weight: 0, metrics: [
+            { id: uuidv4(), type: "repetitions", value: 12, unit: "reps" }
+          ] },
+          { id: uuidv4(), reps: 12, weight: 0, metrics: [
+            { id: uuidv4(), type: "repetitions", value: 12, unit: "reps" }
+          ] },
+          { id: uuidv4(), reps: 12, weight: 0, metrics: [
+            { id: uuidv4(), type: "repetitions", value: 12, unit: "reps" }
+          ] }
+        ],
+        notes: "",
+        duration: 0,
+        media: []
+      },
+      { 
+        id: uuidv4(), 
+        name: "Push-ups", 
+        type: "Strength",
+        sets: [
+          { id: uuidv4(), reps: 10, weight: 0, metrics: [
+            { id: uuidv4(), type: "repetitions", value: 10, unit: "reps" }
+          ] },
+          { id: uuidv4(), reps: 8, weight: 0, metrics: [
+            { id: uuidv4(), type: "repetitions", value: 8, unit: "reps" }
+          ] },
+          { id: uuidv4(), reps: 6, weight: 0, metrics: [
+            { id: uuidv4(), type: "repetitions", value: 6, unit: "reps" }
+          ] }
+        ],
+        notes: "Focus on form",
+        duration: 0,
+        media: []
+      },
+      { 
+        id: uuidv4(), 
+        name: "Dumbbell Rows", 
+        type: "Strength",
+        sets: [
+          { id: uuidv4(), reps: 10, weight: 15, metrics: [
+            { id: uuidv4(), type: "repetitions", value: 10, unit: "reps" },
+            { id: uuidv4(), type: "weight", value: 15, unit: "kg" }
+          ] },
+          { id: uuidv4(), reps: 10, weight: 15, metrics: [
+            { id: uuidv4(), type: "repetitions", value: 10, unit: "reps" },
+            { id: uuidv4(), type: "weight", value: 15, unit: "kg" }
+          ] },
+          { id: uuidv4(), reps: 10, weight: 15, metrics: [
+            { id: uuidv4(), type: "repetitions", value: 10, unit: "reps" },
+            { id: uuidv4(), type: "weight", value: 15, unit: "kg" }
+          ] }
+        ],
+        notes: "",
+        duration: 0,
+        media: []
+      },
     ],
     completed: true,
   },
@@ -79,8 +231,39 @@ let workouts: Workout[] = [
     category: "Yoga",
     date: today.toISOString().split('T')[0],
     exercises: [
-      { id: uuidv4(), name: "Sun Salutations", sets: 1, reps: "5" },
-      { id: uuidv4(), name: "Downward Dog", sets: 3, reps: "Hold 30s" },
+      { 
+        id: uuidv4(), 
+        name: "Sun Salutations", 
+        type: "Flexibility",
+        sets: [
+          { id: uuidv4(), reps: 5, weight: 0, metrics: [
+            { id: uuidv4(), type: "repetitions", value: 5, unit: "reps" },
+            { id: uuidv4(), type: "duration", value: 3, unit: "minutes" }
+          ] }
+        ],
+        notes: "Gentle flow",
+        duration: 0,
+        media: []
+      },
+      { 
+        id: uuidv4(), 
+        name: "Downward Dog", 
+        type: "Flexibility",
+        sets: [
+          { id: uuidv4(), reps: 1, weight: 0, metrics: [
+            { id: uuidv4(), type: "duration", value: 30, unit: "seconds" }
+          ] },
+          { id: uuidv4(), reps: 1, weight: 0, metrics: [
+            { id: uuidv4(), type: "duration", value: 30, unit: "seconds" }
+          ] },
+          { id: uuidv4(), reps: 1, weight: 0, metrics: [
+            { id: uuidv4(), type: "duration", value: 30, unit: "seconds" }
+          ] }
+        ],
+        notes: "Focus on breathing",
+        duration: 0,
+        media: []
+      },
     ],
     completed: false,
   },
@@ -90,8 +273,44 @@ let workouts: Workout[] = [
     category: "Core",
     date: today.toISOString().split('T')[0],
     exercises: [
-      { id: uuidv4(), name: "Crunches", sets: 3, reps: "20" },
-      { id: uuidv4(), name: "Plank", sets: 3, reps: "Hold 45s" },
+      { 
+        id: uuidv4(), 
+        name: "Crunches", 
+        type: "Strength",
+        sets: [
+          { id: uuidv4(), reps: 20, weight: 0, metrics: [
+            { id: uuidv4(), type: "repetitions", value: 20, unit: "reps" }
+          ] },
+          { id: uuidv4(), reps: 20, weight: 0, metrics: [
+            { id: uuidv4(), type: "repetitions", value: 20, unit: "reps" }
+          ] },
+          { id: uuidv4(), reps: 20, weight: 0, metrics: [
+            { id: uuidv4(), type: "repetitions", value: 20, unit: "reps" }
+          ] }
+        ],
+        notes: "",
+        duration: 0,
+        media: []
+      },
+      { 
+        id: uuidv4(), 
+        name: "Plank", 
+        type: "Strength",
+        sets: [
+          { id: uuidv4(), reps: 1, weight: 0, metrics: [
+            { id: uuidv4(), type: "duration", value: 45, unit: "seconds" }
+          ] },
+          { id: uuidv4(), reps: 1, weight: 0, metrics: [
+            { id: uuidv4(), type: "duration", value: 45, unit: "seconds" }
+          ] },
+          { id: uuidv4(), reps: 1, weight: 0, metrics: [
+            { id: uuidv4(), type: "duration", value: 45, unit: "seconds" }
+          ] }
+        ],
+        notes: "Keep body straight",
+        duration: 0,
+        media: []
+      },
     ],
     completed: true,
   },
@@ -101,7 +320,20 @@ let workouts: Workout[] = [
     category: "Cardio",
     date: today.toISOString().split('T')[0],
     exercises: [
-      { id: uuidv4(), name: "Running", sets: 1, reps: "30 minutes" },
+      { 
+        id: uuidv4(), 
+        name: "Running", 
+        type: "Cardio",
+        sets: [
+          { id: uuidv4(), reps: 1, weight: 0, metrics: [
+            { id: uuidv4(), type: "duration", value: 30, unit: "minutes" },
+            { id: uuidv4(), type: "distance", value: 5, unit: "km" }
+          ] }
+        ],
+        notes: "Light jog",
+        duration: 30,
+        media: []
+      },
     ],
     completed: false,
   },
@@ -111,8 +343,54 @@ let workouts: Workout[] = [
     category: "Lower Body",
     date: subDays(today, 1).toISOString().split('T')[0],
     exercises: [
-      { id: uuidv4(), name: "Squats", sets: 4, reps: "12" },
-      { id: uuidv4(), name: "Hamstring Curls", sets: 3, reps: "15" },
+      { 
+        id: uuidv4(), 
+        name: "Squats", 
+        type: "Strength",
+        sets: [
+          { id: uuidv4(), reps: 12, weight: 40, metrics: [
+            { id: uuidv4(), type: "repetitions", value: 12, unit: "reps" },
+            { id: uuidv4(), type: "weight", value: 40, unit: "kg" }
+          ] },
+          { id: uuidv4(), reps: 12, weight: 40, metrics: [
+            { id: uuidv4(), type: "repetitions", value: 12, unit: "reps" },
+            { id: uuidv4(), type: "weight", value: 40, unit: "kg" }
+          ] },
+          { id: uuidv4(), reps: 12, weight: 40, metrics: [
+            { id: uuidv4(), type: "repetitions", value: 12, unit: "reps" },
+            { id: uuidv4(), type: "weight", value: 40, unit: "kg" }
+          ] },
+          { id: uuidv4(), reps: 12, weight: 40, metrics: [
+            { id: uuidv4(), type: "repetitions", value: 12, unit: "reps" },
+            { id: uuidv4(), type: "weight", value: 40, unit: "kg" }
+          ] }
+        ],
+        notes: "",
+        duration: 0,
+        media: []
+      },
+      { 
+        id: uuidv4(), 
+        name: "Hamstring Curls", 
+        type: "Strength",
+        sets: [
+          { id: uuidv4(), reps: 15, weight: 30, metrics: [
+            { id: uuidv4(), type: "repetitions", value: 15, unit: "reps" },
+            { id: uuidv4(), type: "weight", value: 30, unit: "kg" }
+          ] },
+          { id: uuidv4(), reps: 15, weight: 30, metrics: [
+            { id: uuidv4(), type: "repetitions", value: 15, unit: "reps" },
+            { id: uuidv4(), type: "weight", value: 30, unit: "kg" }
+          ] },
+          { id: uuidv4(), reps: 15, weight: 30, metrics: [
+            { id: uuidv4(), type: "repetitions", value: 15, unit: "reps" },
+            { id: uuidv4(), type: "weight", value: 30, unit: "kg" }
+          ] }
+        ],
+        notes: "",
+        duration: 0,
+        media: []
+      },
     ],
     completed: true,
   },
@@ -122,8 +400,50 @@ let workouts: Workout[] = [
     category: "Upper Body",
     date: subDays(today, 3).toISOString().split('T')[0],
     exercises: [
-      { id: uuidv4(), name: "Bicep Curls", sets: 3, reps: "10" },
-      { id: uuidv4(), name: "Tricep Extensions", sets: 3, reps: "12" },
+      { 
+        id: uuidv4(), 
+        name: "Bicep Curls", 
+        type: "Strength",
+        sets: [
+          { id: uuidv4(), reps: 10, weight: 15, metrics: [
+            { id: uuidv4(), type: "repetitions", value: 10, unit: "reps" },
+            { id: uuidv4(), type: "weight", value: 15, unit: "kg" }
+          ] },
+          { id: uuidv4(), reps: 10, weight: 15, metrics: [
+            { id: uuidv4(), type: "repetitions", value: 10, unit: "reps" },
+            { id: uuidv4(), type: "weight", value: 15, unit: "kg" }
+          ] },
+          { id: uuidv4(), reps: 10, weight: 15, metrics: [
+            { id: uuidv4(), type: "repetitions", value: 10, unit: "reps" },
+            { id: uuidv4(), type: "weight", value: 15, unit: "kg" }
+          ] }
+        ],
+        notes: "",
+        duration: 0,
+        media: []
+      },
+      { 
+        id: uuidv4(), 
+        name: "Tricep Extensions", 
+        type: "Strength",
+        sets: [
+          { id: uuidv4(), reps: 12, weight: 12.5, metrics: [
+            { id: uuidv4(), type: "repetitions", value: 12, unit: "reps" },
+            { id: uuidv4(), type: "weight", value: 12.5, unit: "kg" }
+          ] },
+          { id: uuidv4(), reps: 12, weight: 12.5, metrics: [
+            { id: uuidv4(), type: "repetitions", value: 12, unit: "reps" },
+            { id: uuidv4(), type: "weight", value: 12.5, unit: "kg" }
+          ] },
+          { id: uuidv4(), reps: 12, weight: 12.5, metrics: [
+            { id: uuidv4(), type: "repetitions", value: 12, unit: "reps" },
+            { id: uuidv4(), type: "weight", value: 12.5, unit: "kg" }
+          ] }
+        ],
+        notes: "",
+        duration: 0,
+        media: []
+      },
     ],
     completed: false,
   },
@@ -150,6 +470,14 @@ export const getWorkoutsForPastWeek = (): Workout[] => {
     pastWeek.push(...workoutsForDate);
   }
   return pastWeek;
+};
+
+// Function to get workouts in a date range
+export const getWorkoutsInDateRange = (from: Date, to: Date): Workout[] => {
+  return workouts.filter(workout => {
+    const workoutDate = new Date(workout.date);
+    return isWithinInterval(workoutDate, { start: from, end: to });
+  });
 };
 
 // Get all workouts (for filtering by date range)
