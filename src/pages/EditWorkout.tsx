@@ -34,7 +34,15 @@ const EditWorkout = () => {
       const workout = getWorkoutById(id);
       if (workout) {
         setTitle(workout.title);
-        setExercises(workout.exercises);
+        // Create deep copies of the exercises to avoid reference issues
+        const exercisesCopy = workout.exercises.map(exercise => ({
+          ...exercise,
+          sets: exercise.sets ? exercise.sets.map(set => ({
+            ...set,
+            metrics: set.metrics ? [...set.metrics] : []
+          })) : []
+        }));
+        setExercises(exercisesCopy);
         setSelectedCategory(workout.category);
       } else {
         toast.error("Workout not found");
