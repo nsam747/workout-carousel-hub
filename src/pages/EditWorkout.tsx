@@ -78,6 +78,7 @@ const EditWorkout = () => {
   };
   
   const handleExerciseUpdate = (updatedExercise: Exercise) => {
+    console.log("Updating exercise:", updatedExercise);
     setExercises(prevExercises => 
       prevExercises.map(exercise => 
         exercise.id === updatedExercise.id ? updatedExercise : exercise

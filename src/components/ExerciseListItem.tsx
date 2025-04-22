@@ -21,7 +21,7 @@ import React, { useState, useEffect } from "react";
 import { Trash, ChevronDown, ChevronUp, Image, Edit, Plus, Copy, X, Check, Save, Clock, Dumbbell, Hash, StickyNote, Ruler, Timer, Repeat } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Exercise, getExerciseTypes, saveExercise } from "@/lib/mockData";
+import { Exercise, getExerciseTypes, saveExercise, Set } from "@/lib/mockData";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { 
@@ -47,6 +47,7 @@ interface ExerciseListItemProps {
 interface SetData {
   id: string;
   metrics: PerformanceMetric[];
+  setNumber: number; // Added setNumber to match the Set interface
 }
 
 const ExerciseListItem: React.FC<ExerciseListItemProps> = ({ 
@@ -91,7 +92,8 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
             metrics: set.metrics.map(metric => ({
               ...metric,
               id: metric.id || generateId()
-            }))
+            })),
+            setNumber: set.setNumber // Include setNumber from the original set
           };
         }
         
@@ -120,7 +122,8 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
         
         return {
           id: set.id || generateId(),
-          metrics
+          metrics,
+          setNumber: set.setNumber // Include setNumber from the original set
         };
       });
       
@@ -135,9 +138,15 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
   
   // Add a new empty set directly
   const handleAddEmptySet = (newSetId = generateId()) => {
+    // Find the next set number (maximum setNumber + 1)
+    const nextSetNumber = sets.length > 0 
+      ? Math.max(...sets.map(set => set.setNumber)) + 1 
+      : 1;
+      
     const newSet: SetData = {
       id: newSetId,
-      metrics: []
+      metrics: [],
+      setNumber: nextSetNumber // Add proper set number
     };
     setSets(prevSets => [...prevSets, newSet]);
     // Automatically activate the new set for editing
@@ -212,10 +221,15 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
         )
       );
     } else {
-      // Creating a new set with the metric
+      // Creating a new set with the metric and correct setNumber
+      const nextSetNumber = sets.length > 0 
+        ? Math.max(...sets.map(set => set.setNumber)) + 1 
+        : 1;
+        
       const newSet: SetData = {
         id: generateId(),
-        metrics: [metric]
+        metrics: [metric],
+        setNumber: nextSetNumber
       };
       setSets([...sets, newSet]);
     }
@@ -253,12 +267,18 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
   };
 
   const handleDuplicateSet = (setToDuplicate: SetData) => {
+    // Find the next set number
+    const nextSetNumber = sets.length > 0 
+      ? Math.max(...sets.map(set => set.setNumber)) + 1 
+      : 1;
+      
     const duplicatedSet: SetData = {
       id: generateId(),
       metrics: setToDuplicate.metrics.map(metric => ({
         ...metric,
         id: generateId()
-      }))
+      })),
+      setNumber: nextSetNumber // Use proper set number for duplicated set
     };
     setSets([...sets, duplicatedSet]);
     
@@ -331,13 +351,14 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
   const updateExerciseWithSets = () => {
     if (!onExerciseUpdate) return;
     
-    // Convert SetData back to exercise.sets format
-    const updatedSets = sets.map(set => ({
+    // Convert SetData to proper Set format for the Exercise interface
+    const updatedSets: Set[] = sets.map(set => ({
       id: set.id,
+      setNumber: set.setNumber,
       metrics: set.metrics
     }));
     
-    const updatedExercise = {
+    const updatedExercise: Exercise = {
       ...exercise,
       sets: updatedSets,
       notes
