@@ -1,45 +1,50 @@
 
 /**
- * AddWorkout Page Component
+ * EditWorkout Page Component
  * 
- * This page allows users to create a new workout by adding:
- * - Workout title
- * - Workout category
- * - Multiple exercises with their details
- * 
- * Features:
- * - Add/remove exercises to the workout
- * - Select from existing categories or create new ones
- * - Save the complete workout
- * - Auto-focus newly added exercises with initial set
- * 
- * This component uses ExerciseListItem for listing exercises and
- * AddExerciseForm for adding new exercises.
+ * This page allows users to edit an existing workout.
+ * It reuses the same structure as AddWorkout but loads the existing workout data.
  */
 
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import CategorySelector from "@/components/CategorySelector";
 import AddExerciseForm from "@/components/AddExerciseForm";
 import ExerciseListItem from "@/components/ExerciseListItem";
-import { getAllCategories } from "@/lib/mockData";
+import { getAllCategories, getWorkoutById } from "@/lib/mockData";
 import { toast } from "sonner";
-import { v4 as uuidv4 } from "uuid";
 import { Exercise, Workout } from "@/lib/mockData";
 
-const AddWorkout = () => {
+const EditWorkout = () => {
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
+  const [loading, setLoading] = useState(true);
   const [title, setTitle] = useState("");
   const [exercises, setExercises] = useState<Exercise[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState(getAllCategories()[0] || "");
+  const [selectedCategory, setSelectedCategory] = useState("");
   const [isAddingExercise, setIsAddingExercise] = useState(false);
   const [lastAddedExerciseId, setLastAddedExerciseId] = useState<string | null>(null);
   
+  useEffect(() => {
+    if (id) {
+      // Load the workout data
+      const workout = getWorkoutById(id);
+      if (workout) {
+        setTitle(workout.title);
+        setExercises(workout.exercises);
+        setSelectedCategory(workout.category);
+      } else {
+        toast.error("Workout not found");
+        navigate("/");
+      }
+    }
+    setLoading(false);
+  }, [id, navigate]);
+  
   const handleAddExercise = (exercise: Exercise) => {
-    // Add the new exercise and mark it as the last added one
     setExercises(prevExercises => [...prevExercises, exercise]);
     setLastAddedExerciseId(exercise.id);
     setIsAddingExercise(false);
@@ -53,25 +58,27 @@ const AddWorkout = () => {
   };
   
   const handleSaveWorkout = () => {
+    if (!id) return;
+    
     // This would typically save to a database
     // For now, we'll just show a success toast and navigate back
     const workoutTitle = title.trim() || "Workout"; // Default to "Workout" if title is empty
     
-    // Create new workout object
-    const newWorkout: Workout = {
-      id: uuidv4(),
+    // Create updated workout object
+    const updatedWorkout: Workout = {
+      id,
       title: workoutTitle,
       category: selectedCategory,
       exercises,
-      date: new Date(),
-      completed: false
+      date: new Date(), // Keep the original date or update it
+      completed: false // Keep the original completion status or update it
     };
     
-    // In a real app, you would call a save API here
-    console.log("New workout:", newWorkout);
+    // In a real app, you would call an update API here
+    console.log("Updated workout:", updatedWorkout);
     
-    toast.success("Workout saved successfully!", {
-      description: `'${workoutTitle}' has been added to your workouts.`,
+    toast.success("Workout updated successfully!", {
+      description: `'${workoutTitle}' has been updated.`,
     });
     
     navigate("/");
@@ -88,6 +95,14 @@ const AddWorkout = () => {
     });
   };
   
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p>Loading workout data...</p>
+      </div>
+    );
+  }
+  
   return (
     <div className="bg-gradient-to-b from-background to-secondary/50 min-h-screen pb-20">
       {/* Sticky header */}
@@ -102,7 +117,7 @@ const AddWorkout = () => {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           
-          <h1 className="text-lg font-semibold">New Workout</h1>
+          <h1 className="text-lg font-semibold">Edit Workout</h1>
           
           <Button 
             onClick={handleSaveWorkout}
@@ -244,4 +259,4 @@ const AddWorkout = () => {
   );
 };
 
-export default AddWorkout;
+export default EditWorkout;

@@ -16,11 +16,12 @@
 
 import React, { useState } from "react";
 import { Workout, getCategoryInfo } from "@/lib/mockData";
-import { Check, ChevronDown, ChevronUp } from "lucide-react";
+import { Check, ChevronDown, ChevronUp, Edit2 } from "lucide-react";
 import ExerciseItem from "./ExerciseItem";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import * as LucideIcons from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface WorkoutCardProps {
   workout: Workout;
@@ -28,9 +29,15 @@ interface WorkoutCardProps {
 
 const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout }) => {
   const [expanded, setExpanded] = useState(false);
+  const navigate = useNavigate();
   
   const toggleExpanded = () => setExpanded(!expanded);
   const categoryInfo = getCategoryInfo(workout.category);
+  
+  const handleEditWorkout = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigate(`/edit-workout/${workout.id}`);
+  };
   
   // Function to determine contrasting text color (black or white) based on background
   const getContrastColor = (hexColor: string) => {
@@ -106,6 +113,15 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout }) => {
               <Check className="h-4 w-4 text-green-600" />
             </div>
           )}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 rounded-full"
+            onClick={handleEditWorkout}
+            title="Edit Workout"
+          >
+            <Edit2 className="h-4 w-4" />
+          </Button>
           <Button
             variant="ghost"
             size="icon"
