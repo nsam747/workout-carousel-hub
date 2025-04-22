@@ -34,14 +34,25 @@ const EditWorkout = () => {
       const workout = getWorkoutById(id);
       if (workout) {
         setTitle(workout.title);
-        // Create deep copies of the exercises to avoid reference issues
-        const exercisesCopy = workout.exercises.map(exercise => ({
-          ...exercise,
-          sets: exercise.sets ? exercise.sets.map(set => ({
-            ...set,
-            metrics: set.metrics ? [...set.metrics] : []
-          })) : []
-        }));
+        
+        // Deep copy of exercises with all nested properties preserved
+        const exercisesCopy = workout.exercises.map(exercise => {
+          // Create a deep copy of each exercise
+          const exerciseCopy = {
+            ...exercise,
+            sets: exercise.sets ? 
+              exercise.sets.map(set => ({
+                ...set,
+                // Ensure metrics array is properly deep copied
+                metrics: set.metrics ? 
+                  set.metrics.map(metric => ({ ...metric })) : 
+                  []
+              })) : 
+              []
+          };
+          return exerciseCopy;
+        });
+        
         setExercises(exercisesCopy);
         setSelectedCategory(workout.category);
       } else {

@@ -80,11 +80,23 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
     // Convert exercise sets to SetData format if available
     if (exercise.sets && exercise.sets.length > 0) {
       const convertedSets: SetData[] = exercise.sets.map(set => {
-        // Create metrics from set data
+        // Check if the set already has metrics
+        if (set.metrics && set.metrics.length > 0) {
+          // Use the existing metrics
+          return {
+            id: set.id || generateId(),
+            metrics: set.metrics.map(metric => ({
+              ...metric,
+              id: metric.id || generateId()
+            }))
+          };
+        }
+        
+        // Create metrics from set data for backward compatibility
         const metrics: PerformanceMetric[] = [];
         
         // If set has reps, add as a metric
-        if (set.reps > 0) {
+        if (set.reps !== undefined && set.reps > 0) {
           metrics.push({
             id: generateId(),
             type: "repetitions",
@@ -94,7 +106,7 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
         }
         
         // If set has weight, add as a metric
-        if (set.weight > 0) {
+        if (set.weight !== undefined && set.weight > 0) {
           metrics.push({
             id: generateId(),
             type: "weight",
@@ -104,7 +116,7 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
         }
         
         return {
-          id: generateId(),
+          id: set.id || generateId(),
           metrics
         };
       });
