@@ -53,6 +53,7 @@ const EditWorkout = () => {
           return exerciseCopy;
         });
         
+        console.log("Loaded workout exercises:", exercisesCopy);
         setExercises(exercisesCopy);
         setSelectedCategory(workout.category);
       } else {
@@ -74,6 +75,14 @@ const EditWorkout = () => {
     if (lastAddedExerciseId === exerciseId) {
       setLastAddedExerciseId(null);
     }
+  };
+  
+  const handleExerciseUpdate = (updatedExercise: Exercise) => {
+    setExercises(prevExercises => 
+      prevExercises.map(exercise => 
+        exercise.id === updatedExercise.id ? updatedExercise : exercise
+      )
+    );
   };
   
   const handleSaveWorkout = () => {
@@ -229,6 +238,7 @@ const EditWorkout = () => {
                     key={exercise.id}
                     exercise={exercise}
                     onRemove={handleRemoveExercise}
+                    onExerciseUpdate={handleExerciseUpdate}
                     isNewlyAdded={exercise.id === lastAddedExerciseId}
                   />
                 ))}

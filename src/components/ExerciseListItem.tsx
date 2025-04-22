@@ -79,9 +79,12 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
     
     // Convert exercise sets to SetData format if available
     if (exercise.sets && exercise.sets.length > 0) {
+      console.log("Processing sets for exercise:", exercise.name, exercise.sets);
+      
       const convertedSets: SetData[] = exercise.sets.map(set => {
         // Check if the set already has metrics
         if (set.metrics && set.metrics.length > 0) {
+          console.log("Set has metrics:", set.metrics);
           // Use the existing metrics
           return {
             id: set.id || generateId(),
@@ -121,6 +124,7 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
         };
       });
       
+      console.log("Converted sets:", convertedSets);
       setSets(convertedSets);
     } else if (isNewlyAdded) {
       // Create an initial empty set for newly added exercises
@@ -167,6 +171,9 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
     
     // Reset inputs
     setNewMetricValue(0);
+    
+    // Update exercise with new sets data
+    updateExerciseWithSets();
   };
   
   // Update unit based on selected metric type
@@ -214,6 +221,9 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
     }
     setShowAddMetric(false);
     setActiveSetId(null);
+    
+    // Update exercise with new sets data
+    updateExerciseWithSets();
   };
 
   const handleRemoveSet = (setId: string) => {
@@ -221,6 +231,9 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
     if (activeSetId === setId) {
       setActiveSetId(null);
     }
+    
+    // Update exercise with new sets data
+    updateExerciseWithSets();
   };
   
   const handleRemoveMetric = (setId: string, metricId: string) => {
@@ -234,6 +247,9 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
           : set
       )
     );
+    
+    // Update exercise with new sets data
+    updateExerciseWithSets();
   };
 
   const handleDuplicateSet = (setToDuplicate: SetData) => {
@@ -245,6 +261,9 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
       }))
     };
     setSets([...sets, duplicatedSet]);
+    
+    // Update exercise with new sets data
+    updateExerciseWithSets();
   };
 
   // Format metric for display
@@ -283,6 +302,9 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
     );
     
     setEditingMetricId(null);
+    
+    // Update exercise with new sets data
+    updateExerciseWithSets();
   };
   
   // Cancel metric editing
@@ -305,6 +327,26 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
     );
   };
 
+  // Function to update the parent exercise object with current sets data
+  const updateExerciseWithSets = () => {
+    if (!onExerciseUpdate) return;
+    
+    // Convert SetData back to exercise.sets format
+    const updatedSets = sets.map(set => ({
+      id: set.id,
+      metrics: set.metrics
+    }));
+    
+    const updatedExercise = {
+      ...exercise,
+      sets: updatedSets,
+      notes
+    };
+    
+    // Pass the updated exercise back to the parent component
+    onExerciseUpdate(updatedExercise);
+  };
+
   // Function to save exercise edits
   const handleSaveExerciseEdit = () => {
     const updatedExercise = {
@@ -324,6 +366,19 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
     // Reset state
     setIsEditingExercise(false);
     toast.success("Exercise updated successfully");
+  };
+
+  // Function to save notes
+  const handleSaveNotes = () => {
+    if (!onExerciseUpdate) return;
+    
+    const updatedExercise = {
+      ...exercise,
+      notes
+    };
+    
+    // Update the parent component
+    onExerciseUpdate(updatedExercise);
   };
 
   // Helper to get icon for metric type
@@ -489,6 +544,7 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
                           {/* Edit interface for the selected metric */}
                           {editingMetricId && (
                             <div className="grid grid-cols-6 gap-2 items-end w-full p-1 mb-3 border-t border-border/30 pt-2">
+                              
                               <div className="col-span-2">
                                 <Label htmlFor={`edit-metric-type-${editingMetricId}`} className="text-xs">Type</Label>
                                 <Select 
@@ -728,7 +784,12 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
               <Textarea
                 placeholder="Add notes about this exercise..."
                 value={notes}
-                onChange={(e) => setNotes(e.target.value)}
+                onChange={(e) => {
+                  setNotes(e.target.value);
+                  // We don't want to call handleSaveNotes on every keystroke
+                  // so we don't update the exercise immediately
+                }}
+                onBlur={handleSaveNotes}
                 className="min-h-[80px] text-sm"
               />
             </div>
@@ -750,6 +811,8 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
                 className="text-xs h-7 flex items-center"
                 onClick={(e) => {
                   e.stopPropagation();
+                  // Make sure any pending changes are saved
+                  handleSaveNotes();
                   setExpanded(false);
                 }}
               >
