@@ -1,4 +1,6 @@
+
 import { v4 as uuidv4 } from 'uuid';
+import { addDays, format, startOfWeek, isSameDay } from 'date-fns';
 
 export interface Workout {
   id: string;
@@ -23,6 +25,9 @@ export interface Set {
   id: string;
   setNumber: number;
   metrics: Metric[];
+  // These are no longer needed as we've moved to metrics
+  reps?: number;
+  weight?: number;
 }
 
 export interface Metric {
@@ -58,6 +63,66 @@ export const getCategoryInfo = (categoryName: string): CategoryInfo => {
   const category = categories.find(cat => cat.name === categoryName);
   return category || { name: "Unknown", color: "#64748b", icon: null };
 };
+
+// Function to create a new category
+export const createCategory = (categoryInfo: CategoryInfo): void => {
+  categories.push(categoryInfo);
+};
+
+// Function to update an existing category
+export const updateCategory = (oldName: string, newCategoryInfo: CategoryInfo): void => {
+  const index = categories.findIndex(cat => cat.name === oldName);
+  if (index !== -1) {
+    categories[index] = newCategoryInfo;
+  }
+};
+
+// Exercise types
+const exerciseTypes = [
+  "Strength", "Cardio", "Yoga", "Stretching", "HIIT", "Pilates", "Other"
+];
+
+// Function to get all exercise types
+export const getExerciseTypes = (): string[] => {
+  return exerciseTypes;
+};
+
+// Saved exercises for reuse
+let savedExercises: Exercise[] = [];
+
+// Function to get saved exercises
+export const getSavedExercises = (): Exercise[] => {
+  return savedExercises;
+};
+
+// Function to save an exercise
+export const saveExercise = (exercise: Exercise): void => {
+  const existingIndex = savedExercises.findIndex(e => e.id === exercise.id);
+  if (existingIndex !== -1) {
+    savedExercises[existingIndex] = exercise;
+  } else {
+    savedExercises.push(exercise);
+  }
+};
+
+// Generate date range for the calendar
+export const dateRange = (() => {
+  const today = new Date();
+  const startDate = startOfWeek(today);
+  const result = [];
+  
+  for (let i = -14; i < 28; i++) {
+    const date = addDays(startDate, i);
+    result.push({
+      date,
+      dayName: format(date, 'EEE'),
+      dayNumber: format(date, 'd'),
+      isToday: isSameDay(date, today)
+    });
+  }
+  
+  return result;
+})();
 
 // Mock data for exercises
 const mockExercises: Exercise[] = [
@@ -382,6 +447,16 @@ const otherWorkouts: Workout[] = [
   },
 ];
 
+// Function to get all workouts
+export const getAllWorkouts = (): Workout[] => {
+  return [
+    ...todayWorkouts,
+    ...yesterdayWorkouts,
+    ...pastWeekWorkouts,
+    ...otherWorkouts
+  ];
+};
+
 // Function to get workouts by date
 export const getWorkoutsByDate = (date: Date): Workout[] => {
   const formattedDate = date.toDateString();
@@ -414,3 +489,6 @@ export const getWorkoutById = (id: string): Workout | undefined => {
   
   return allWorkouts.find(workout => workout.id === id);
 };
+
+// Initialize saved exercises with mock data for reuse
+savedExercises = [...mockExercises];
