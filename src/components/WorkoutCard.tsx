@@ -1,7 +1,6 @@
-
 import React, { useState } from "react";
 import { Workout, getCategoryInfo } from "@/lib/mockData";
-import { Check, ChevronDown, ChevronUp, Edit2 } from "lucide-react";
+import { ChevronDown, ChevronUp, Edit2 } from "lucide-react";
 import ExerciseItem from "./ExerciseItem";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -71,22 +70,19 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout }) => {
         onClick={toggleExpanded}
       >
         <div className="flex-1 min-w-0">
-          {/* Title and category stacked (responsive) */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-3 mb-1">
-            <h3
-              className="font-semibold text-lg mr-0 sm:mr-3 break-words leading-snug max-w-full"
-              style={{ wordBreak: "break-word" }}
-            >
-              {workout.title}
-            </h3>
-            {/* Hide on mobile to move below title */}
+          {/* Title (always left-aligned and on its own line - full width, wraps if needed) */}
+          <h3
+            className="font-semibold text-lg break-words leading-snug max-w-full text-left"
+            style={{ wordBreak: "break-word" }}
+          >
+            {workout.title}
+          </h3>
+          {/* Category + count on same row, overflow moves both below title */}
+          <div className="flex flex-row flex-wrap items-center gap-x-3 gap-y-1 mt-2">
             <span
               className={cn(
-                "workout-tag flex items-center text-xs py-1 px-2 rounded-full mt-2 sm:mt-0",
-                "max-w-full",
-                "sm:static sm:inline-flex",
-                // Hide in default flex-col (mobile), show on row (sm and up)
-                "hidden sm:inline-flex"
+                "workout-tag flex items-center text-xs py-1 px-2 rounded-full",
+                "max-w-full"
               )}
               style={{
                 backgroundColor: categoryInfo.color,
@@ -102,40 +98,14 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout }) => {
                 )}
               {workout.category}
             </span>
+            <span className="text-sm text-muted-foreground whitespace-nowrap select-none">
+              {workout.exercises.length} exercise
+              {workout.exercises.length !== 1 ? "s" : ""}
+            </span>
           </div>
-          {/* On mobile, category badge below title */}
-          <span
-            className={cn(
-              "workout-tag flex items-center text-xs py-1 px-2 rounded-full",
-              "max-w-fit",
-              "sm:hidden mb-2"
-            )}
-            style={{
-              backgroundColor: categoryInfo.color,
-              color: getContrastColor(categoryInfo.color),
-              borderColor: getBorderColor(categoryInfo.color),
-              borderWidth: "1.5px",
-            }}
-          >
-            {categoryInfo.icon &&
-              renderCategoryIcon(
-                categoryInfo.icon,
-                getContrastColor(categoryInfo.color)
-              )}
-            {workout.category}
-          </span>
-
-          <p className="text-sm text-muted-foreground">
-            {workout.exercises.length} exercise
-            {workout.exercises.length !== 1 ? "s" : ""}
-          </p>
         </div>
         <div className="flex items-center space-x-2 ml-2">
-          {workout.completed && (
-            <div className="rounded-full bg-green-100 p-1" title="Completed">
-              <Check className="h-4 w-4 text-green-600" />
-            </div>
-          )}
+          {/* Removed completed checkmark */}
           <Button
             variant="ghost"
             size="icon"
