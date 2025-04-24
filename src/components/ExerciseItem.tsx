@@ -274,7 +274,7 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
                     <div className="flex items-center justify-between mb-1">
                       <Badge variant="outline" className="text-xs">Set {setIndex + 1}</Badge>
                     </div>
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                       {set.metrics.map((metric, index) => (
                         <div 
                           key={index} 
@@ -287,7 +287,6 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
                             </div>
                           </div>
 
-                          {/* Metric display section - no editing functionality */}
                           <div className="mt-1.5 flex items-center">
                             <span className="text-sm font-medium">
                               {metric.value} {metric.unit}
@@ -301,7 +300,7 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
               </div>
             </div>
           )}
-          
+
           {/* Notes section */}
           {exercise.notes && (
             <div className="mb-3">
