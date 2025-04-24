@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Workout, getCategoryInfo } from "@/lib/mockData";
 import { ChevronDown, ChevronUp, Edit2 } from "lucide-react";
@@ -105,7 +106,6 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout }) => {
           </div>
         </div>
         <div className="flex items-center space-x-2 ml-2">
-          {/* Removed completed checkmark */}
           <Button
             variant="ghost"
             size="icon"
@@ -146,3 +146,4 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout }) => {
 };
 
 export default WorkoutCard;
+

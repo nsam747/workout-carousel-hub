@@ -1,19 +1,3 @@
-/**
- * ExerciseItem Component
- * 
- * This component displays exercise details within a workout card.
- * It shows basic information about the exercise and allows users to
- * expand to see additional details and performance metrics.
- * 
- * Features:
- * - Collapsible exercise display
- * - Shows summary of sets, reps, weight, duration
- * - Displays notes and media attachments
- * 
- * This component is used to display exercises within the WorkoutCard component
- * on the home page view.
- */
-
 import React, { useState, useEffect } from "react";
 import { Exercise } from "@/lib/mockData";
 import { 
@@ -257,7 +241,7 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
         onClick={toggleExpanded}
       >
         <div className="flex-1">
-          <h4 className="font-medium">{exercise.name}</h4>
+          <h4 className="font-medium text-left">{exercise.name}</h4>
           
           {/* Render the enhanced summary when collapsed */}
           {!expanded && summaryContent}
@@ -325,7 +309,7 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
                 <StickyNote className="h-4 w-4 mr-1.5" />
                 <span>Notes</span>
               </div>
-              <p className="text-sm text-muted-foreground">{exercise.notes}</p>
+              <p className="text-sm text-muted-foreground text-left">{exercise.notes}</p>
             </div>
           )}
 
