@@ -275,7 +275,7 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
                     <div className="flex items-center justify-between mb-1">
                       <Badge variant="outline" className="text-xs">Set {setIndex + 1}</Badge>
                     </div>
-                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-2 md:grid-cols-3">
+                    <div className="grid grid-cols-2 gap-x-2 gap-y-1">
                       {set.metrics.map((metric, index) => (
                         <div 
                           key={index} 
