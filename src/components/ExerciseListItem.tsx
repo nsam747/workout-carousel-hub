@@ -428,7 +428,7 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
         onDoubleClick={() => setIsEditingExercise(true)}
       >
         <div className="flex items-center gap-2">
-          <span className="font-medium">{exercise.name}</span>
+          <span className="font-medium text-left">{exercise.name}</span>
           <Badge variant="outline" className="text-xs">
             {exercise.type}
           </Badge>
@@ -471,7 +471,7 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
           <div className="space-y-3">
             {/* Performance metrics section */}
             <div>
-              <h4 className="text-sm font-medium mb-2">Performance</h4>
+              <h4 className="text-sm font-medium mb-2 text-left">Performance</h4>
               
               {sets.length > 0 ? (
                 <div className="space-y-2 mb-3">
@@ -801,7 +801,7 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
             
             {/* Notes section */}
             <div>
-              <h4 className="text-sm font-medium mb-2">Notes</h4>
+              <h4 className="text-sm font-medium mb-2 text-left">Notes</h4>
               <Textarea
                 placeholder="Add notes about this exercise..."
                 value={notes}
@@ -811,13 +811,13 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
                   // so we don't update the exercise immediately
                 }}
                 onBlur={handleSaveNotes}
-                className="min-h-[80px] text-sm"
+                className="min-h-[80px] text-sm text-left"
               />
             </div>
             
             {/* Media section */}
             <div>
-              <h4 className="text-sm font-medium mb-2">Media</h4>
+              <h4 className="text-sm font-medium mb-2 text-left">Media</h4>
               <Button variant="outline" size="sm" className="h-7 text-xs">
                 <Image className="h-3 w-3 mr-1" />
                 Add photo

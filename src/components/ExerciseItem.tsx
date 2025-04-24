@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Exercise } from "@/lib/mockData";
 import { 
@@ -266,7 +267,7 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
             <div className="mb-3">
               <div className="flex items-center text-sm font-medium mb-2">
                 <Dumbbell className="h-4 w-4 mr-1.5" />
-                <span>Performance</span>
+                <span className="text-left">Performance</span>
               </div>
               <div className="space-y-3">
                 {exercise.sets.map((set, setIndex) => (
@@ -274,7 +275,7 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
                     <div className="flex items-center justify-between mb-1">
                       <Badge variant="outline" className="text-xs">Set {setIndex + 1}</Badge>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-2 md:grid-cols-3">
                       {set.metrics.map((metric, index) => (
                         <div 
                           key={index} 
@@ -306,7 +307,7 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
             <div className="mb-3">
               <div className="flex items-center text-sm font-medium mb-1">
                 <StickyNote className="h-4 w-4 mr-1.5" />
-                <span>Notes</span>
+                <span className="text-left">Notes</span>
               </div>
               <p className="text-sm text-muted-foreground text-left">{exercise.notes}</p>
             </div>
@@ -315,7 +316,7 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
           {/* Media section */}
           {exercise.media && exercise.media.length > 0 && (
             <div className="space-y-2">
-              <p className="text-sm font-medium">Media</p>
+              <p className="text-sm font-medium text-left">Media</p>
               <div className="grid grid-cols-2 gap-2">
                 {exercise.media.map((url, index) => (
                   <div 
