@@ -1,16 +1,9 @@
-
 import React, { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { format, addMonths, subMonths, isSameDay } from "date-fns";
 import { cn } from "@/lib/utils";
 import { getWorkoutsByDate, getAllWorkouts, getCategoryInfo, Workout } from "@/lib/mockData";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 
 interface MonthCalendarCarouselProps {
   selectedDate: Date;
@@ -42,25 +35,6 @@ const MonthCalendarCarousel: React.FC<MonthCalendarCarouselProps> = ({
     return acc;
   }, {} as Record<string, Workout[]>);
 
-  const renderWorkoutTooltip = (workouts: Workout[]) => {
-    return (
-      <div className="space-y-2 max-w-[200px]">
-        {workouts.map((workout, index) => {
-          const categoryInfo = getCategoryInfo(workout.category);
-          return (
-            <div key={index} className="flex items-center gap-2">
-              <div 
-                className="h-2 w-2 rounded-full" 
-                style={{ backgroundColor: categoryInfo.color }} 
-              />
-              <span className="text-sm truncate">{workout.title}</span>
-            </div>
-          );
-        })}
-      </div>
-    );
-  };
-
   const renderDayContent = (day: Date) => {
     const dateKey = day.toDateString();
     const workouts = workoutsByDate[dateKey] || [];
@@ -69,42 +43,27 @@ const MonthCalendarCarousel: React.FC<MonthCalendarCarouselProps> = ({
 
     const indicatorsToShow = workouts.slice(0, 3);
     const remainingCount = workouts.length - 3;
-    const isSelected = isSameDay(selectedDate, day);
 
     return (
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <div className="absolute bottom-1.5 left-0 right-0 flex flex-col items-center pointer-events-none">
-              <div className="flex gap-1.5">
-                {indicatorsToShow.map((workout, index) => {
-                  const categoryInfo = getCategoryInfo(workout.category);
-                  return (
-                    <div
-                      key={index}
-                      className="h-1.5 w-1.5 rounded-full shadow-sm"
-                      style={{ backgroundColor: categoryInfo.color }}
-                    />
-                  );
-                })}
-              </div>
-              {remainingCount > 0 && (
-                <span 
-                  className={cn(
-                    "text-[10px] leading-none font-medium mt-0.5",
-                    isSelected ? "text-primary-foreground" : "text-muted-foreground"
-                  )}
-                >
-                  +{remainingCount}
-                </span>
-              )}
-            </div>
-          </TooltipTrigger>
-          <TooltipContent>
-            {renderWorkoutTooltip(workouts)}
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <div className="absolute bottom-1 left-0 right-0 flex flex-col items-center">
+        <div className="flex gap-1.5 mb-1">
+          {indicatorsToShow.map((workout, index) => {
+            const categoryInfo = getCategoryInfo(workout.category);
+            return (
+              <div
+                key={index}
+                className="h-1.5 w-1.5 rounded-full shadow-sm"
+                style={{ backgroundColor: categoryInfo.color }}
+              />
+            );
+          })}
+        </div>
+        {remainingCount > 0 && (
+          <span className="text-[10px] leading-none text-muted-foreground font-medium">
+            +{remainingCount}
+          </span>
+        )}
+      </div>
     );
   };
   
