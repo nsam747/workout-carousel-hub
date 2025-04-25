@@ -57,7 +57,7 @@ const MonthCalendarCarousel: React.FC<MonthCalendarCarouselProps> = ({
                   className="w-2 h-2 rounded-full shrink-0" 
                   style={{ backgroundColor: categoryInfo.color }} 
                 />
-                <span className="text-xs truncate">{workout.name}</span>
+                <span className="text-xs truncate">{workout.title}</span>
               </div>
             );
           })}
