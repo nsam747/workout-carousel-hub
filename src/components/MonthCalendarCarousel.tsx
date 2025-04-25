@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
@@ -47,8 +46,8 @@ const MonthCalendarCarousel: React.FC<MonthCalendarCarouselProps> = ({
     const remainingCount = workouts.length - 3;
 
     return (
-      <div className="absolute bottom-0 left-0 right-0 flex flex-col items-center pb-1">
-        <div className="flex gap-0.5 mb-0.5">
+      <div className="absolute -bottom-1 left-0 right-0 flex flex-col items-center">
+        <div className="flex gap-1 mb-1">
           {indicatorsToShow.map((workout, index) => {
             const categoryInfo = getCategoryInfo(workout.category);
             return (
@@ -61,7 +60,7 @@ const MonthCalendarCarousel: React.FC<MonthCalendarCarouselProps> = ({
           })}
         </div>
         {remainingCount > 0 && (
-          <span className="text-[10px] leading-none text-muted-foreground">
+          <span className="text-[10px] leading-none text-muted-foreground mb-1">
             +{remainingCount}
           </span>
         )}
@@ -105,10 +104,10 @@ const MonthCalendarCarousel: React.FC<MonthCalendarCarouselProps> = ({
         }}
         className={cn("p-0 border-none")}
         classNames={{
-          day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground",
-          day_today: "bg-accent text-accent-foreground",
+          day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground rounded-lg",
+          day_today: "bg-accent text-accent-foreground rounded-lg",
           day: cn(
-            "h-9 w-9 p-0 font-normal aria-selected:opacity-100 hover:bg-muted relative",
+            "h-10 w-10 p-0 font-normal aria-selected:opacity-100 hover:bg-muted relative rounded-lg",
           ),
           caption: "hidden", // Hide the default caption since we have our own header
         }}
@@ -118,4 +117,3 @@ const MonthCalendarCarousel: React.FC<MonthCalendarCarouselProps> = ({
 };
 
 export default MonthCalendarCarousel;
-

@@ -1,4 +1,3 @@
-
 import { v4 as uuidv4 } from 'uuid';
 import { addDays, format, startOfWeek, isSameDay } from 'date-fns';
 
@@ -409,6 +408,22 @@ const todayWorkouts: Workout[] = [
     title: "Evening Cardio",
     category: "Cardio",
     exercises: [mockExercises[1], mockExercises[5]],
+    date: today,
+    completed: false,
+  },
+  {
+    id: uuidv4(),
+    title: "Afternoon Yoga",
+    category: "Yoga",
+    exercises: [mockExercises[2]],
+    date: today,
+    completed: false,
+  },
+  {
+    id: uuidv4(),
+    title: "Night HIIT",
+    category: "HIIT",
+    exercises: [mockExercises[9]],
     date: today,
     completed: false,
   },
