@@ -35,7 +35,6 @@ const MonthCalendarCarousel: React.FC<MonthCalendarCarouselProps> = ({
     return acc;
   }, {} as Record<string, Workout[]>);
 
-  // Custom day content render function
   const renderDayContent = (day: Date) => {
     const dateKey = day.toDateString();
     const workouts = workoutsByDate[dateKey] || [];
@@ -46,21 +45,21 @@ const MonthCalendarCarousel: React.FC<MonthCalendarCarouselProps> = ({
     const remainingCount = workouts.length - 3;
 
     return (
-      <div className="absolute -bottom-1 left-0 right-0 flex flex-col items-center">
-        <div className="flex gap-1 mb-1">
+      <div className="absolute bottom-1 left-0 right-0 flex flex-col items-center">
+        <div className="flex gap-1.5 mb-1">
           {indicatorsToShow.map((workout, index) => {
             const categoryInfo = getCategoryInfo(workout.category);
             return (
               <div
                 key={index}
-                className="h-1.5 w-1.5 rounded-full"
+                className="h-1.5 w-1.5 rounded-full shadow-sm"
                 style={{ backgroundColor: categoryInfo.color }}
               />
             );
           })}
         </div>
         {remainingCount > 0 && (
-          <span className="text-[10px] leading-none text-muted-foreground mb-1">
+          <span className="text-[10px] leading-none text-muted-foreground font-medium">
             +{remainingCount}
           </span>
         )}
@@ -69,19 +68,19 @@ const MonthCalendarCarousel: React.FC<MonthCalendarCarouselProps> = ({
   };
   
   return (
-    <div className="relative bg-white/80 backdrop-blur-md border border-border rounded-xl p-2 mb-6 animate-fade-in">
-      <div className="flex items-center justify-between mb-2 px-4 pt-2">
-        <h3 className="font-medium">{format(currentMonth, 'MMMM yyyy')}</h3>
-        <div className="flex gap-1">
+    <div className="relative bg-white/80 backdrop-blur-md border border-border rounded-xl p-4 mb-6 animate-fade-in">
+      <div className="flex items-center justify-between mb-4 px-2">
+        <h3 className="font-semibold">{format(currentMonth, 'MMMM yyyy')}</h3>
+        <div className="flex gap-2">
           <button
             onClick={handlePreviousMonth}
-            className="p-1 rounded-full bg-white/90 border border-border shadow-sm hover:bg-white transition-colors"
+            className="p-2 rounded-lg bg-white/90 border border-border shadow-sm hover:bg-accent transition-colors"
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
           <button
             onClick={handleNextMonth}
-            className="p-1 rounded-full bg-white/90 border border-border shadow-sm hover:bg-white transition-colors"
+            className="p-2 rounded-lg bg-white/90 border border-border shadow-sm hover:bg-accent transition-colors"
           >
             <ChevronRight className="h-4 w-4" />
           </button>
@@ -104,12 +103,17 @@ const MonthCalendarCarousel: React.FC<MonthCalendarCarouselProps> = ({
         }}
         className={cn("p-0 border-none")}
         classNames={{
-          day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground rounded-lg",
-          day_today: "bg-accent text-accent-foreground rounded-lg",
+          day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground rounded-xl",
+          day_today: "bg-accent text-accent-foreground rounded-xl font-semibold",
           day: cn(
-            "h-10 w-10 p-0 font-normal aria-selected:opacity-100 hover:bg-muted relative rounded-lg",
+            "h-12 w-12 p-0 font-normal aria-selected:opacity-100 hover:bg-muted relative rounded-xl transition-colors",
+            "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
+            "touch-target" // This ensures a good touch target size
           ),
-          caption: "hidden", // Hide the default caption since we have our own header
+          cell: "p-0 relative focus-within:relative focus-within:z-20 [&:has([aria-selected])]:bg-accent/5 first:[&:has([aria-selected])]:rounded-l-xl last:[&:has([aria-selected])]:rounded-r-xl",
+          head_cell: "text-muted-foreground font-medium text-xs tracking-wider",
+          table: "w-full border-collapse space-y-2",
+          caption: "hidden",
         }}
       />
     </div>
