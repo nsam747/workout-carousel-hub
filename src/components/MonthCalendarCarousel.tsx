@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
@@ -68,8 +69,8 @@ const MonthCalendarCarousel: React.FC<MonthCalendarCarouselProps> = ({
   };
   
   return (
-    <div className="relative bg-white/80 backdrop-blur-md border border-border rounded-xl p-4 mb-6 animate-fade-in">
-      <div className="flex items-center justify-between mb-4 px-2">
+    <div className="flex flex-col items-center bg-white/80 backdrop-blur-md border border-border rounded-xl p-4 mb-6 animate-fade-in">
+      <div className="flex items-center justify-between w-full mb-4 px-2">
         <h3 className="font-semibold">{format(currentMonth, 'MMMM yyyy')}</h3>
         <div className="flex gap-2">
           <button
@@ -101,7 +102,7 @@ const MonthCalendarCarousel: React.FC<MonthCalendarCarouselProps> = ({
             </div>
           )
         }}
-        className={cn("p-0 border-none")}
+        className={cn("p-0 border-none w-full max-w-[380px]")}
         classNames={{
           day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground rounded-xl",
           day_today: "bg-accent text-accent-foreground rounded-xl font-semibold",
