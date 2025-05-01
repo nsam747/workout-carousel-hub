@@ -1,9 +1,16 @@
+
 import React, { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { format, addMonths, subMonths, isSameDay } from "date-fns";
 import { cn } from "@/lib/utils";
 import { getWorkoutsByDate, getAllWorkouts, getCategoryInfo, Workout } from "@/lib/mockData";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface MonthCalendarCarouselProps {
   selectedDate: Date;
@@ -45,25 +52,50 @@ const MonthCalendarCarousel: React.FC<MonthCalendarCarouselProps> = ({
     const remainingCount = workouts.length - 3;
 
     return (
-      <div className="absolute bottom-1 left-0 right-0 flex flex-col items-center">
-        <div className="flex gap-1.5 mb-1">
-          {indicatorsToShow.map((workout, index) => {
-            const categoryInfo = getCategoryInfo(workout.category);
-            return (
-              <div
-                key={index}
-                className="h-1.5 w-1.5 rounded-full shadow-sm"
-                style={{ backgroundColor: categoryInfo.color }}
-              />
-            );
-          })}
-        </div>
-        {remainingCount > 0 && (
-          <span className="text-[10px] leading-none text-muted-foreground font-medium">
-            +{remainingCount}
-          </span>
-        )}
-      </div>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="absolute bottom-1 left-0 right-0 flex flex-col items-center">
+              <div className="flex gap-1.5 mb-1">
+                {indicatorsToShow.map((workout, index) => {
+                  const categoryInfo = getCategoryInfo(workout.category);
+                  return (
+                    <div
+                      key={index}
+                      className="h-1.5 w-1.5 rounded-full shadow-sm"
+                      style={{ backgroundColor: categoryInfo.color }}
+                    />
+                  );
+                })}
+              </div>
+              {remainingCount > 0 && (
+                <span className={cn(
+                  "text-[10px] leading-none font-medium",
+                  "text-muted-foreground",
+                  "data-[selected=true]:text-primary-foreground"
+                )}
+                data-selected={isSameDay(day, selectedDate)}>
+                  +{remainingCount}
+                </span>
+              )}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <div className="text-xs font-medium mb-1">Workouts:</div>
+            <ul className="text-xs space-y-1">
+              {workouts.map((workout, idx) => (
+                <li key={idx} className="flex items-center">
+                  <span
+                    className="h-2 w-2 rounded-full mr-1"
+                    style={{ backgroundColor: getCategoryInfo(workout.category).color }}
+                  />
+                  <span>{workout.title}</span>
+                </li>
+              ))}
+            </ul>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     );
   };
   
@@ -95,8 +127,10 @@ const MonthCalendarCarousel: React.FC<MonthCalendarCarouselProps> = ({
         onMonthChange={setCurrentMonth}
         components={{
           DayContent: ({ date }) => (
-            <div className="relative w-full h-full flex items-center justify-center">
-              {format(date, 'd')}
+            <div className="relative w-full h-full flex flex-col items-center justify-start py-1">
+              <div className="text-center h-6 mb-2 flex items-center justify-center">
+                {format(date, 'd')}
+              </div>
               {renderDayContent(date)}
             </div>
           )
@@ -106,9 +140,8 @@ const MonthCalendarCarousel: React.FC<MonthCalendarCarouselProps> = ({
           day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground rounded-xl",
           day_today: "bg-accent text-accent-foreground rounded-xl font-semibold",
           day: cn(
-            "h-12 w-12 p-0 font-normal aria-selected:opacity-100 hover:bg-muted relative rounded-xl transition-colors",
-            "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
-            "touch-target" // This ensures a good touch target size
+            "h-14 w-12 p-0 font-normal aria-selected:opacity-100 hover:bg-muted relative rounded-xl transition-colors",
+            "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
           ),
           cell: "p-0 relative focus-within:relative focus-within:z-20 [&:has([aria-selected])]:bg-accent/5 first:[&:has([aria-selected])]:rounded-l-xl last:[&:has([aria-selected])]:rounded-r-xl",
           head_cell: "text-muted-foreground font-medium text-xs tracking-wider",
