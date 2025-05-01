@@ -52,8 +52,8 @@ const MonthCalendarCarousel: React.FC<MonthCalendarCarouselProps> = ({
       <TooltipProvider delayDuration={300}>
         <Tooltip>
           <TooltipTrigger asChild>
-            <div className="absolute bottom-1 left-0 right-0 flex flex-col items-center">
-              <div className="flex gap-1.5 mb-1">
+            <div className="w-full flex flex-col items-center absolute bottom-0 left-0 right-0 pb-1">
+              <div className="flex gap-1 mb-0.5">
                 {indicatorsToShow.map((workout, index) => {
                   const categoryInfo = getCategoryInfo(workout.category);
                   return (
@@ -66,7 +66,7 @@ const MonthCalendarCarousel: React.FC<MonthCalendarCarouselProps> = ({
                 })}
               </div>
               {remainingCount > 0 && (
-                <span className="text-[10px] leading-none text-muted-foreground font-medium">
+                <span className="text-[9px] leading-none text-muted-foreground font-medium">
                   +{remainingCount}
                 </span>
               )}
@@ -124,10 +124,10 @@ const MonthCalendarCarousel: React.FC<MonthCalendarCarouselProps> = ({
         onMonthChange={setCurrentMonth}
         components={{
           DayContent: ({ date }) => (
-            <div className="relative w-full h-full flex flex-col items-center justify-start pt-2">
-              {/* Fixed height container for the date number */}
-              <div className="h-6 flex items-center justify-center">
-                {format(date, 'd')}
+            <div className="relative w-full h-full flex flex-col items-center">
+              {/* Fixed height container for date number to prevent overlap */}
+              <div className="h-7 flex items-center justify-center pt-1.5">
+                <span className="text-sm">{format(date, 'd')}</span>
               </div>
               {renderDayContent(date)}
             </div>
@@ -138,7 +138,7 @@ const MonthCalendarCarousel: React.FC<MonthCalendarCarouselProps> = ({
           day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground rounded-xl",
           day_today: "bg-accent text-accent-foreground rounded-xl font-semibold",
           day: cn(
-            "h-12 w-12 p-0 font-normal aria-selected:opacity-100 hover:bg-muted relative rounded-xl transition-colors",
+            "h-14 w-12 p-0 font-normal aria-selected:opacity-100 hover:bg-muted relative rounded-xl transition-colors",
             "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
           ),
           cell: "p-0 relative focus-within:relative focus-within:z-20 [&:has([aria-selected])]:bg-accent/5 first:[&:has([aria-selected])]:rounded-l-xl last:[&:has([aria-selected])]:rounded-r-xl",
