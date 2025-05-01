@@ -2,9 +2,11 @@
 import React, { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
-import { format, addMonths, subMonths, isSameDay } from "date-fns";
+import { format, addMonths, subMonths } from "date-fns";
 import { cn } from "@/lib/utils";
 import { getWorkoutsByDate, getAllWorkouts, getCategoryInfo, Workout } from "@/lib/mockData";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface MonthCalendarCarouselProps {
   selectedDate: Date;
@@ -16,6 +18,7 @@ const MonthCalendarCarousel: React.FC<MonthCalendarCarouselProps> = ({
   onDateSelect 
 }) => {
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
+  const isMobile = useIsMobile();
   
   const handlePreviousMonth = () => {
     setCurrentMonth(prev => subMonths(prev, 1));
@@ -46,25 +49,44 @@ const MonthCalendarCarousel: React.FC<MonthCalendarCarouselProps> = ({
     const remainingCount = workouts.length - 3;
 
     return (
-      <div className="absolute bottom-1 left-0 right-0 flex flex-col items-center">
-        <div className="flex gap-1.5 mb-1">
-          {indicatorsToShow.map((workout, index) => {
-            const categoryInfo = getCategoryInfo(workout.category);
-            return (
-              <div
-                key={index}
-                className="h-1.5 w-1.5 rounded-full shadow-sm"
-                style={{ backgroundColor: categoryInfo.color }}
-              />
-            );
-          })}
-        </div>
-        {remainingCount > 0 && (
-          <span className="text-[10px] leading-none text-muted-foreground font-medium">
-            +{remainingCount}
-          </span>
-        )}
-      </div>
+      <TooltipProvider>
+        <Tooltip delayDuration={300}>
+          <TooltipTrigger asChild>
+            <div className="absolute bottom-1 left-0 right-0 flex justify-center">
+              <div className="flex flex-col items-center">
+                <div className="flex gap-1 mb-0.5">
+                  {indicatorsToShow.map((workout, index) => {
+                    const categoryInfo = getCategoryInfo(workout.category);
+                    return (
+                      <div
+                        key={index}
+                        className="h-1.5 w-1.5 rounded-full shadow-sm"
+                        style={{ backgroundColor: categoryInfo.color }}
+                      />
+                    );
+                  })}
+                </div>
+                {remainingCount > 0 && (
+                  <span className="text-[8px] leading-none text-muted-foreground font-medium">
+                    +{remainingCount}
+                  </span>
+                )}
+              </div>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent side="bottom" align="center" className="text-xs p-2">
+            <p className="font-medium">{workouts.length} workout{workouts.length !== 1 ? 's' : ''}</p>
+            <ul className="mt-1 space-y-1">
+              {workouts.slice(0, 3).map((workout, i) => (
+                <li key={i} className="text-xs text-muted-foreground">
+                  {workout.title}
+                </li>
+              ))}
+              {remainingCount > 0 && <li className="text-xs text-muted-foreground">+{remainingCount} more</li>}
+            </ul>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     );
   };
   
@@ -97,24 +119,28 @@ const MonthCalendarCarousel: React.FC<MonthCalendarCarouselProps> = ({
         components={{
           DayContent: ({ date }) => (
             <div className="relative w-full h-full flex items-center justify-center">
-              {format(date, 'd')}
+              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 min-h-[16px]">
+                {format(date, 'd')}
+              </div>
               {renderDayContent(date)}
             </div>
           )
         }}
-        className={cn("p-0 border-none w-full max-w-[380px]")}
+        className={cn("p-0 border-none w-full", isMobile ? "max-w-[300px]" : "max-w-[380px]")}
         classNames={{
           day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground rounded-xl",
           day_today: "bg-accent text-accent-foreground rounded-xl font-semibold",
           day: cn(
-            "h-12 w-12 p-0 font-normal aria-selected:opacity-100 hover:bg-muted relative rounded-xl transition-colors",
-            "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
-            "touch-target" // This ensures a good touch target size
+            isMobile ? "h-10 w-10" : "h-12 w-12", 
+            "p-0 font-normal aria-selected:opacity-100 hover:bg-muted relative rounded-xl transition-colors",
+            "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
           ),
           cell: "p-0 relative focus-within:relative focus-within:z-20 [&:has([aria-selected])]:bg-accent/5 first:[&:has([aria-selected])]:rounded-l-xl last:[&:has([aria-selected])]:rounded-r-xl",
           head_cell: "text-muted-foreground font-medium text-xs tracking-wider",
-          table: "w-full border-collapse space-y-2",
+          table: "w-full border-collapse space-y-1",
           caption: "hidden",
+          nav: "hidden",
+          row: "flex justify-center",
         }}
       />
     </div>
