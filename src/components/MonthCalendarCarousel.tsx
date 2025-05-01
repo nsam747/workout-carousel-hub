@@ -1,9 +1,12 @@
+
 import React, { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { format, addMonths, subMonths, isSameDay } from "date-fns";
 import { cn } from "@/lib/utils";
 import { getWorkoutsByDate, getAllWorkouts, getCategoryInfo, Workout } from "@/lib/mockData";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface MonthCalendarCarouselProps {
   selectedDate: Date;
@@ -44,26 +47,52 @@ const MonthCalendarCarousel: React.FC<MonthCalendarCarouselProps> = ({
     const indicatorsToShow = workouts.slice(0, 3);
     const remainingCount = workouts.length - 3;
 
+    // Render tooltips for day with workouts
     return (
-      <div className="absolute bottom-1 left-0 right-0 flex flex-col items-center">
-        <div className="flex gap-1.5 mb-1">
-          {indicatorsToShow.map((workout, index) => {
-            const categoryInfo = getCategoryInfo(workout.category);
-            return (
-              <div
-                key={index}
-                className="h-1.5 w-1.5 rounded-full shadow-sm"
-                style={{ backgroundColor: categoryInfo.color }}
-              />
-            );
-          })}
-        </div>
-        {remainingCount > 0 && (
-          <span className="text-[10px] leading-none text-muted-foreground font-medium">
-            +{remainingCount}
-          </span>
-        )}
-      </div>
+      <TooltipProvider delayDuration={300}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="absolute bottom-1 left-0 right-0 flex flex-col items-center">
+              <div className="flex gap-1.5 mb-1">
+                {indicatorsToShow.map((workout, index) => {
+                  const categoryInfo = getCategoryInfo(workout.category);
+                  return (
+                    <div
+                      key={index}
+                      className="h-1.5 w-1.5 rounded-full shadow-sm"
+                      style={{ backgroundColor: categoryInfo.color }}
+                    />
+                  );
+                })}
+              </div>
+              {remainingCount > 0 && (
+                <span className="text-[10px] leading-none text-muted-foreground font-medium">
+                  +{remainingCount}
+                </span>
+              )}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent className="p-2 max-w-[200px]">
+            <div className="text-xs font-medium mb-1">
+              {format(day, 'MMMM d, yyyy')}
+            </div>
+            <div className="space-y-1">
+              {workouts.map((workout, idx) => {
+                const categoryInfo = getCategoryInfo(workout.category);
+                return (
+                  <div key={idx} className="flex items-center gap-1.5">
+                    <div 
+                      className="h-2 w-2 rounded-full" 
+                      style={{ backgroundColor: categoryInfo.color }}
+                    />
+                    <span className="text-xs truncate">{workout.title}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     );
   };
   
@@ -95,8 +124,11 @@ const MonthCalendarCarousel: React.FC<MonthCalendarCarouselProps> = ({
         onMonthChange={setCurrentMonth}
         components={{
           DayContent: ({ date }) => (
-            <div className="relative w-full h-full flex items-center justify-center">
-              {format(date, 'd')}
+            <div className="relative w-full h-full flex flex-col items-center justify-start pt-2">
+              {/* Fixed height container for the date number */}
+              <div className="h-6 flex items-center justify-center">
+                {format(date, 'd')}
+              </div>
               {renderDayContent(date)}
             </div>
           )
@@ -107,8 +139,7 @@ const MonthCalendarCarousel: React.FC<MonthCalendarCarouselProps> = ({
           day_today: "bg-accent text-accent-foreground rounded-xl font-semibold",
           day: cn(
             "h-12 w-12 p-0 font-normal aria-selected:opacity-100 hover:bg-muted relative rounded-xl transition-colors",
-            "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
-            "touch-target" // This ensures a good touch target size
+            "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
           ),
           cell: "p-0 relative focus-within:relative focus-within:z-20 [&:has([aria-selected])]:bg-accent/5 first:[&:has([aria-selected])]:rounded-l-xl last:[&:has([aria-selected])]:rounded-r-xl",
           head_cell: "text-muted-foreground font-medium text-xs tracking-wider",
