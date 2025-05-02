@@ -261,14 +261,10 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
       </div>
 
       {expanded && (
-        <div className="px-4 py-3 border-t border-border/50 animate-slide-down bg-muted/30">
+        <div className="border-t border-border/50 animate-slide-down bg-muted/30">
           {/* Performance metrics */}
           {exercise.sets && exercise.sets.length > 0 && (
             <div className="mb-3">
-              <div className="flex items-center text-sm font-medium mb-2">
-                <Dumbbell className="h-4 w-4 mr-1.5" />
-                <span className="text-left">Performance</span>
-              </div>
               <div className="space-y-3">
                 {exercise.sets.map((set, setIndex) => (
                   <div key={set.id} className="bg-background p-3 rounded-md">
