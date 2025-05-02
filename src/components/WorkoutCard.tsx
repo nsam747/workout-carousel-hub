@@ -67,7 +67,7 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout }) => {
     <div className="mb-4 rounded-xl overflow-hidden glass-card animate-scale-in">
       {/* Workout header */}
       <div
-        className="p-4 flex items-start justify-between cursor-pointer"
+        className="px-4 py-4 flex items-start justify-between cursor-pointer"
         onClick={toggleExpanded}
       >
         <div className="flex-1 min-w-0">
@@ -135,7 +135,7 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout }) => {
 
       {/* Exercises list - shown when expanded */}
       {expanded && (
-        <div className="p-4 pt-0 border-t border-border/40 animate-fade-in">
+        <div className="border-t border-border/40 animate-fade-in">
           {workout.exercises.map((exercise) => (
             <ExerciseItem key={exercise.id} exercise={exercise} />
           ))}
@@ -146,4 +146,3 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout }) => {
 };
 
 export default WorkoutCard;
-

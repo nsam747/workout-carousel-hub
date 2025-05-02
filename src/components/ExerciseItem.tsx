@@ -236,9 +236,9 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
   const summaryContent = generateEnhancedSummary();
 
   return (
-    <div className="mb-3 rounded-md bg-white/90 border border-border shadow-sm overflow-hidden animate-slide-up animation-delay-100">
+    <div className="mb-0 bg-white/90 border-b border-border last:border-b-0 overflow-hidden animate-slide-up animation-delay-100">
       <div 
-        className="p-3 cursor-pointer flex items-center justify-between"
+        className="px-4 py-3 cursor-pointer flex items-center justify-between"
         onClick={toggleExpanded}
       >
         <div className="flex-1">
@@ -261,7 +261,7 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
       </div>
 
       {expanded && (
-        <div className="p-3 pt-0 border-t border-border/50 animate-slide-down">
+        <div className="px-4 py-3 border-t border-border/50 animate-slide-down bg-muted/30">
           {/* Performance metrics */}
           {exercise.sets && exercise.sets.length > 0 && (
             <div className="mb-3">
@@ -271,15 +271,15 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
               </div>
               <div className="space-y-3">
                 {exercise.sets.map((set, setIndex) => (
-                  <div key={set.id} className="bg-muted/50 p-2 rounded-md">
-                    <div className="flex items-center justify-between mb-1">
+                  <div key={set.id} className="bg-background p-3 rounded-md">
+                    <div className="flex items-center justify-between mb-2">
                       <Badge variant="outline" className="text-xs">Set {setIndex + 1}</Badge>
                     </div>
-                    <div className="grid grid-cols-2 gap-x-2 gap-y-1">
+                    <div className="grid grid-cols-2 gap-2">
                       {set.metrics.map((metric, index) => (
                         <div 
                           key={index} 
-                          className="bg-secondary/10 p-2 rounded-md"
+                          className="bg-secondary/20 p-3 rounded-md"
                         >
                           <div className="flex items-center justify-between">
                             <div className="flex items-center">
