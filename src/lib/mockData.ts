@@ -18,6 +18,13 @@ export interface Exercise {
   notes?: string;
   duration: number;
   media: string[];
+  selectedMetrics?: SelectedMetric[]; // Added selectedMetrics property
+}
+
+// New interface for selected metrics in an exercise
+export interface SelectedMetric {
+  type: string;
+  unit: string;
 }
 
 export interface Set {
@@ -123,7 +130,16 @@ export const dateRange = (() => {
   return result;
 })();
 
-// Mock data for exercises
+// Supported metric types and their default units
+export const supportedMetrics = [
+  { type: "weight", defaultUnit: "kg", availableUnits: ["kg", "lb"] },
+  { type: "distance", defaultUnit: "km", availableUnits: ["km", "miles"] },
+  { type: "duration", defaultUnit: "minutes", availableUnits: ["seconds", "minutes", "hours"] },
+  { type: "repetitions", defaultUnit: "reps", availableUnits: ["reps"] },
+  { type: "restTime", defaultUnit: "seconds", availableUnits: ["seconds", "minutes"] }
+];
+
+// Mock data for exercises with selectedMetrics
 const mockExercises: Exercise[] = [
   {
     id: uuidv4(),
@@ -155,6 +171,9 @@ const mockExercises: Exercise[] = [
     notes: "Focus on form and controlled movements.",
     duration: 0,
     media: [],
+    selectedMetrics: [
+      { type: "repetitions", unit: "reps" }
+    ]
   },
   {
     id: uuidv4(),
@@ -173,6 +192,10 @@ const mockExercises: Exercise[] = [
     notes: "Easy pace, maintain consistent breathing.",
     duration: 25,
     media: [],
+    selectedMetrics: [
+      { type: "distance", unit: "km" },
+      { type: "duration", unit: "min" }
+    ]
   },
   {
     id: uuidv4(),
@@ -182,6 +205,9 @@ const mockExercises: Exercise[] = [
     notes: "Gentle flow to improve flexibility and reduce stress.",
     duration: 30,
     media: [],
+    selectedMetrics: [
+      { type: "duration", unit: "minutes" }
+    ]
   },
   {
     id: uuidv4(),
@@ -216,6 +242,10 @@ const mockExercises: Exercise[] = [
     notes: "Controlled movement, squeeze at the top.",
     duration: 0,
     media: [],
+    selectedMetrics: [
+      { type: "weight", unit: "lb" },
+      { type: "repetitions", unit: "reps" }
+    ]
   },
   {
     id: uuidv4(),
@@ -247,6 +277,9 @@ const mockExercises: Exercise[] = [
     notes: "Engage core, maintain straight line from head to heels.",
     duration: 0,
     media: [],
+    selectedMetrics: [
+      { type: "duration", unit: "sec" }
+    ]
   },
   {
     id: uuidv4(),
@@ -265,6 +298,10 @@ const mockExercises: Exercise[] = [
     notes: "Moderate intensity, focus on cadence.",
     duration: 40,
     media: [],
+    selectedMetrics: [
+      { type: "distance", unit: "km" },
+      { type: "duration", unit: "min" }
+    ]
   },
   {
     id: uuidv4(),
@@ -296,6 +333,9 @@ const mockExercises: Exercise[] = [
     notes: "Maintain good form, chest up, back straight.",
     duration: 0,
     media: [],
+    selectedMetrics: [
+      { type: "repetitions", unit: "reps" }
+    ]
   },
   {
     id: uuidv4(),
@@ -314,6 +354,10 @@ const mockExercises: Exercise[] = [
     notes: "Freestyle, focus on long strokes.",
     duration: 30,
     media: [],
+    selectedMetrics: [
+      { type: "distance", unit: "km" },
+      { type: "duration", unit: "min" }
+    ]
   },
   {
     id: uuidv4(),
@@ -348,6 +392,10 @@ const mockExercises: Exercise[] = [
     notes: "Maintain proper form, engage core.",
     duration: 0,
     media: [],
+    selectedMetrics: [
+      { type: "weight", unit: "kg" },
+      { type: "repetitions", unit: "reps" }
+    ]
   },
   {
     id: uuidv4(),
@@ -382,6 +430,10 @@ const mockExercises: Exercise[] = [
     notes: "Full intensity sprints, short rest periods.",
     duration: 15,
     media: [],
+    selectedMetrics: [
+      { type: "duration", unit: "sec" },
+      { type: "restTime", unit: "sec" }
+    ]
   },
 ];
 

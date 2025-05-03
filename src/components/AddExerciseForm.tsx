@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Check, X, Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,10 +10,12 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
-import { Exercise, getExerciseTypes, getSavedExercises, saveExercise } from "@/lib/mockData";
+import { Exercise, SelectedMetric, getExerciseTypes, getSavedExercises, saveExercise, supportedMetrics } from "@/lib/mockData";
 import { generateId } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 
 interface AddExerciseFormProps {
   onAddExercise: (exercise: Exercise) => void;
@@ -29,6 +31,7 @@ const AddExerciseForm: React.FC<AddExerciseFormProps> = ({
   // Create new exercise state
   const [name, setName] = useState("");
   const [type, setType] = useState("");
+  const [selectedMetrics, setSelectedMetrics] = useState<SelectedMetric[]>([]);
   
   // Search existing exercises state
   const [searchTerm, setSearchTerm] = useState("");
@@ -36,6 +39,35 @@ const AddExerciseForm: React.FC<AddExerciseFormProps> = ({
   
   const exerciseTypes = getExerciseTypes();
   const savedExercises = getSavedExercises();
+  
+  // Handle metric selection
+  const handleMetricSelect = (metricType: string, isChecked: boolean) => {
+    if (isChecked) {
+      // Find the default unit for this metric type
+      const metric = supportedMetrics.find(m => m.type === metricType);
+      if (metric) {
+        setSelectedMetrics(prev => [...prev, { type: metricType, unit: metric.defaultUnit }]);
+      }
+    } else {
+      setSelectedMetrics(prev => prev.filter(m => m.type !== metricType));
+    }
+  };
+  
+  // Handle unit change for a selected metric
+  const handleUnitChange = (metricType: string, unit: string) => {
+    setSelectedMetrics(prev => 
+      prev.map(m => m.type === metricType ? { ...m, unit } : m)
+    );
+  };
+  
+  const isMetricSelected = (metricType: string) => {
+    return selectedMetrics.some(m => m.type === metricType);
+  };
+  
+  const getSelectedUnit = (metricType: string) => {
+    const metric = selectedMetrics.find(m => m.type === metricType);
+    return metric?.unit || supportedMetrics.find(m => m.type === metricType)?.defaultUnit || '';
+  };
   
   const handleAddNewExercise = () => {
     if (!name.trim()) {
@@ -50,6 +82,7 @@ const AddExerciseForm: React.FC<AddExerciseFormProps> = ({
       sets: [],
       duration: 0,
       media: [],
+      selectedMetrics: selectedMetrics.length > 0 ? selectedMetrics : [{ type: "repetitions", unit: "reps" }] // Default to reps if none selected
     };
     
     // Save this exercise for future reuse
@@ -58,6 +91,7 @@ const AddExerciseForm: React.FC<AddExerciseFormProps> = ({
     onAddExercise(newExercise);
     setName("");
     setType("");
+    setSelectedMetrics([]);
   };
   
   const handleAddExistingExercise = () => {
@@ -73,7 +107,8 @@ const AddExerciseForm: React.FC<AddExerciseFormProps> = ({
       sets: [], // Reset workout-specific data
       notes: "",
       duration: 0,
-      media: []
+      media: [],
+      selectedMetrics: selectedExercise.selectedMetrics || [{ type: "repetitions", unit: "reps" }] // Keep the selected metrics
     };
     
     onAddExercise(exerciseToAdd);
@@ -81,11 +116,28 @@ const AddExerciseForm: React.FC<AddExerciseFormProps> = ({
     setSearchTerm("");
   };
   
+  // Update selected metrics when selecting an existing exercise
+  useEffect(() => {
+    if (selectedExerciseId) {
+      const exercise = savedExercises.find(ex => ex.id === selectedExerciseId);
+      if (exercise && exercise.selectedMetrics) {
+        setSelectedMetrics([...exercise.selectedMetrics]);
+      } else {
+        setSelectedMetrics([]);
+      }
+    }
+  }, [selectedExerciseId]);
+  
   // Filter exercises based on search term
   const filteredExercises = savedExercises.filter(ex => 
     ex.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
     ex.type.toLowerCase().includes(searchTerm.toLowerCase())
   );
+  
+  // Format the metric type for display
+  const formatMetricName = (type: string) => {
+    return type.charAt(0).toUpperCase() + type.slice(1).replace(/([A-Z])/g, ' $1');
+  };
   
   return (
     <div className="space-y-4">
@@ -116,6 +168,51 @@ const AddExerciseForm: React.FC<AddExerciseFormProps> = ({
               ))}
             </SelectContent>
           </Select>
+          
+          {/* Performance metrics selection */}
+          <div className="space-y-2">
+            <h4 className="text-sm font-medium">Performance Metrics</h4>
+            <p className="text-xs text-muted-foreground mb-2">
+              Select the metrics you want to track for this exercise:
+            </p>
+            
+            <div className="grid grid-cols-1 gap-3">
+              {supportedMetrics.map((metric) => (
+                <div key={metric.type} className="flex flex-col space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id={`metric-${metric.type}`} 
+                      checked={isMetricSelected(metric.type)} 
+                      onCheckedChange={(checked) => 
+                        handleMetricSelect(metric.type, checked === true)
+                      } 
+                    />
+                    <Label htmlFor={`metric-${metric.type}`} className="text-sm">
+                      {formatMetricName(metric.type)}
+                    </Label>
+                  </div>
+                  
+                  {isMetricSelected(metric.type) && metric.availableUnits.length > 1 && (
+                    <div className="ml-6">
+                      <Select 
+                        value={getSelectedUnit(metric.type)} 
+                        onValueChange={(unit) => handleUnitChange(metric.type, unit)}
+                      >
+                        <SelectTrigger className="h-8 text-xs">
+                          <SelectValue placeholder="Select unit" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {metric.availableUnits.map(unit => (
+                            <SelectItem key={unit} value={unit}>{unit}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
           
           <div className="flex justify-end gap-2">
             <Button variant="outline" size="sm" onClick={onCancel}>
@@ -163,6 +260,17 @@ const AddExerciseForm: React.FC<AddExerciseFormProps> = ({
                         <Check className="h-4 w-4 text-primary" />
                       )}
                     </div>
+                    
+                    {/* Show selected metrics for this exercise */}
+                    {selectedExerciseId === exercise.id && exercise.selectedMetrics && exercise.selectedMetrics.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-1">
+                        {exercise.selectedMetrics.map((metric, index) => (
+                          <span key={index} className="inline-flex items-center text-xs bg-secondary/60 px-2 py-0.5 rounded">
+                            {formatMetricName(metric.type)} ({metric.unit})
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
