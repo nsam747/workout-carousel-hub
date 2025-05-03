@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from "react";
-import { Check, X, Plus, Search } from "lucide-react";
+import { Check, X, Plus, Search, Weight, Timer, Repeat, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
@@ -21,6 +20,24 @@ interface AddExerciseFormProps {
   onAddExercise: (exercise: Exercise) => void;
   onCancel: () => void;
 }
+
+// Helper function to get the appropriate icon for a metric type
+const getMetricIcon = (type: string) => {
+  switch (type) {
+    case 'weight':
+      return <Weight className="h-4 w-4 text-muted-foreground" />;
+    case 'distance':
+      return <Weight className="h-4 w-4 text-muted-foreground" />;
+    case 'duration':
+      return <Timer className="h-4 w-4 text-muted-foreground" />;
+    case 'repetitions':
+      return <Repeat className="h-4 w-4 text-muted-foreground" />;
+    case 'restTime':
+      return <Clock className="h-4 w-4 text-muted-foreground" />;
+    default:
+      return null;
+  }
+};
 
 const AddExerciseForm: React.FC<AddExerciseFormProps> = ({ 
   onAddExercise, 
@@ -67,6 +84,11 @@ const AddExerciseForm: React.FC<AddExerciseFormProps> = ({
   const getSelectedUnit = (metricType: string) => {
     const metric = selectedMetrics.find(m => m.type === metricType);
     return metric?.unit || supportedMetrics.find(m => m.type === metricType)?.defaultUnit || '';
+  };
+  
+  // Stop propagation function for the dropdown
+  const handleSelectClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
   };
   
   const handleAddNewExercise = () => {
@@ -169,49 +191,57 @@ const AddExerciseForm: React.FC<AddExerciseFormProps> = ({
             </SelectContent>
           </Select>
           
-          {/* Performance metrics selection - Redesigned to be more compact */}
-          <div className="space-y-2">
+          {/* Performance metrics selection - Redesigned to be more compact with icons */}
+          <div className="space-y-2 border rounded-md p-3 bg-background/50">
             <h4 className="text-sm font-medium">Performance Metrics</h4>
-            <p className="text-xs text-muted-foreground mb-2">
+            <p className="text-xs text-muted-foreground mb-3">
               Select the metrics you want to track for this exercise:
             </p>
             
-            <div className="space-y-2">
+            <div className="space-y-3">
               {supportedMetrics.map((metric) => (
                 <div key={metric.type} className="flex items-center space-x-2">
-                  <div className="flex items-center">
-                    <Checkbox 
-                      id={`metric-${metric.type}`} 
-                      checked={isMetricSelected(metric.type)} 
-                      onCheckedChange={(checked) => 
-                        handleMetricSelect(metric.type, checked === true)
-                      } 
-                      className="mr-2"
-                    />
-                    <Label htmlFor={`metric-${metric.type}`} className="text-sm min-w-[80px]">
-                      {formatMetricName(metric.type)}
-                    </Label>
+                  <Checkbox 
+                    id={`metric-${metric.type}`} 
+                    checked={isMetricSelected(metric.type)} 
+                    onCheckedChange={(checked) => 
+                      handleMetricSelect(metric.type, checked === true)
+                    } 
+                    className="mr-1"
+                  />
+                  
+                  <div className="flex items-center flex-1 space-x-2">
+                    <div className="flex items-center">
+                      {getMetricIcon(metric.type)}
+                      <Label htmlFor={`metric-${metric.type}`} className="text-sm ml-2">
+                        {formatMetricName(metric.type)}
+                      </Label>
+                    </div>
+                    
+                    {isMetricSelected(metric.type) && (
+                      <div className="ml-auto flex items-center" onClick={handleSelectClick}>
+                        {metric.availableUnits.length > 1 ? (
+                          <Select 
+                            value={getSelectedUnit(metric.type)} 
+                            onValueChange={(unit) => handleUnitChange(metric.type, unit)}
+                          >
+                            <SelectTrigger className="h-7 text-xs w-20">
+                              <SelectValue placeholder="Unit" />
+                            </SelectTrigger>
+                            <SelectContent className="z-50">
+                              {metric.availableUnits.map(unit => (
+                                <SelectItem key={unit} value={unit}>{unit}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-sm">
+                            {metric.availableUnits[0]}
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
-                  
-                  {isMetricSelected(metric.type) && metric.availableUnits.length > 1 && (
-                    <Select 
-                      value={getSelectedUnit(metric.type)} 
-                      onValueChange={(unit) => handleUnitChange(metric.type, unit)}
-                    >
-                      <SelectTrigger className="h-7 text-xs w-20">
-                        <SelectValue placeholder="Unit" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {metric.availableUnits.map(unit => (
-                          <SelectItem key={unit} value={unit}>{unit}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                  
-                  {isMetricSelected(metric.type) && metric.availableUnits.length === 1 && (
-                    <span className="text-xs text-muted-foreground">{metric.availableUnits[0]}</span>
-                  )}
                 </div>
               ))}
             </div>
@@ -269,7 +299,8 @@ const AddExerciseForm: React.FC<AddExerciseFormProps> = ({
                       <div className="mt-2 flex flex-wrap gap-1">
                         {exercise.selectedMetrics.map((metric, index) => (
                           <span key={index} className="inline-flex items-center text-xs bg-secondary/60 px-2 py-0.5 rounded">
-                            {formatMetricName(metric.type)} ({metric.unit})
+                            {getMetricIcon(metric.type)}
+                            <span className="ml-1">{formatMetricName(metric.type)} ({metric.unit})</span>
                           </span>
                         ))}
                       </div>
