@@ -279,6 +279,12 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
     return type.charAt(0).toUpperCase() + type.slice(1).replace(/([A-Z])/g, ' $1');
   };
 
+  // Format metric unit for display next to metric name
+  const formatMetricWithUnit = (type: string, unit: string) => {
+    const name = formatMetricName(type);
+    return `${name} (${unit})`;
+  };
+
   return (
     <Card className="overflow-hidden animate-scale-in">
       <div 
@@ -374,8 +380,8 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
                         </div>
                       </div>
                       
-                      {/* Display metrics with improved inline editing */}
-                      <div className="grid grid-cols-2 gap-2 mb-2">
+                      {/* Display metrics with improved layout */}
+                      <div className="grid grid-cols-2 gap-2">
                         {sortMetrics(set.metrics).map(metric => (
                           <div 
                             key={metric.id} 
@@ -392,13 +398,16 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
                             }}
                           >
                             {editingMetricId === metric.id ? (
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center">
+                              <div className="flex flex-col">
+                                {/* First row: Metric name and icon */}
+                                <div className="flex items-center mb-2">
                                   {getMetricIcon(metric.type)}
-                                  <span className="text-xs font-medium capitalize mr-1">
-                                    {formatMetricName(metric.type)}
+                                  <span className="text-xs font-medium capitalize">
+                                    {formatMetricWithUnit(metric.type, metric.unit)}
                                   </span>
                                 </div>
+                                
+                                {/* Second row: Input field and action buttons */}
                                 <div className="flex items-center gap-1">
                                   <Input
                                     type="number"
@@ -406,15 +415,14 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
                                     step={metric.type === "weight" ? 2.5 : 1}
                                     value={editedMetricValue}
                                     onChange={(e) => setEditedMetricValue(Number(e.target.value))}
-                                    className="h-7 text-xs px-2 py-0 w-[60px] inline-block"
+                                    className="h-7 text-xs px-2 py-0 flex-grow"
                                     autoFocus
                                     onClick={(e) => e.stopPropagation()}
                                   />
-                                  <span className="text-xs">{metric.unit}</span>
                                   <Button 
                                     variant="ghost" 
                                     size="icon" 
-                                    className="h-6 w-6"
+                                    className="h-6 w-6 flex-shrink-0"
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       handleSaveMetricEdit(set.id, metric.id);
@@ -425,7 +433,7 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
                                   <Button 
                                     variant="ghost" 
                                     size="icon" 
-                                    className="h-6 w-6"
+                                    className="h-6 w-6 flex-shrink-0"
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       handleCancelMetricEdit();
@@ -440,12 +448,14 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
                                 <div className="flex items-center justify-between">
                                   <div className="flex items-center">
                                     {getMetricIcon(metric.type)}
-                                    <span className="text-xs font-medium capitalize">{formatMetricName(metric.type)}</span>
+                                    <span className="text-xs font-medium capitalize">
+                                      {formatMetricWithUnit(metric.type, metric.unit)}
+                                    </span>
                                   </div>
                                 </div>
                                 <div className="mt-1 flex items-center">
                                   <span className="text-sm font-medium">
-                                    {metric.value === 0 ? "-" : `${metric.value} ${metric.unit}`}
+                                    {metric.value === 0 ? "-" : `${metric.value}`}
                                   </span>
                                 </div>
                               </>
