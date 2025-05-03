@@ -169,45 +169,48 @@ const AddExerciseForm: React.FC<AddExerciseFormProps> = ({
             </SelectContent>
           </Select>
           
-          {/* Performance metrics selection */}
+          {/* Performance metrics selection - Redesigned to be more compact */}
           <div className="space-y-2">
             <h4 className="text-sm font-medium">Performance Metrics</h4>
             <p className="text-xs text-muted-foreground mb-2">
               Select the metrics you want to track for this exercise:
             </p>
             
-            <div className="grid grid-cols-1 gap-3">
+            <div className="space-y-2">
               {supportedMetrics.map((metric) => (
-                <div key={metric.type} className="flex flex-col space-y-2">
-                  <div className="flex items-center space-x-2">
+                <div key={metric.type} className="flex items-center space-x-2">
+                  <div className="flex items-center">
                     <Checkbox 
                       id={`metric-${metric.type}`} 
                       checked={isMetricSelected(metric.type)} 
                       onCheckedChange={(checked) => 
                         handleMetricSelect(metric.type, checked === true)
                       } 
+                      className="mr-2"
                     />
-                    <Label htmlFor={`metric-${metric.type}`} className="text-sm">
+                    <Label htmlFor={`metric-${metric.type}`} className="text-sm min-w-[80px]">
                       {formatMetricName(metric.type)}
                     </Label>
                   </div>
                   
                   {isMetricSelected(metric.type) && metric.availableUnits.length > 1 && (
-                    <div className="ml-6">
-                      <Select 
-                        value={getSelectedUnit(metric.type)} 
-                        onValueChange={(unit) => handleUnitChange(metric.type, unit)}
-                      >
-                        <SelectTrigger className="h-8 text-xs">
-                          <SelectValue placeholder="Select unit" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {metric.availableUnits.map(unit => (
-                            <SelectItem key={unit} value={unit}>{unit}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
+                    <Select 
+                      value={getSelectedUnit(metric.type)} 
+                      onValueChange={(unit) => handleUnitChange(metric.type, unit)}
+                    >
+                      <SelectTrigger className="h-7 text-xs w-20">
+                        <SelectValue placeholder="Unit" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {metric.availableUnits.map(unit => (
+                          <SelectItem key={unit} value={unit}>{unit}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                  
+                  {isMetricSelected(metric.type) && metric.availableUnits.length === 1 && (
+                    <span className="text-xs text-muted-foreground">{metric.availableUnits[0]}</span>
                   )}
                 </div>
               ))}

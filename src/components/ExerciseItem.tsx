@@ -264,31 +264,23 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
         <div className="border-t border-border/50 animate-slide-down bg-muted/30">
           {/* Performance metrics */}
           {exercise.sets && exercise.sets.length > 0 && (
-            <div className="mb-3">
-              <div className="space-y-3">
+            <div className="mb-3 px-4">
+              <div className="space-y-2">
                 {exercise.sets.map((set, setIndex) => (
-                  <div key={set.id} className="bg-background p-3 rounded-md">
-                    <div className="flex items-center justify-between mb-2">
+                  <div key={set.id} className="bg-background p-2 rounded-md">
+                    <div className="flex items-center justify-between mb-1">
                       <Badge variant="outline" className="text-xs">Set {setIndex + 1}</Badge>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       {set.metrics.map((metric, index) => (
                         <div 
                           key={index} 
-                          className="bg-secondary/20 p-3 rounded-md"
+                          className="bg-secondary/20 p-2 rounded-md flex items-center"
                         >
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center">
-                              {getMetricIcon(metric.type)}
-                              <span className="text-xs font-medium capitalize">{metric.type}</span>
-                            </div>
-                          </div>
-
-                          <div className="mt-1.5 flex items-center">
-                            <span className="text-sm font-medium">
-                              {metric.value} {metric.unit}
-                            </span>
-                          </div>
+                          {getMetricIcon(metric.type)}
+                          <span className="text-sm font-medium">
+                            {metric.value} {metric.unit}
+                          </span>
                         </div>
                       ))}
                     </div>
@@ -300,7 +292,7 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
 
           {/* Notes section */}
           {exercise.notes && (
-            <div className="mb-3">
+            <div className="px-4 mb-3">
               <div className="flex items-center text-sm font-medium mb-1">
                 <StickyNote className="h-4 w-4 mr-1.5" />
                 <span className="text-left">Notes</span>
@@ -311,7 +303,7 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
 
           {/* Media section */}
           {exercise.media && exercise.media.length > 0 && (
-            <div className="space-y-2">
+            <div className="px-4 space-y-2">
               <p className="text-sm font-medium text-left">Media</p>
               <div className="grid grid-cols-2 gap-2">
                 {exercise.media.map((url, index) => (

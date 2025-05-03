@@ -369,88 +369,82 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
                         </div>
                       </div>
                       
-                      {/* Display metrics with highlighting for the one being edited */}
+                      {/* Display metrics with more compact inline editing */}
                       <div className="grid grid-cols-2 gap-2 mb-2">
                         {sortMetrics(set.metrics).map(metric => (
                           <div 
                             key={metric.id} 
-                            className={`bg-secondary/20 p-3 rounded-md cursor-pointer ${
+                            className={`bg-secondary/20 p-2 rounded-md cursor-pointer ${
                               editingMetricId === metric.id 
-                              ? 'ring-2 ring-primary bg-primary/10' 
+                              ? 'ring-1 ring-primary' 
                               : ''
                             }`}
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleEditMetric(set.id, metric.id, metric.type, metric.value, metric.unit);
+                              if (editingMetricId !== metric.id) {
+                                handleEditMetric(set.id, metric.id, metric.type, metric.value, metric.unit);
+                              }
                             }}
                           >
-                            <div className="flex items-center justify-between">
+                            {editingMetricId === metric.id ? (
                               <div className="flex items-center">
-                                {getMetricIcon(metric.type)}
-                                <span className="text-xs font-medium capitalize">{metric.type}</span>
+                                <div className="flex-1">
+                                  {getMetricIcon(metric.type)}
+                                  <Input
+                                    type="number"
+                                    min={0}
+                                    step={metric.type === "weight" ? 2.5 : 1}
+                                    value={editedMetricValue}
+                                    onChange={(e) => setEditedMetricValue(Number(e.target.value))}
+                                    className="h-6 text-xs px-2 py-0 ml-1 w-[70px] inline-block"
+                                    autoFocus
+                                  />
+                                  <span className="text-xs ml-1">{metric.unit}</span>
+                                </div>
+                                <div className="flex shrink-0">
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className="h-6 w-6"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleSaveMetricEdit(set.id, metric.id);
+                                    }}
+                                  >
+                                    <Check className="h-3 w-3" />
+                                  </Button>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className="h-6 w-6"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleCancelMetricEdit();
+                                    }}
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </Button>
+                                </div>
                               </div>
-                            </div>
-
-                            <div className="mt-1.5 flex items-center">
-                              <span className="text-sm font-medium">
-                                {metric.value === 0 ? "-" : `${metric.value} ${metric.unit}`}
-                              </span>
-                            </div>
+                            ) : (
+                              <>
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center">
+                                    {getMetricIcon(metric.type)}
+                                    <span className="text-xs font-medium capitalize">{metric.type}</span>
+                                  </div>
+                                </div>
+                                <div className="mt-1 flex items-center">
+                                  <span className="text-sm font-medium">
+                                    {metric.value === 0 ? "-" : `${metric.value} ${metric.unit}`}
+                                  </span>
+                                </div>
+                              </>
+                            )}
                           </div>
                         ))}
                       </div>
                       
-                      {/* Show edit interface if set is active */}
-                      {activeSetId === set.id && (
-                        <div>
-                          {/* Edit interface for the selected metric */}
-                          {editingMetricId && (
-                            <div className="grid grid-cols-1 gap-2 items-end w-full p-1 mb-3 border-t border-border/30 pt-2">
-                              <div>
-                                <Label htmlFor={`edit-metric-value-${editingMetricId}`} className="text-xs capitalize">{editedMetricType}</Label>
-                                <Input
-                                  id={`edit-metric-value-${editingMetricId}`}
-                                  type="number"
-                                  min={0}
-                                  step={editedMetricType === "weight" ? 2.5 : 1}
-                                  value={editedMetricValue}
-                                  onChange={(e) => setEditedMetricValue(Number(e.target.value))}
-                                  className="h-7 text-xs"
-                                  autoFocus
-                                />
-                              </div>
-                              
-                              <div className="flex justify-between mt-2">
-                                <Button 
-                                  variant="outline" 
-                                  size="sm" 
-                                  className="h-7 px-2"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleSaveMetricEdit(set.id, editingMetricId);
-                                  }}
-                                >
-                                  <Check className="h-2.5 w-2.5 mr-1" />
-                                  Update
-                                </Button>
-                                
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm" 
-                                  className="h-7 px-2"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleCancelMetricEdit();
-                                  }}
-                                >
-                                  <X className="h-2.5 w-2.5" />
-                                  Cancel
-                                </Button>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      )}
                     </div>
                   ))}
                 </div>
