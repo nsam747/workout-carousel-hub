@@ -274,6 +274,11 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
     }
   };
 
+  // Format metric type for display
+  const formatMetricName = (type: string) => {
+    return type.charAt(0).toUpperCase() + type.slice(1).replace(/([A-Z])/g, ' $1');
+  };
+
   return (
     <Card className="overflow-hidden animate-scale-in">
       <div 
@@ -369,7 +374,7 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
                         </div>
                       </div>
                       
-                      {/* Display metrics with more compact inline editing */}
+                      {/* Display metrics with improved inline editing */}
                       <div className="grid grid-cols-2 gap-2 mb-2">
                         {sortMetrics(set.metrics).map(metric => (
                           <div 
@@ -387,21 +392,25 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
                             }}
                           >
                             {editingMetricId === metric.id ? (
-                              <div className="flex items-center">
-                                <div className="flex-1">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center">
                                   {getMetricIcon(metric.type)}
+                                  <span className="text-xs font-medium capitalize mr-1">
+                                    {formatMetricName(metric.type)}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-1">
                                   <Input
                                     type="number"
                                     min={0}
                                     step={metric.type === "weight" ? 2.5 : 1}
                                     value={editedMetricValue}
                                     onChange={(e) => setEditedMetricValue(Number(e.target.value))}
-                                    className="h-6 text-xs px-2 py-0 ml-1 w-[70px] inline-block"
+                                    className="h-7 text-xs px-2 py-0 w-[60px] inline-block"
                                     autoFocus
+                                    onClick={(e) => e.stopPropagation()}
                                   />
-                                  <span className="text-xs ml-1">{metric.unit}</span>
-                                </div>
-                                <div className="flex shrink-0">
+                                  <span className="text-xs">{metric.unit}</span>
                                   <Button 
                                     variant="ghost" 
                                     size="icon" 
@@ -431,7 +440,7 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
                                 <div className="flex items-center justify-between">
                                   <div className="flex items-center">
                                     {getMetricIcon(metric.type)}
-                                    <span className="text-xs font-medium capitalize">{metric.type}</span>
+                                    <span className="text-xs font-medium capitalize">{formatMetricName(metric.type)}</span>
                                   </div>
                                 </div>
                                 <div className="mt-1 flex items-center">

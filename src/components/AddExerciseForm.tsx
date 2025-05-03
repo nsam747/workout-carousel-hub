@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect } from "react";
-import { Check, X, Plus, Search, Weight, Timer, Repeat, Clock } from "lucide-react";
+import { Check, X, Plus, Search, Weight, Timer, Repeat, Clock, Ruler } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
@@ -27,7 +28,7 @@ const getMetricIcon = (type: string) => {
     case 'weight':
       return <Weight className="h-4 w-4 text-muted-foreground" />;
     case 'distance':
-      return <Weight className="h-4 w-4 text-muted-foreground" />;
+      return <Ruler className="h-4 w-4 text-muted-foreground" />;
     case 'duration':
       return <Timer className="h-4 w-4 text-muted-foreground" />;
     case 'repetitions':
@@ -37,6 +38,11 @@ const getMetricIcon = (type: string) => {
     default:
       return null;
   }
+};
+
+// Format the metric type for display
+const formatMetricName = (type: string) => {
+  return type.charAt(0).toUpperCase() + type.slice(1).replace(/([A-Z])/g, ' $1');
 };
 
 const AddExerciseForm: React.FC<AddExerciseFormProps> = ({ 
@@ -156,9 +162,20 @@ const AddExerciseForm: React.FC<AddExerciseFormProps> = ({
     ex.type.toLowerCase().includes(searchTerm.toLowerCase())
   );
   
-  // Format the metric type for display
-  const formatMetricName = (type: string) => {
-    return type.charAt(0).toUpperCase() + type.slice(1).replace(/([A-Z])/g, ' $1');
+  // Render exercise metric badges
+  const renderMetricBadges = (exerciseMetrics: SelectedMetric[]) => {
+    if (!exerciseMetrics || exerciseMetrics.length === 0) return null;
+    
+    return (
+      <div className="mt-2 flex flex-wrap gap-1">
+        {exerciseMetrics.map((metric, index) => (
+          <span key={index} className="inline-flex items-center text-xs bg-secondary/60 px-2 py-0.5 rounded">
+            {getMetricIcon(metric.type)}
+            <span className="ml-1">{formatMetricName(metric.type)} ({metric.unit})</span>
+          </span>
+        ))}
+      </div>
+    );
   };
   
   return (
@@ -193,7 +210,7 @@ const AddExerciseForm: React.FC<AddExerciseFormProps> = ({
           
           {/* Performance metrics selection - Redesigned to be more compact with icons */}
           <div className="space-y-2 border rounded-md p-3 bg-background/50">
-            <h4 className="text-sm font-medium">Performance Metrics</h4>
+            <h4 className="text-sm font-medium mb-3">Performance Metrics</h4>
             <p className="text-xs text-muted-foreground mb-3">
               Select the metrics you want to track for this exercise:
             </p>
@@ -211,7 +228,7 @@ const AddExerciseForm: React.FC<AddExerciseFormProps> = ({
                   />
                   
                   <div className="flex items-center flex-1 space-x-2">
-                    <div className="flex items-center">
+                    <div className="flex items-center min-w-[120px]">
                       {getMetricIcon(metric.type)}
                       <Label htmlFor={`metric-${metric.type}`} className="text-sm ml-2">
                         {formatMetricName(metric.type)}
@@ -225,12 +242,24 @@ const AddExerciseForm: React.FC<AddExerciseFormProps> = ({
                             value={getSelectedUnit(metric.type)} 
                             onValueChange={(unit) => handleUnitChange(metric.type, unit)}
                           >
-                            <SelectTrigger className="h-7 text-xs w-20">
+                            <SelectTrigger 
+                              className={`h-7 text-xs ${(metric.type === "duration" || metric.type === "restTime") ? "w-28" : "w-20"}`}
+                              onClick={(e) => e.stopPropagation()}
+                            >
                               <SelectValue placeholder="Unit" />
                             </SelectTrigger>
-                            <SelectContent className="z-50">
+                            <SelectContent 
+                              className="z-50"
+                              onClick={(e) => e.stopPropagation()}
+                            >
                               {metric.availableUnits.map(unit => (
-                                <SelectItem key={unit} value={unit}>{unit}</SelectItem>
+                                <SelectItem 
+                                  key={unit} 
+                                  value={unit}
+                                  onSelect={(e) => e.stopPropagation()}
+                                >
+                                  {unit}
+                                </SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
@@ -294,17 +323,10 @@ const AddExerciseForm: React.FC<AddExerciseFormProps> = ({
                       )}
                     </div>
                     
-                    {/* Show selected metrics for this exercise */}
-                    {selectedExerciseId === exercise.id && exercise.selectedMetrics && exercise.selectedMetrics.length > 0 && (
-                      <div className="mt-2 flex flex-wrap gap-1">
-                        {exercise.selectedMetrics.map((metric, index) => (
-                          <span key={index} className="inline-flex items-center text-xs bg-secondary/60 px-2 py-0.5 rounded">
-                            {getMetricIcon(metric.type)}
-                            <span className="ml-1">{formatMetricName(metric.type)} ({metric.unit})</span>
-                          </span>
-                        ))}
-                      </div>
-                    )}
+                    {/* Show selected metrics for all exercises, not just selected ones */}
+                    {exercise.selectedMetrics && exercise.selectedMetrics.length > 0 && 
+                      renderMetricBadges(exercise.selectedMetrics)
+                    }
                   </div>
                 ))}
               </div>

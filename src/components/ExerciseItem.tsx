@@ -46,6 +46,11 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
     }
   };
 
+  // Format the metric type for display
+  const formatMetricName = (type: string) => {
+    return type.charAt(0).toUpperCase() + type.slice(1).replace(/([A-Z])/g, ' $1');
+  };
+
   // Check if exercise has notes or media
   const hasNotes = exercise.notes && exercise.notes.trim().length > 0;
   const hasMedia = exercise.media && exercise.media.length > 0;
@@ -275,9 +280,14 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
                       {set.metrics.map((metric, index) => (
                         <div 
                           key={index} 
-                          className="bg-secondary/20 p-2 rounded-md flex items-center"
+                          className="bg-secondary/20 p-2 rounded-md flex items-center justify-between"
                         >
-                          {getMetricIcon(metric.type)}
+                          <div className="flex items-center">
+                            {getMetricIcon(metric.type)}
+                            <span className="text-xs font-medium capitalize">
+                              {formatMetricName(metric.type)}
+                            </span>
+                          </div>
                           <span className="text-sm font-medium">
                             {metric.value} {metric.unit}
                           </span>
