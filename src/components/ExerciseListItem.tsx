@@ -1,9 +1,9 @@
 
 import React, { useState, useEffect } from "react";
-import { Trash, ChevronDown, ChevronUp, Image, Edit, Plus, X, Check, Save, Clock, Dumbbell, Hash, StickyNote, Ruler, Timer, Repeat } from "lucide-react";
+import { Trash, ChevronDown, ChevronUp, Image, Edit, Plus, X, Check, Save, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Exercise, getExerciseTypes, saveExercise, Set, SelectedMetric, Metric } from "@/lib/mockData";
+import { Exercise, saveExercise, Set, SelectedMetric, Metric } from "@/lib/mockData";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { 
@@ -17,6 +17,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { generateId } from "@/lib/utils";
+import { 
+  getMetricIcon, 
+  formatMetricWithUnit, 
+  generateExerciseSummary,
+  sortMetrics
+} from "@/lib/exerciseUtils";
 
 interface ExerciseListItemProps {
   exercise: Exercise;
@@ -140,12 +147,61 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
     return newSetId;
   };
   
+  // Copy last set to create a new set
+  const handleCopyLastSet = () => {
+    if (sets.length === 0) return;
+    
+    const lastSet = sets[sets.length - 1];
+    const nextSetNumber = lastSet.setNumber + 1;
+    
+    // Copy metrics from the last set
+    const copiedMetrics = lastSet.metrics.map(metric => ({
+      ...metric,
+      id: generateId()
+    }));
+    
+    const newSet: SetData = {
+      id: generateId(),
+      metrics: copiedMetrics,
+      setNumber: nextSetNumber
+    };
+    
+    setSets(prevSets => [...prevSets, newSet]);
+    
+    // Update exercise with new sets data
+    updateExerciseWithSets([...sets, newSet]);
+    
+    toast.success("Set copied successfully");
+  };
+  
+  // Remove a set
+  const handleRemoveSet = (setId: string) => {
+    // Remove the set and renumber remaining sets
+    const filteredSets = sets.filter(set => set.id !== setId);
+    
+    // Renumber the sets to be consecutive
+    const renumberedSets = filteredSets.map((set, index) => ({
+      ...set,
+      setNumber: index + 1
+    }));
+    
+    setSets(renumberedSets);
+    
+    // Clear active set if it was the one removed
+    if (activeSetId === setId) {
+      setActiveSetId(null);
+    }
+    
+    // Update exercise with new sets data
+    updateExerciseWithSets(renumberedSets);
+    
+    toast.success("Set removed successfully");
+  };
+  
   // Set a set as active for editing
   const handleSetClick = (setId: string) => {
     setActiveSetId(activeSetId === setId ? null : setId);
   };
-  
-  const generateId = () => Math.random().toString(36).substring(2, 11);
   
   // Function to handle metric edit start
   const handleEditMetric = (setId: string, metricId: string, currentType: string, currentValue: number, currentUnit: string) => {
@@ -186,27 +242,12 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
     setEditingMetricId(null);
   };
 
-  // Function to sort metrics by priority
-  const sortMetrics = (metrics: Metric[]) => {
-    const priorityOrder: Record<string, number> = {
-      "weight": 1,
-      "duration": 2,
-      "distance": 3,
-      "repetitions": 4,
-      "restTime": 5
-    };
-    
-    return [...metrics].sort((a, b) => 
-      (priorityOrder[a.type] || 99) - (priorityOrder[b.type] || 99)
-    );
-  };
-
   // Function to update the parent exercise object with current sets data
-  const updateExerciseWithSets = () => {
+  const updateExerciseWithSets = (updatedSets = sets) => {
     if (!onExerciseUpdate) return;
     
     // Convert SetData to proper Set format for the Exercise interface
-    const updatedSets: Set[] = sets.map(set => ({
+    const convertedSets: Set[] = updatedSets.map(set => ({
       id: set.id,
       setNumber: set.setNumber,
       metrics: set.metrics
@@ -214,7 +255,7 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
     
     const updatedExercise: Exercise = {
       ...exercise,
-      sets: updatedSets,
+      sets: convertedSets,
       notes
     };
     
@@ -256,35 +297,6 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
     onExerciseUpdate(updatedExercise);
   };
 
-  // Helper to get icon for metric type
-  const getMetricIcon = (type: string) => {
-    switch (type) {
-      case "weight":
-        return <Dumbbell className="h-3 w-3 mr-1" />;
-      case "distance":
-        return <Ruler className="h-3 w-3 mr-1" />;
-      case "duration":
-        return <Clock className="h-3 w-3 mr-1" />;
-      case "repetitions":
-        return <Repeat className="h-3 w-3 mr-1" />;
-      case "restTime":
-        return <Timer className="h-3 w-3 mr-1" />;
-      default:
-        return <Hash className="h-3 w-3 mr-1" />;
-    }
-  };
-
-  // Format metric type for display
-  const formatMetricName = (type: string) => {
-    return type.charAt(0).toUpperCase() + type.slice(1).replace(/([A-Z])/g, ' $1');
-  };
-
-  // Format metric unit for display next to metric name
-  const formatMetricWithUnit = (type: string, unit: string) => {
-    const name = formatMetricName(type);
-    return `${name} (${unit})`;
-  };
-
   return (
     <Card className="overflow-hidden animate-scale-in">
       <div 
@@ -292,11 +304,16 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
         onClick={() => setExpanded(!expanded)}
         onDoubleClick={() => setIsEditingExercise(true)}
       >
-        <div className="flex items-center gap-2">
-          <span className="font-medium text-left">{exercise.name}</span>
-          <Badge variant="outline" className="text-xs">
-            {exercise.type}
-          </Badge>
+        <div className="flex flex-col items-start gap-1 flex-1">
+          <div className="flex items-center gap-2">
+            <span className="font-medium text-left">{exercise.name}</span>
+            <Badge variant="outline" className="text-xs">
+              {exercise.type}
+            </Badge>
+          </div>
+          
+          {/* Render summary when collapsed */}
+          {!expanded && generateExerciseSummary(exercise)}
         </div>
         
         <div className="flex items-center gap-1">
@@ -343,7 +360,7 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
                   {sets.map((set, index) => (
                     <div 
                       key={set.id}
-                      className={`p-2 ${activeSetId === set.id ? 'bg-secondary/80' : 'bg-muted/50'} rounded-md transition-colors`}
+                      className={`p-2 ${activeSetId === set.id ? 'bg-secondary/80' : 'bg-muted/50'} rounded-md transition-colors relative`}
                     >
                       <div className="flex items-center justify-between mb-1">
                         <div 
@@ -354,30 +371,21 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
                           }}
                         >
                           <span className="text-xs font-medium">Set {index + 1}</span>
-                          {activeSetId !== set.id && (
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              className="h-6 w-6 ml-1"
-                            >
-                              <Edit className="h-3 w-3" />
-                            </Button>
-                          )}
                         </div>
-                        <div className="flex items-center gap-1">
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-6 w-6"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleAddEmptySet();
-                            }}
-                          >
-                            <Plus className="h-3 w-3" />
-                            <span className="sr-only">Add Set</span>
-                          </Button>
-                        </div>
+                        
+                        {/* Delete set button */}
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-6 w-6 text-destructive/60 hover:text-destructive"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRemoveSet(set.id);
+                          }}
+                        >
+                          <Trash className="h-3 w-3" />
+                          <span className="sr-only">Remove Set</span>
+                        </Button>
                       </div>
                       
                       {/* Display metrics with improved layout */}
@@ -403,7 +411,7 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
                                 <div className="flex items-center mb-2">
                                   {getMetricIcon(metric.type)}
                                   <span className="text-xs font-medium capitalize">
-                                    {formatMetricWithUnit(metric.type, metric.unit)}
+                                    {formatMetricWithUnit(metric.type, metric.unit.toLowerCase())}
                                   </span>
                                 </div>
                                 
@@ -449,7 +457,7 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
                                   <div className="flex items-center">
                                     {getMetricIcon(metric.type)}
                                     <span className="text-xs font-medium capitalize">
-                                      {formatMetricWithUnit(metric.type, metric.unit)}
+                                      {formatMetricWithUnit(metric.type, metric.unit.toLowerCase())}
                                     </span>
                                   </div>
                                 </div>
@@ -469,20 +477,35 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
                 </div>
               ) : null}
 
-              {!activeSetId && (
+              {/* Add and copy set buttons */}
+              <div className="flex space-x-2 mb-3">
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  className="h-7 text-xs mb-3" 
+                  className="h-7 text-xs" 
                   onClick={(e) => {
                     e.stopPropagation();
                     handleAddEmptySet();
                   }}
                 >
                   <Plus className="h-3 w-3 mr-1" />
-                  Add set
+                  Add Set
                 </Button>
-              )}
+                
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="h-7 text-xs"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleCopyLastSet();
+                  }}
+                  disabled={sets.length === 0}
+                >
+                  <Copy className="h-3 w-3 mr-1" />
+                  Copy Previous
+                </Button>
+              </div>
             </div>
             
             {/* Notes section */}
