@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { generateExerciseSummary } from "@/lib/exerciseUtils";
 
 interface ExerciseItemProps {
   exercise: Exercise;
@@ -244,7 +245,7 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
   }, [exercise]);
 
   // Always generate the summary content for rendering
-  const summaryContent = generateEnhancedSummary();
+  const summaryContent = generateExerciseSummary(exercise);
 
   return (
     <div className="mb-0 bg-white/90 border-b border-border last:border-b-0 overflow-hidden animate-slide-up animation-delay-100">

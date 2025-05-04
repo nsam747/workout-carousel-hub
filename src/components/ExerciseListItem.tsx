@@ -25,6 +25,21 @@ import {
   sortMetrics
 } from "@/lib/exerciseUtils";
 
+// Helper function to get available exercise types
+// This should be imported from mockData, but adding it here for completeness
+const getExerciseTypes = () => {
+  return [
+    "Strength", 
+    "Cardio", 
+    "Flexibility", 
+    "Balance", 
+    "Core", 
+    "HIIT", 
+    "Recovery",
+    "Other"
+  ];
+};
+
 interface ExerciseListItemProps {
   exercise: Exercise;
   onRemove: (id: string) => void;
