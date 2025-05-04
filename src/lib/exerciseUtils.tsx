@@ -28,7 +28,7 @@ export const collectAllMetrics = (exercise: Exercise): CollectedMetrics => {
           metricsByType[metric.type] = [];
         }
         metricsByType[metric.type].push(metric.value);
-        unitsByType[metric.type] = metric.unit;
+        unitsByType[metric.type] = metric.unit.toLowerCase(); // Ensure units are lowercase here
       });
     }
   });
@@ -65,7 +65,7 @@ export const formatMetricName = (type: string) => {
 // Format metric with unit for display next to metric name
 export const formatMetricWithUnit = (type: string, unit: string) => {
   const name = formatMetricName(type);
-  return `${name} (${unit.toLowerCase()})`;
+  return `${name} (${unit.toLowerCase()})`; // Ensure units are lowercase here
 };
 
 // Generate an enhanced summary showing ranges for each metric type

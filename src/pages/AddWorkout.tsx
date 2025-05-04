@@ -1,22 +1,4 @@
 
-/**
- * AddWorkout Page Component
- * 
- * This page allows users to create a new workout by adding:
- * - Workout title
- * - Workout category
- * - Multiple exercises with their details
- * 
- * Features:
- * - Add/remove exercises to the workout
- * - Select from existing categories or create new ones
- * - Save the complete workout
- * - Auto-focus newly added exercises with initial set
- * 
- * This component uses ExerciseListItem for listing exercises and
- * AddExerciseForm for adding new exercises.
- */
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Save } from "lucide-react";
@@ -40,7 +22,14 @@ const AddWorkout = () => {
   
   const handleAddExercise = (exercise: Exercise) => {
     // Add the new exercise and mark it as the last added one
-    setExercises(prevExercises => [...prevExercises, exercise]);
+    const exerciseWithSets = {
+      ...exercise,
+      sets: exercise.sets || []
+    };
+    
+    console.log("Adding new exercise:", exerciseWithSets);
+    
+    setExercises(prevExercises => [...prevExercises, exerciseWithSets]);
     setLastAddedExerciseId(exercise.id);
     setIsAddingExercise(false);
   };
@@ -50,6 +39,15 @@ const AddWorkout = () => {
     if (lastAddedExerciseId === exerciseId) {
       setLastAddedExerciseId(null);
     }
+  };
+  
+  const handleExerciseUpdate = (updatedExercise: Exercise) => {
+    console.log("Updating exercise in AddWorkout:", updatedExercise);
+    setExercises(prevExercises => 
+      prevExercises.map(exercise => 
+        exercise.id === updatedExercise.id ? updatedExercise : exercise
+      )
+    );
   };
   
   const handleSaveWorkout = () => {
@@ -195,6 +193,7 @@ const AddWorkout = () => {
                     key={exercise.id}
                     exercise={exercise}
                     onRemove={handleRemoveExercise}
+                    onExerciseUpdate={handleExerciseUpdate}
                     isNewlyAdded={exercise.id === lastAddedExerciseId}
                   />
                 ))}

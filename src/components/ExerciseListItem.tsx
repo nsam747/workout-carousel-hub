@@ -73,6 +73,9 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
   const [editedMetricType, setEditedMetricType] = useState<string>("");
   const [editedMetricUnit, setEditedMetricUnit] = useState<string>("");
   
+  // Debug state
+  const [currentSummary, setCurrentSummary] = useState<React.ReactNode>(null);
+  
   useEffect(() => {
     // Set notes from the exercise
     setNotes(exercise.notes || "");
@@ -133,6 +136,9 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
       const newSetId = generateId();
       handleAddEmptySet(newSetId);
     }
+    
+    // Generate and store the initial summary
+    setCurrentSummary(generateExerciseSummary(exercise));
   }, [exercise, isNewlyAdded]);
   
   // Add a new empty set directly with pre-selected metrics from exercise
@@ -147,7 +153,7 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
       id: generateId(),
       type: selectedMetric.type,
       value: 0,
-      unit: selectedMetric.unit
+      unit: selectedMetric.unit.toLowerCase() // Ensure unit is lowercase
     }));
     
     const newSet: SetData = {
@@ -231,25 +237,24 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
   
   // Function to save edited metric
   const handleSaveMetricEdit = (setId: string, metricId: string) => {
-    setSets(prevSets => 
-      prevSets.map(set => 
-        set.id === setId 
-          ? {
-              ...set,
-              metrics: set.metrics.map(metric => 
-                metric.id === metricId
-                  ? { ...metric, value: editedMetricValue }
-                  : metric
-              )
-            }
-          : set
-      )
+    const updatedSets = sets.map(set => 
+      set.id === setId 
+        ? {
+            ...set,
+            metrics: set.metrics.map(metric => 
+              metric.id === metricId
+                ? { ...metric, value: editedMetricValue }
+                : metric
+            )
+          }
+        : set
     );
     
+    setSets(updatedSets);
     setEditingMetricId(null);
     
     // Update exercise with new sets data
-    updateExerciseWithSets();
+    updateExerciseWithSets(updatedSets);
   };
   
   // Cancel metric editing
@@ -273,6 +278,11 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
       sets: convertedSets,
       notes
     };
+    
+    console.log("Updating exercise with sets:", updatedExercise);
+    
+    // Update the summary immediately
+    setCurrentSummary(generateExerciseSummary(updatedExercise));
     
     // Pass the updated exercise back to the parent component
     onExerciseUpdate(updatedExercise);
@@ -327,8 +337,8 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
             </Badge>
           </div>
           
-          {/* Render summary when collapsed */}
-          {!expanded && generateExerciseSummary(exercise)}
+          {/* Render summary when collapsed - use the stored summary */}
+          {!expanded && currentSummary}
         </div>
         
         <div className="flex items-center gap-1">
