@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { Trash, ChevronDown, ChevronUp, Image, Edit, Plus, X, Check, Save, Copy } from "lucide-react";
+import { Trash, ChevronDown, ChevronUp, Image, Plus, X, Check, Save, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Exercise, saveExercise, Set, SelectedMetric, Metric } from "@/lib/mockData";
@@ -159,6 +159,10 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
     setSets(prevSets => [...prevSets, newSet]);
     // Automatically activate the new set for editing
     setActiveSetId(newSetId);
+    
+    // Update exercise with new sets data
+    updateExerciseWithSets([...sets, newSet]);
+    
     return newSetId;
   };
   

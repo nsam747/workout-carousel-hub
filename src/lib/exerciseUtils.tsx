@@ -11,6 +11,9 @@ interface CollectedMetrics {
 
 // Collect all metrics from all sets in an exercise
 export const collectAllMetrics = (exercise: Exercise): CollectedMetrics => {
+  console.log("Exercise:", exercise.name);
+  console.log("Sets:", exercise.sets);
+  
   if (!exercise.sets || exercise.sets.length === 0) {
     return { metricsByType: {}, unitsByType: {} };
   }
@@ -29,6 +32,9 @@ export const collectAllMetrics = (exercise: Exercise): CollectedMetrics => {
       });
     }
   });
+  
+  console.log("Metrics by type:", metricsByType);
+  console.log("Units by type:", unitsByType);
 
   return { metricsByType, unitsByType };
 };
