@@ -189,8 +189,6 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
     
     // Update exercise with new sets data
     updateExerciseWithSets([...sets, newSet]);
-    
-    toast.success("Set copied successfully");
   };
   
   // Remove a set
@@ -213,8 +211,6 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
     
     // Update exercise with new sets data
     updateExerciseWithSets(renumberedSets);
-    
-    toast.success("Set removed successfully");
   };
   
   // Set a set as active for editing
