@@ -3,22 +3,9 @@ import React, { useState, useEffect } from "react";
 import Picker from "react-mobile-picker";
 import { format, setHours, setMinutes, setDate, setMonth, setYear } from "date-fns";
 
-// Define proper type definitions for react-mobile-picker
-declare module "react-mobile-picker" {
-  export interface PickerColumnProps {
-    name: string;
-    options: Array<{ label: string; value: any }>;
-    key?: string;
-  }
-  
-  export interface PickerProps {
-    value: Record<string, any>;
-    onChange: (value: Record<string, any>) => void;
-    height?: number;
-    itemHeight?: number;
-    children?: React.ReactNode;
-  }
-}
+// Import the Picker component without type checking
+// This avoids conflicts with any existing type definitions
+const MobilePicker = Picker as any;
 
 interface DateTimePickerWheelProps {
   isOpen: boolean;
@@ -28,7 +15,7 @@ interface DateTimePickerWheelProps {
   mode: "date" | "time";
 }
 
-// Define types for the picker values based on the library's requirements
+// Define types for the picker values
 type DatePickerValue = {
   month: number;
   day: number;
@@ -184,38 +171,30 @@ const DateTimePickerWheel: React.FC<DateTimePickerWheelProps> = ({
           {mode === "date" ? (
             <div className="relative">
               <div className="picker-highlight absolute z-10 pointer-events-none"></div>
-              {/* @ts-ignore - Using ts-ignore to work around type definition issues with the library */}
-              <Picker
+              <MobilePicker
                 value={datePickerValue}
                 onChange={handleDateChange}
                 height={200}
                 itemHeight={40}
               >
-                {/* @ts-ignore */}
-                <Picker.Column key="month" name="month" options={months} />
-                {/* @ts-ignore */}
-                <Picker.Column key="day" name="day" options={days} />
-                {/* @ts-ignore */}
-                <Picker.Column key="year" name="year" options={years} />
-              </Picker>
+                <MobilePicker.Column name="month" options={months} />
+                <MobilePicker.Column name="day" options={days} />
+                <MobilePicker.Column name="year" options={years} />
+              </MobilePicker>
             </div>
           ) : (
             <div className="relative">
               <div className="picker-highlight absolute z-10 pointer-events-none"></div>
-              {/* @ts-ignore - Using ts-ignore to work around type definition issues with the library */}
-              <Picker
+              <MobilePicker
                 value={timePickerValue}
                 onChange={handleTimeChange}
                 height={200}
                 itemHeight={40}
               >
-                {/* @ts-ignore */}
-                <Picker.Column key="hour" name="hour" options={hours} />
-                {/* @ts-ignore */}
-                <Picker.Column key="minute" name="minute" options={minutes} />
-                {/* @ts-ignore */}
-                <Picker.Column key="ampm" name="ampm" options={ampm} />
-              </Picker>
+                <MobilePicker.Column name="hour" options={hours} />
+                <MobilePicker.Column name="minute" options={minutes} />
+                <MobilePicker.Column name="ampm" options={ampm} />
+              </MobilePicker>
             </div>
           )}
         </div>
