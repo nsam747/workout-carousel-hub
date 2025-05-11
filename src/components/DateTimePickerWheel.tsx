@@ -147,6 +147,20 @@ const DateTimePickerWheel: React.FC<DateTimePickerWheelProps> = ({
 
   if (!isOpen) return null;
 
+  // Create the column content for the date picker
+  const dateColumns = {
+    month: months,
+    day: days,
+    year: years
+  };
+
+  // Create the column content for the time picker
+  const timeColumns = {
+    hour: hours,
+    minute: minutes,
+    ampm: ampm
+  };
+
   return (
     <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm">
       <div className="fixed bottom-0 left-0 right-0 z-50 flex flex-col rounded-t-xl overflow-hidden shadow-lg animate-in slide-in-from-bottom">
@@ -176,11 +190,9 @@ const DateTimePickerWheel: React.FC<DateTimePickerWheelProps> = ({
                 onChange={handleDateChange}
                 height={200}
                 itemHeight={40}
-              >
-                <MobilePicker.Column name="month" options={months} />
-                <MobilePicker.Column name="day" options={days} />
-                <MobilePicker.Column name="year" options={years} />
-              </MobilePicker>
+                valueGroups={datePickerValue}
+                optionGroups={dateColumns}
+              />
             </div>
           ) : (
             <div className="relative">
@@ -190,11 +202,9 @@ const DateTimePickerWheel: React.FC<DateTimePickerWheelProps> = ({
                 onChange={handleTimeChange}
                 height={200}
                 itemHeight={40}
-              >
-                <MobilePicker.Column name="hour" options={hours} />
-                <MobilePicker.Column name="minute" options={minutes} />
-                <MobilePicker.Column name="ampm" options={ampm} />
-              </MobilePicker>
+                valueGroups={timePickerValue}
+                optionGroups={timeColumns}
+              />
             </div>
           )}
         </div>
