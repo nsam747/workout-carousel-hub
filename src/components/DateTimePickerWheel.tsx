@@ -149,19 +149,6 @@ const DateTimePickerWheel: React.FC<DateTimePickerWheelProps> = ({
 
   if (!isOpen) return null;
 
-  // Create the picker data objects
-  const datePickerData = {
-    month: months,
-    day: days,
-    year: years
-  };
-
-  const timePickerData = {
-    hour: hours,
-    minute: minutes,
-    ampm: ampm
-  };
-
   return (
     <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm">
       <div className="fixed bottom-0 left-0 right-0 z-50 flex flex-col rounded-t-xl overflow-hidden shadow-lg animate-in slide-in-from-bottom">
@@ -190,9 +177,23 @@ const DateTimePickerWheel: React.FC<DateTimePickerWheelProps> = ({
                 onChange={handleDateChange}
                 height={200}
                 itemHeight={40}
-                valueGroups={datePickerValue}
-                optionGroups={datePickerData}
-              />
+              >
+                <Picker.Column
+                  key="month"
+                  name="month"
+                  options={months}
+                />
+                <Picker.Column
+                  key="day"
+                  name="day"
+                  options={days}
+                />
+                <Picker.Column
+                  key="year"
+                  name="year"
+                  options={years}
+                />
+              </Picker>
               <div className="picker-highlight"></div>
             </div>
           ) : (
@@ -202,9 +203,23 @@ const DateTimePickerWheel: React.FC<DateTimePickerWheelProps> = ({
                 onChange={handleTimeChange}
                 height={200}
                 itemHeight={40}
-                valueGroups={timePickerValue}
-                optionGroups={timePickerData}
-              />
+              >
+                <Picker.Column
+                  key="hour"
+                  name="hour"
+                  options={hours}
+                />
+                <Picker.Column
+                  key="minute"
+                  name="minute"
+                  options={minutes}
+                />
+                <Picker.Column
+                  key="ampm"
+                  name="ampm"
+                  options={ampm}
+                />
+              </Picker>
               <div className="picker-highlight"></div>
             </div>
           )}
