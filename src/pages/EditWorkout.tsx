@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import CategorySelector from "@/components/CategorySelector";
 import AddExerciseForm from "@/components/AddExerciseForm";
 import ExerciseListItem from "@/components/ExerciseListItem";
+import DateTimeSelector from "@/components/DateTimeSelector";
 import { getAllCategories, getWorkoutById } from "@/lib/mockData";
 import { toast } from "sonner";
 import { Exercise, Workout } from "@/lib/mockData";
@@ -23,6 +24,7 @@ const EditWorkout = () => {
   const { id } = useParams<{ id: string }>();
   const [loading, setLoading] = useState(true);
   const [title, setTitle] = useState("");
+  const [workoutDate, setWorkoutDate] = useState(new Date());
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [isAddingExercise, setIsAddingExercise] = useState(false);
@@ -34,6 +36,7 @@ const EditWorkout = () => {
       const workout = getWorkoutById(id);
       if (workout) {
         setTitle(workout.title);
+        setWorkoutDate(new Date(workout.date));
         
         // Deep copy of exercises with all nested properties preserved
         const exercisesCopy = workout.exercises.map(exercise => {
@@ -99,7 +102,7 @@ const EditWorkout = () => {
       title: workoutTitle,
       category: selectedCategory,
       exercises,
-      date: new Date(), // Keep the original date or update it
+      date: workoutDate, // Use the selected date from the date picker
       completed: false // Keep the original completion status or update it
     };
     
@@ -161,14 +164,18 @@ const EditWorkout = () => {
       
       <div className="max-w-2xl mx-auto px-4 py-6">
         <div className="space-y-6">
+          {/* Date and Time Selector */}
+          <DateTimeSelector 
+            date={workoutDate}
+            onDateChange={setWorkoutDate}
+            className="mb-4"
+          />
+          
           {/* Workout Title */}
           <div>
-            <label htmlFor="title" className="block text-sm font-medium mb-2">
-              Workout Title
-            </label>
             <Input
               id="title"
-              placeholder="e.g., Morning Cardio"
+              placeholder="Workout Title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />

@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import CategorySelector from "@/components/CategorySelector";
 import AddExerciseForm from "@/components/AddExerciseForm";
 import ExerciseListItem from "@/components/ExerciseListItem";
+import DateTimeSelector from "@/components/DateTimeSelector";
 import { getAllCategories } from "@/lib/mockData";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
@@ -15,6 +16,7 @@ import { Exercise, Workout } from "@/lib/mockData";
 const AddWorkout = () => {
   const navigate = useNavigate();
   const [title, setTitle] = useState("");
+  const [workoutDate, setWorkoutDate] = useState(new Date());
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [selectedCategory, setSelectedCategory] = useState(getAllCategories()[0] || "");
   const [isAddingExercise, setIsAddingExercise] = useState(false);
@@ -61,7 +63,7 @@ const AddWorkout = () => {
       title: workoutTitle,
       category: selectedCategory,
       exercises,
-      date: new Date(),
+      date: workoutDate,
       completed: false
     };
     
@@ -115,14 +117,18 @@ const AddWorkout = () => {
       
       <div className="max-w-2xl mx-auto px-4 py-6">
         <div className="space-y-6">
+          {/* Date and Time Selector */}
+          <DateTimeSelector 
+            date={workoutDate}
+            onDateChange={setWorkoutDate}
+            className="mb-4"
+          />
+          
           {/* Workout Title */}
           <div>
-            <label htmlFor="title" className="block text-sm font-medium mb-2">
-              Workout Title
-            </label>
             <Input
               id="title"
-              placeholder="e.g., Morning Cardio"
+              placeholder="Workout Title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
