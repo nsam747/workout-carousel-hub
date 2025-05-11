@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -57,7 +56,7 @@
     --secondary-foreground: 210 40% 98%;
 
     --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted-foreground: 215 20.2% 65.9%;
 
     --accent: 217.2 32.6% 17.5%;
     --accent-foreground: 210 40% 98%;
@@ -81,34 +80,18 @@
   .glass-card {
     background: var(--glass-card-background);
     border: 1px solid var(--glass-card-border);
+    backdrop-filter: blur(10px);
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    backdrop-filter: blur(8px);
   }
 }
 
 /* Calendar day styles */
-.calendar-day {
-  @apply flex flex-col items-center justify-center w-14 h-14 rounded-full cursor-pointer transition-colors;
-}
-
-.calendar-day.active {
-  @apply bg-primary text-primary-foreground;
-}
-
-.calendar-day .weekday {
-  @apply text-xs font-medium;
-}
-
-.calendar-day .date {
-  @apply text-lg font-bold;
+.rdp-day {
+  @apply relative overflow-hidden rounded-full outline-none focus:bg-accent focus:text-accent-foreground data-[selected]:bg-primary data-[selected]:text-primary-foreground data-[today]:bg-secondary data-[today]:text-secondary-foreground;
 }
 
 /* Mobile Picker Styles */
-.picker-container {
-  width: 100%;
-}
-
-.picker-container .picker-column {
+.picker-container .picker-scroller {
   touch-action: none;
 }
 
@@ -129,26 +112,25 @@
 
 .picker-container .picker-item {
   position: relative;
+  font-size: 16px;
   text-align: center;
   white-space: nowrap;
-  color: black;
+  color: #000;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .picker-container .picker-item.picker-item-selected {
-  color: black;
+  color: #000;
   font-weight: bold;
 }
 
 .picker-highlight {
-  position: absolute;
   top: 50%;
   left: 0;
   width: 100%;
   height: 40px;
-  pointer-events: none;
   transform: translateY(-50%);
   background-color: rgba(0, 0, 0, 0.05);
   border-radius: 8px;
