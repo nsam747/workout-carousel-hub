@@ -11,6 +11,25 @@ interface DateTimePickerWheelProps {
   mode: "date" | "time";
 }
 
+// Define types for the picker values based on the library's requirements
+type DatePickerValue = {
+  month: number;
+  day: number;
+  year: number;
+};
+
+type TimePickerValue = {
+  hour: number;
+  minute: number;
+  ampm: string;
+};
+
+// Define option type
+type OptionType = {
+  label: string;
+  value: number | string;
+};
+
 const DateTimePickerWheel: React.FC<DateTimePickerWheelProps> = ({
   isOpen,
   onClose,
@@ -69,13 +88,13 @@ const DateTimePickerWheel: React.FC<DateTimePickerWheelProps> = ({
   ];
 
   // Setup initial picker values based on the selected date
-  const [datePickerValue, setDatePickerValue] = useState({
+  const [datePickerValue, setDatePickerValue] = useState<DatePickerValue>({
     month: selectedDate.getMonth(),
     day: selectedDate.getDate(),
     year: selectedDate.getFullYear(),
   });
 
-  const [timePickerValue, setTimePickerValue] = useState({
+  const [timePickerValue, setTimePickerValue] = useState<TimePickerValue>({
     hour: selectedDate.getHours() % 12 === 0 ? 12 : selectedDate.getHours() % 12,
     minute: selectedDate.getMinutes(),
     ampm: selectedDate.getHours() >= 12 ? "PM" : "AM",
@@ -97,45 +116,27 @@ const DateTimePickerWheel: React.FC<DateTimePickerWheelProps> = ({
   }, [selectedDate]);
 
   // Handle date picker value change
-  const handleDateChange = (name: string, value: number) => {
-    setDatePickerValue(prev => ({ ...prev, [name]: value }));
+  const handleDateChange = (newValue: DatePickerValue) => {
+    setDatePickerValue(newValue);
     
     const newDate = new Date(selectedDate);
-    if (name === "month") {
-      setMonth(newDate, value);
-    } else if (name === "day") {
-      setDate(newDate, value);
-    } else if (name === "year") {
-      setYear(newDate, value);
-    }
+    setMonth(newDate, newValue.month);
+    setDate(newDate, newValue.day);
+    setYear(newDate, newValue.year);
     
     setSelectedDate(newDate);
   };
 
   // Handle time picker value change
-  const handleTimeChange = (name: string, value: number | string) => {
-    setTimePickerValue(prev => ({ ...prev, [name]: value }));
+  const handleTimeChange = (newValue: TimePickerValue) => {
+    setTimePickerValue(newValue);
     
     const newDate = new Date(selectedDate);
-    if (name === "hour") {
-      let hourValue = value as number;
-      if (hourValue === 12) hourValue = 0;
-      if (timePickerValue.ampm === "PM") hourValue += 12;
-      setHours(newDate, hourValue);
-    } else if (name === "minute") {
-      setMinutes(newDate, value as number);
-    } else if (name === "ampm") {
-      let hours = newDate.getHours();
-      const isPM = value === "PM";
-      
-      if (isPM && hours < 12) {
-        hours += 12;
-      } else if (!isPM && hours >= 12) {
-        hours -= 12;
-      }
-      
-      setHours(newDate, hours);
-    }
+    let hourValue = newValue.hour;
+    if (hourValue === 12) hourValue = 0;
+    if (newValue.ampm === "PM") hourValue += 12;
+    setHours(newDate, hourValue);
+    setMinutes(newDate, newValue.minute);
     
     setSelectedDate(newDate);
   };
@@ -147,6 +148,19 @@ const DateTimePickerWheel: React.FC<DateTimePickerWheelProps> = ({
   };
 
   if (!isOpen) return null;
+
+  // Create the picker data objects
+  const datePickerData = {
+    month: months,
+    day: days,
+    year: years
+  };
+
+  const timePickerData = {
+    hour: hours,
+    minute: minutes,
+    ampm: ampm
+  };
 
   return (
     <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm">
@@ -170,41 +184,29 @@ const DateTimePickerWheel: React.FC<DateTimePickerWheelProps> = ({
         {/* Date/Time Picker */}
         <div className="bg-white">
           {mode === "date" ? (
-            <Picker
-              value={datePickerValue}
-              onChange={handleDateChange}
-              height={200}
-              itemHeight={40}
-              wheelMode="normal"
-              className="picker-container"
-              style={{
-                container: { background: 'white' },
-                itemStyle: { color: 'black' },
-                activeItemStyle: { color: 'black' }
-              }}
-            >
-              <Picker.Column name="month" options={months} />
-              <Picker.Column name="day" options={days} />
-              <Picker.Column name="year" options={years} />
-            </Picker>
+            <div className="relative">
+              <Picker
+                value={datePickerValue}
+                onChange={handleDateChange}
+                height={200}
+                itemHeight={40}
+                valueGroups={datePickerValue}
+                optionGroups={datePickerData}
+              />
+              <div className="picker-highlight"></div>
+            </div>
           ) : (
-            <Picker
-              value={timePickerValue}
-              onChange={handleTimeChange}
-              height={200}
-              itemHeight={40}
-              wheelMode="normal"
-              className="picker-container"
-              style={{
-                container: { background: 'white' },
-                itemStyle: { color: 'black' },
-                activeItemStyle: { color: 'black' }
-              }}
-            >
-              <Picker.Column name="hour" options={hours} />
-              <Picker.Column name="minute" options={minutes} />
-              <Picker.Column name="ampm" options={ampm} />
-            </Picker>
+            <div className="relative">
+              <Picker
+                value={timePickerValue}
+                onChange={handleTimeChange}
+                height={200}
+                itemHeight={40}
+                valueGroups={timePickerValue}
+                optionGroups={timePickerData}
+              />
+              <div className="picker-highlight"></div>
+            </div>
           )}
         </div>
       </div>
