@@ -3,8 +3,7 @@ import React, { useState, useEffect } from "react";
 import Picker from "react-mobile-picker";
 import { format, setHours, setMinutes, setDate, setMonth, setYear } from "date-fns";
 
-// Import the Picker component without type checking
-// This avoids conflicts with any existing type definitions
+// Import the Picker component as any type to avoid TypeScript errors
 const MobilePicker = Picker as any;
 
 interface DateTimePickerWheelProps {
@@ -14,19 +13,6 @@ interface DateTimePickerWheelProps {
   initialDate: Date;
   mode: "date" | "time";
 }
-
-// Define types for the picker values
-type DatePickerValue = {
-  month: number;
-  day: number;
-  year: number;
-};
-
-type TimePickerValue = {
-  hour: number;
-  minute: number;
-  ampm: string;
-};
 
 const DateTimePickerWheel: React.FC<DateTimePickerWheelProps> = ({
   isOpen,
@@ -47,16 +33,14 @@ const DateTimePickerWheel: React.FC<DateTimePickerWheelProps> = ({
   // Generate arrays for months, days, years, hours, minutes, ampm
   const months = Array.from({ length: 12 }, (_, i) => {
     const month = format(new Date(2000, i, 1), "MMMM");
-    return { label: month, value: i };
+    return month;
   });
   
   const getCurrentMonthDays = () => {
     const year = selectedDate.getFullYear();
     const month = selectedDate.getMonth();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
-    return Array.from({ length: daysInMonth }, (_, i) => {
-      return { label: String(i + 1), value: i + 1 };
-    });
+    return Array.from({ length: daysInMonth }, (_, i) => String(i + 1));
   };
   
   const [days, setDays] = useState(getCurrentMonthDays());
@@ -68,73 +52,77 @@ const DateTimePickerWheel: React.FC<DateTimePickerWheelProps> = ({
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 10 }, (_, i) => {
     const year = currentYear - 2 + i;
-    return { label: String(year), value: year };
+    return String(year);
   });
   
   const hours = Array.from({ length: 12 }, (_, i) => {
     const hour = i === 0 ? 12 : i;
-    return { label: String(hour), value: hour };
+    return String(hour);
   });
   
   const minutes = Array.from({ length: 60 }, (_, i) => {
-    return { label: String(i).padStart(2, "0"), value: i };
+    return String(i).padStart(2, "0");
   });
   
-  const ampm = [
-    { label: "AM", value: "AM" }, 
-    { label: "PM", value: "PM" }
-  ];
+  const ampm = ["AM", "PM"];
 
   // Setup initial picker values based on the selected date
-  const [datePickerValue, setDatePickerValue] = useState<DatePickerValue>({
-    month: selectedDate.getMonth(),
-    day: selectedDate.getDate(),
-    year: selectedDate.getFullYear(),
+  const [datePickerValue, setDatePickerValue] = useState({
+    month: months[selectedDate.getMonth()],
+    day: String(selectedDate.getDate()),
+    year: String(selectedDate.getFullYear()),
   });
 
-  const [timePickerValue, setTimePickerValue] = useState<TimePickerValue>({
-    hour: selectedDate.getHours() % 12 === 0 ? 12 : selectedDate.getHours() % 12,
-    minute: selectedDate.getMinutes(),
+  const [timePickerValue, setTimePickerValue] = useState({
+    hour: String(selectedDate.getHours() % 12 === 0 ? 12 : selectedDate.getHours() % 12),
+    minute: String(selectedDate.getMinutes()).padStart(2, "0"),
     ampm: selectedDate.getHours() >= 12 ? "PM" : "AM",
   });
 
-  // Update the date picker value when selected date changes
+  // Update the picker values when selected date changes
   useEffect(() => {
     setDatePickerValue({
-      month: selectedDate.getMonth(),
-      day: selectedDate.getDate(),
-      year: selectedDate.getFullYear(),
+      month: months[selectedDate.getMonth()],
+      day: String(selectedDate.getDate()),
+      year: String(selectedDate.getFullYear()),
     });
     
     setTimePickerValue({
-      hour: selectedDate.getHours() % 12 === 0 ? 12 : selectedDate.getHours() % 12,
-      minute: selectedDate.getMinutes(),
+      hour: String(selectedDate.getHours() % 12 === 0 ? 12 : selectedDate.getHours() % 12),
+      minute: String(selectedDate.getMinutes()).padStart(2, "0"),
       ampm: selectedDate.getHours() >= 12 ? "PM" : "AM",
     });
-  }, [selectedDate]);
+  }, [selectedDate, months]);
 
   // Handle date picker value change
-  const handleDateChange = (newValue: DatePickerValue) => {
+  const handleDateChange = (newValue: any) => {
     setDatePickerValue(newValue);
     
+    const monthIndex = months.indexOf(newValue.month);
+    const dayNumber = parseInt(newValue.day, 10);
+    const yearNumber = parseInt(newValue.year, 10);
+    
     const newDate = new Date(selectedDate);
-    setMonth(newDate, newValue.month);
-    setDate(newDate, newValue.day);
-    setYear(newDate, newValue.year);
+    setMonth(newDate, monthIndex);
+    setDate(newDate, dayNumber);
+    setYear(newDate, yearNumber);
     
     setSelectedDate(newDate);
   };
 
   // Handle time picker value change
-  const handleTimeChange = (newValue: TimePickerValue) => {
+  const handleTimeChange = (newValue: any) => {
     setTimePickerValue(newValue);
     
-    const newDate = new Date(selectedDate);
-    let hourValue = newValue.hour;
+    let hourValue = parseInt(newValue.hour, 10);
     if (hourValue === 12) hourValue = 0;
     if (newValue.ampm === "PM") hourValue += 12;
+    
+    const minuteValue = parseInt(newValue.minute, 10);
+    
+    const newDate = new Date(selectedDate);
     setHours(newDate, hourValue);
-    setMinutes(newDate, newValue.minute);
+    setMinutes(newDate, minuteValue);
     
     setSelectedDate(newDate);
   };
@@ -146,20 +134,6 @@ const DateTimePickerWheel: React.FC<DateTimePickerWheelProps> = ({
   };
 
   if (!isOpen) return null;
-
-  // Create the column content for the date picker
-  const dateColumns = {
-    month: months,
-    day: days,
-    year: years
-  };
-
-  // Create the column content for the time picker
-  const timeColumns = {
-    hour: hours,
-    minute: minutes,
-    ampm: ampm
-  };
 
   return (
     <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm">
@@ -190,8 +164,11 @@ const DateTimePickerWheel: React.FC<DateTimePickerWheelProps> = ({
                 onChange={handleDateChange}
                 height={200}
                 itemHeight={40}
-                valueGroups={datePickerValue}
-                optionGroups={dateColumns}
+                optionGroups={{
+                  month: months,
+                  day: days,
+                  year: years
+                }}
               />
             </div>
           ) : (
@@ -202,8 +179,11 @@ const DateTimePickerWheel: React.FC<DateTimePickerWheelProps> = ({
                 onChange={handleTimeChange}
                 height={200}
                 itemHeight={40}
-                valueGroups={timePickerValue}
-                optionGroups={timeColumns}
+                optionGroups={{
+                  hour: hours,
+                  minute: minutes,
+                  ampm: ampm
+                }}
               />
             </div>
           )}
