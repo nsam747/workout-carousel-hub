@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Workout, getWorkoutsByDate, getWorkoutsForYesterday, getWorkoutsForPastWeek } from "@/lib/mockData";
 import WorkoutCard from "./WorkoutCard";
 import { format, isSameDay, subDays } from "date-fns";
@@ -10,28 +10,18 @@ interface WorkoutListProps {
 }
 
 const WorkoutList: React.FC<WorkoutListProps> = ({ selectedDate }) => {
-  const [workouts, setWorkouts] = useState<Workout[]>([]);
-  const [yesterdayWorkouts, setYesterdayWorkouts] = useState<Workout[]>([]);
-  const [pastWeekWorkouts, setPastWeekWorkouts] = useState<Workout[]>([]);
-  const [refreshTrigger, setRefreshTrigger] = useState<number>(0);
-  
+  const workouts = getWorkoutsByDate(selectedDate);
   const formattedDate = format(selectedDate, "EEEE, MMMM d, yyyy");
   const isToday = isSameDay(selectedDate, new Date());
   
-  useEffect(() => {
-    // Fetch all workouts whenever the date or refresh trigger changes
-    setWorkouts(getWorkoutsByDate(selectedDate));
-    
-    if (isToday) {
-      setYesterdayWorkouts(getWorkoutsForYesterday());
-      setPastWeekWorkouts(getWorkoutsForPastWeek());
-    }
-  }, [selectedDate, isToday, refreshTrigger]);
+  // Get yesterday's workouts
+  const yesterdayWorkouts = isToday ? getWorkoutsForYesterday() : [];
   
-  const handleWorkoutDeleted = () => {
-    // Trigger a refresh when a workout is deleted
-    setRefreshTrigger(prev => prev + 1);
-  };
+  // Get past week workouts (2-6 days ago)
+  const pastWeekWorkouts = isToday ? getWorkoutsForPastWeek() : [];
+  
+  const today = new Date();
+  const yesterday = subDays(today, 1);
   
   return (
     <div className="flex-1 overflow-hidden animate-fade-in">
@@ -47,11 +37,7 @@ const WorkoutList: React.FC<WorkoutListProps> = ({ selectedDate }) => {
         <div>
           {workouts.length > 0 ? (
             workouts.map((workout) => (
-              <WorkoutCard 
-                key={workout.id} 
-                workout={workout} 
-                onWorkoutDeleted={handleWorkoutDeleted}
-              />
+              <WorkoutCard key={workout.id} workout={workout} />
             ))
           ) : (
             <div className="p-8 text-center rounded-xl bg-secondary/50 border border-border animate-fade-in">
@@ -74,11 +60,7 @@ const WorkoutList: React.FC<WorkoutListProps> = ({ selectedDate }) => {
           
           <div>
             {yesterdayWorkouts.map((workout) => (
-              <WorkoutCard 
-                key={workout.id} 
-                workout={workout} 
-                onWorkoutDeleted={handleWorkoutDeleted}
-              />
+              <WorkoutCard key={workout.id} workout={workout} />
             ))}
           </div>
         </div>
@@ -94,11 +76,7 @@ const WorkoutList: React.FC<WorkoutListProps> = ({ selectedDate }) => {
           
           <div>
             {pastWeekWorkouts.map((workout) => (
-              <WorkoutCard 
-                key={workout.id} 
-                workout={workout} 
-                onWorkoutDeleted={handleWorkoutDeleted}
-              />
+              <WorkoutCard key={workout.id} workout={workout} />
             ))}
           </div>
         </div>

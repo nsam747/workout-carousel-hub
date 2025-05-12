@@ -1,32 +1,19 @@
+
 import React, { useState } from "react";
-import { Workout, getCategoryInfo, deleteWorkout } from "@/lib/mockData";
-import { ChevronDown, ChevronUp, Edit2, Trash2 } from "lucide-react";
+import { Workout, getCategoryInfo } from "@/lib/mockData";
+import { ChevronDown, ChevronUp, Edit2 } from "lucide-react";
 import ExerciseItem from "./ExerciseItem";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import * as LucideIcons from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { format } from "date-fns";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { toast } from "sonner";
 
 interface WorkoutCardProps {
   workout: Workout;
-  onWorkoutDeleted?: () => void;
 }
 
-const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout, onWorkoutDeleted }) => {
+const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout }) => {
   const [expanded, setExpanded] = useState(false);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const navigate = useNavigate();
 
   const toggleExpanded = () => setExpanded(!expanded);
@@ -35,20 +22,6 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout, onWorkoutDeleted }) 
   const handleEditWorkout = (e: React.MouseEvent) => {
     e.stopPropagation();
     navigate(`/edit-workout/${workout.id}`);
-  };
-  
-  const handleDeleteWorkout = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setShowDeleteDialog(true);
-  };
-  
-  const confirmDelete = () => {
-    deleteWorkout(workout.id);
-    setShowDeleteDialog(false);
-    toast.success("Workout deleted successfully");
-    if (onWorkoutDeleted) {
-      onWorkoutDeleted();
-    }
   };
 
   // Function to determine contrasting text color (black or white) based on background
@@ -90,9 +63,6 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout, onWorkoutDeleted }) 
     return <IconComponent size={14} color={color} className="mr-1" />;
   };
 
-  // Format the workout date
-  const formattedDate = workout.date ? format(new Date(workout.date), "MMM d") : "";
-
   return (
     <div className="mb-4 rounded-xl overflow-hidden glass-card animate-scale-in">
       {/* Workout header */}
@@ -108,67 +78,43 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout, onWorkoutDeleted }) 
           >
             {workout.title}
           </h3>
-          {/* Category + count + date on same row, restructured for right alignment of date */}
-          <div className="flex flex-row flex-wrap items-center justify-between mt-2">
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-              <span
-                className={cn(
-                  "workout-tag flex items-center text-xs py-1 px-2 rounded-full",
-                  "max-w-full"
+          {/* Category + count on same row, overflow moves both below title */}
+          <div className="flex flex-row flex-wrap items-center gap-x-3 gap-y-1 mt-2">
+            <span
+              className={cn(
+                "workout-tag flex items-center text-xs py-1 px-2 rounded-full",
+                "max-w-full"
+              )}
+              style={{
+                backgroundColor: categoryInfo.color,
+                color: getContrastColor(categoryInfo.color),
+                borderColor: getBorderColor(categoryInfo.color),
+                borderWidth: "1.5px",
+              }}
+            >
+              {categoryInfo.icon &&
+                renderCategoryIcon(
+                  categoryInfo.icon,
+                  getContrastColor(categoryInfo.color)
                 )}
-                style={{
-                  backgroundColor: categoryInfo.color,
-                  color: getContrastColor(categoryInfo.color),
-                  borderColor: getBorderColor(categoryInfo.color),
-                  borderWidth: "1.5px",
-                }}
-              >
-                {categoryInfo.icon &&
-                  renderCategoryIcon(
-                    categoryInfo.icon,
-                    getContrastColor(categoryInfo.color)
-                  )}
-                {workout.category}
-              </span>
-              <span className="text-sm text-muted-foreground whitespace-nowrap select-none">
-                {workout.exercises.length} exercise
-                {workout.exercises.length !== 1 ? "s" : ""}
-              </span>
-            </div>
-            {/* Date display - right aligned */}
-            {formattedDate && (
-              <span className="text-sm text-muted-foreground whitespace-nowrap ml-auto">
-                {formattedDate}
-              </span>
-            )}
+              {workout.category}
+            </span>
+            <span className="text-sm text-muted-foreground whitespace-nowrap select-none">
+              {workout.exercises.length} exercise
+              {workout.exercises.length !== 1 ? "s" : ""}
+            </span>
           </div>
         </div>
-        <div className="flex items-center ml-2">
-          {/* Action buttons - only shown when expanded with slide animation */}
-          <div className={`flex items-center space-x-2 transform transition-all duration-200 ${expanded ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-8 absolute'}`}>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 rounded-full"
-              onClick={handleDeleteWorkout}
-              title="Delete Workout"
-              tabIndex={expanded ? 0 : -1}
-            >
-              <Trash2 className="h-4 w-4 text-muted-foreground" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 rounded-full"
-              onClick={handleEditWorkout}
-              title="Edit Workout"
-              tabIndex={expanded ? 0 : -1}
-            >
-              <Edit2 className="h-4 w-4" />
-            </Button>
-          </div>
-          
-          {/* Expand/collapse toggle button - always visible */}
+        <div className="flex items-center space-x-2 ml-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 rounded-full"
+            onClick={handleEditWorkout}
+            title="Edit Workout"
+          >
+            <Edit2 className="h-4 w-4" />
+          </Button>
           <Button
             variant="ghost"
             size="icon"
@@ -195,27 +141,6 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout, onWorkoutDeleted }) 
           ))}
         </div>
       )}
-      
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Workout</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete the workout "{workout.title}"? This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 };

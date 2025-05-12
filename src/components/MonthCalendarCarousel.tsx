@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
@@ -30,9 +31,7 @@ const MonthCalendarCarousel: React.FC<MonthCalendarCarouselProps> = ({
   // Get all workouts and organize them by date
   const allWorkouts = getAllWorkouts();
   const workoutsByDate = allWorkouts.reduce((acc, workout) => {
-    // Convert the string date to a Date object and then get the date string
-    const dateObj = new Date(workout.date);
-    const dateKey = dateObj.toDateString();
+    const dateKey = workout.date.toDateString();
     if (!acc[dateKey]) {
       acc[dateKey] = [];
     }
