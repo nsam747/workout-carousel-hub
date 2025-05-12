@@ -1,24 +1,54 @@
 
 import React from "react";
-import { Workout, getWorkoutsByDate, getWorkoutsForYesterday, getWorkoutsForPastWeek } from "@/lib/mockData";
+import { 
+  Workout, 
+  getWorkoutsByDate, 
+  getWorkoutsForYesterday, 
+  getWorkoutsForPastWeek,
+  deleteWorkout
+} from "@/lib/mockData";
 import WorkoutCard from "./WorkoutCard";
 import { format, isSameDay, subDays } from "date-fns";
 import { CalendarDays } from "lucide-react";
+import { toast } from "sonner";
 
 interface WorkoutListProps {
   selectedDate: Date;
 }
 
 const WorkoutList: React.FC<WorkoutListProps> = ({ selectedDate }) => {
-  const workouts = getWorkoutsByDate(selectedDate);
+  const [workouts, setWorkouts] = React.useState<Workout[]>(getWorkoutsByDate(selectedDate));
+  const [yesterdayWorkouts, setYesterdayWorkouts] = React.useState<Workout[]>([]);
+  const [pastWeekWorkouts, setPastWeekWorkouts] = React.useState<Workout[]>([]);
+  
   const formattedDate = format(selectedDate, "EEEE, MMMM d, yyyy");
   const isToday = isSameDay(selectedDate, new Date());
   
-  // Get yesterday's workouts
-  const yesterdayWorkouts = isToday ? getWorkoutsForYesterday() : [];
+  React.useEffect(() => {
+    setWorkouts(getWorkoutsByDate(selectedDate));
+    
+    // Only fetch yesterday and past week workouts when viewing today
+    if (isToday) {
+      setYesterdayWorkouts(getWorkoutsForYesterday());
+      setPastWeekWorkouts(getWorkoutsForPastWeek());
+    } else {
+      setYesterdayWorkouts([]);
+      setPastWeekWorkouts([]);
+    }
+  }, [selectedDate, isToday]);
   
-  // Get past week workouts (2-6 days ago)
-  const pastWeekWorkouts = isToday ? getWorkoutsForPastWeek() : [];
+  const handleDeleteWorkout = (id: string) => {
+    // Delete the workout from the data source
+    deleteWorkout(id);
+    
+    // Update local state
+    setWorkouts(workouts.filter(workout => workout.id !== id));
+    setYesterdayWorkouts(yesterdayWorkouts.filter(workout => workout.id !== id));
+    setPastWeekWorkouts(pastWeekWorkouts.filter(workout => workout.id !== id));
+    
+    // Show confirmation toast
+    toast.success("Workout deleted successfully");
+  };
   
   const today = new Date();
   const yesterday = subDays(today, 1);
@@ -37,7 +67,11 @@ const WorkoutList: React.FC<WorkoutListProps> = ({ selectedDate }) => {
         <div>
           {workouts.length > 0 ? (
             workouts.map((workout) => (
-              <WorkoutCard key={workout.id} workout={workout} />
+              <WorkoutCard 
+                key={workout.id} 
+                workout={workout} 
+                onDelete={handleDeleteWorkout}
+              />
             ))
           ) : (
             <div className="p-8 text-center rounded-xl bg-secondary/50 border border-border animate-fade-in">
@@ -60,7 +94,11 @@ const WorkoutList: React.FC<WorkoutListProps> = ({ selectedDate }) => {
           
           <div>
             {yesterdayWorkouts.map((workout) => (
-              <WorkoutCard key={workout.id} workout={workout} />
+              <WorkoutCard 
+                key={workout.id} 
+                workout={workout}
+                onDelete={handleDeleteWorkout} 
+              />
             ))}
           </div>
         </div>
@@ -76,7 +114,11 @@ const WorkoutList: React.FC<WorkoutListProps> = ({ selectedDate }) => {
           
           <div>
             {pastWeekWorkouts.map((workout) => (
-              <WorkoutCard key={workout.id} workout={workout} />
+              <WorkoutCard 
+                key={workout.id} 
+                workout={workout}
+                onDelete={handleDeleteWorkout} 
+              />
             ))}
           </div>
         </div>

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Trash, ChevronDown, ChevronUp, Image, Plus, X, Check, Save, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -24,6 +23,7 @@ import {
   generateExerciseSummary,
   sortMetrics
 } from "@/lib/exerciseUtils";
+import { cn } from "@/lib/utils";
 
 // Helper function to get available exercise types
 // This should be imported from mockData, but adding it here for completeness
@@ -342,18 +342,25 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
         </div>
         
         <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 rounded-full"
-            onClick={(e) => {
-              e.stopPropagation();
-              onRemove(exercise.id);
-            }}
+          <div 
+            className={cn(
+              "transition-all duration-300", 
+              expanded ? "opacity-100 translate-x-0" : "opacity-0 translate-x-8 pointer-events-none"
+            )}
           >
-            <Trash className="h-4 w-4 text-destructive" />
-            <span className="sr-only">Remove</span>
-          </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 rounded-full"
+              onClick={(e) => {
+                e.stopPropagation();
+                onRemove(exercise.id);
+              }}
+            >
+              <Trash className="h-4 w-4 text-destructive" />
+              <span className="sr-only">Remove</span>
+            </Button>
+          </div>
           
           <Button
             variant="ghost"
