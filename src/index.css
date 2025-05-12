@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -56,7 +57,7 @@
     --secondary-foreground: 210 40% 98%;
 
     --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.9%;
+    --muted-foreground: 215 20.2% 65.1%;
 
     --accent: 217.2 32.6% 17.5%;
     --accent-foreground: 210 40% 98%;
@@ -80,58 +81,24 @@
   .glass-card {
     background: var(--glass-card-background);
     border: 1px solid var(--glass-card-border);
-    backdrop-filter: blur(10px);
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(8px);
   }
 }
 
 /* Calendar day styles */
-.rdp-day {
-  @apply relative overflow-hidden rounded-full outline-none focus:bg-accent focus:text-accent-foreground data-[selected]:bg-primary data-[selected]:text-primary-foreground data-[today]:bg-secondary data-[today]:text-secondary-foreground;
+.calendar-day {
+  @apply flex flex-col items-center justify-center w-14 h-14 rounded-full cursor-pointer transition-colors;
 }
 
-/* Mobile Picker Styles */
-.picker-container .picker-scroller {
-  touch-action: none;
+.calendar-day.active {
+  @apply bg-primary text-primary-foreground;
 }
 
-.picker-container .picker-inner {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  height: 100%;
-  padding: 0 20px;
-  mask-image: linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0) 0%,
-    rgba(0, 0, 0, 1) 20%,
-    rgba(0, 0, 0, 1) 80%,
-    rgba(0, 0, 0, 0) 100%
-  );
+.calendar-day .weekday {
+  @apply text-xs font-medium;
 }
 
-.picker-container .picker-item {
-  position: relative;
-  font-size: 16px;
-  text-align: center;
-  white-space: nowrap;
-  color: #000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.picker-container .picker-item.picker-item-selected {
-  color: #000;
-  font-weight: bold;
-}
-
-.picker-highlight {
-  top: 50%;
-  left: 0;
-  width: 100%;
-  height: 40px;
-  transform: translateY(-50%);
-  background-color: rgba(0, 0, 0, 0.05);
-  border-radius: 8px;
+.calendar-day .date {
+  @apply text-lg font-bold;
 }
