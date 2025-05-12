@@ -70,17 +70,14 @@ const DateTimePickerWheel: React.FC<DateTimePickerWheelProps> = ({
     ampm: ampm
   };
 
-  const handleDateChange = (name: string, value: string) => {
-    setDatePickerValue(prev => ({
-      ...prev,
-      [name]: value
-    }));
+  // Update the handler to match what react-mobile-picker v1.1.1 expects
+  const handleDateChange = (value: { month: string; day: string; year: string; }) => {
+    setDatePickerValue(value);
     
     // Update selectedDate based on picker values
-    const newValue = { ...datePickerValue, [name]: value };
-    const newMonth = months.indexOf(newValue.month);
-    const newDay = parseInt(newValue.day);
-    const newYear = parseInt(newValue.year);
+    const newMonth = months.indexOf(value.month);
+    const newDay = parseInt(value.day);
+    const newYear = parseInt(value.year);
     
     const newDate = new Date(selectedDate);
     newDate.setFullYear(newYear);
@@ -89,19 +86,16 @@ const DateTimePickerWheel: React.FC<DateTimePickerWheelProps> = ({
     setSelectedDate(newDate);
   };
 
-  const handleTimeChange = (name: string, value: string) => {
-    setTimePickerValue(prev => ({
-      ...prev,
-      [name]: value
-    }));
+  // Update the handler to match what react-mobile-picker v1.1.1 expects
+  const handleTimeChange = (value: { hour: string; minute: string; ampm: string; }) => {
+    setTimePickerValue(value);
     
     // Update selectedDate based on picker values
-    const newValue = { ...timePickerValue, [name]: value };
-    let hourValue = parseInt(newValue.hour);
+    let hourValue = parseInt(value.hour);
     if (hourValue === 12) hourValue = 0;
-    if (newValue.ampm === "PM") hourValue += 12;
+    if (value.ampm === "PM") hourValue += 12;
     
-    const minuteValue = parseInt(newValue.minute);
+    const minuteValue = parseInt(value.minute);
     
     const newDate = new Date(selectedDate);
     newDate.setHours(hourValue);
@@ -139,7 +133,6 @@ const DateTimePickerWheel: React.FC<DateTimePickerWheelProps> = ({
         {/* Date/Time Picker */}
         <div className="bg-white p-4">
           {mode === "date" ? (
-            // Using the proper prop names for react-mobile-picker v1.1.1
             <Picker
               value={datePickerValue}
               onChange={handleDateChange}
@@ -157,7 +150,6 @@ const DateTimePickerWheel: React.FC<DateTimePickerWheelProps> = ({
               ))}
             </Picker>
           ) : (
-            // Time picker with proper prop names
             <Picker
               value={timePickerValue}
               onChange={handleTimeChange}
