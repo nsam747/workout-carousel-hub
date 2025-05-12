@@ -85,7 +85,28 @@ export const updateCategory = (oldName: string, newCategoryInfo: CategoryInfo): 
 
 // Exercise types
 const exerciseTypes = [
-  "Strength", "Cardio", "Yoga", "Stretching", "HIIT", "Pilates", "Other"
+  "Strength", "Cardio", "Yoga", "Stretching", "HIIT", "Pilates", "Other",
+// Strength,
+// Power,
+// Hypertrophy,
+// Endurance,
+// Cardio,
+// Mobility,
+// Flexibility,
+// Balance,
+// Coordination,
+// Rehab,
+// Prehab,
+// Skill, Work
+// Warm,-Up
+// Cooldown,
+// Isometric,
+// Plyometric,
+// Explosive,
+// Static,
+// Dynamic,
+// Flow,
+// Sequence,
 ];
 
 // Function to get all exercise types

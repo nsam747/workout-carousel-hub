@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { Check, X, Plus, Search, Weight, Timer, Repeat, Clock, Ruler } from "lucide-react";
+import { Check, X, Plus, Search, Weight, Timer, Repeat, Clock, Ruler, Dumbbell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
@@ -26,15 +26,15 @@ interface AddExerciseFormProps {
 const getMetricIcon = (type: string) => {
   switch (type) {
     case 'weight':
-      return <Weight className="h-4 w-4 text-muted-foreground" />;
+      return <Dumbbell className="h-4 w-4 text-muted-foreground" />;
     case 'distance':
       return <Ruler className="h-4 w-4 text-muted-foreground" />;
     case 'duration':
-      return <Timer className="h-4 w-4 text-muted-foreground" />;
+      return <Clock className="h-4 w-4 text-muted-foreground" />;
     case 'repetitions':
       return <Repeat className="h-4 w-4 text-muted-foreground" />;
     case 'restTime':
-      return <Clock className="h-4 w-4 text-muted-foreground" />;
+      return <Timer className="h-4 w-4 text-muted-foreground" />;
     default:
       return null;
   }

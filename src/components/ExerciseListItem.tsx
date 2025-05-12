@@ -374,12 +374,10 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
       </div>
       
       {expanded && (
-        <CardContent className="pt-0 pb-3 animate-fade-in">
+        <CardContent className="p-3 pt-0 animate-fade-in">
           <div className="space-y-3">
             {/* Performance metrics section */}
-            <div>
-              <h4 className="text-sm font-medium mb-2 text-left">Performance</h4>
-              
+            <div>              
               {sets.length > 0 ? (
                 <div className="space-y-2 mb-3">
                   {sets.map((set, index) => (
@@ -435,7 +433,7 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
                                 {/* First row: Metric name and icon */}
                                 <div className="flex items-center mb-2">
                                   {getMetricIcon(metric.type)}
-                                  <span className="text-xs font-medium capitalize">
+                                  <span className="text-xs font-medium">
                                     {formatMetricWithUnit(metric.type, metric.unit.toLowerCase())}
                                   </span>
                                 </div>
@@ -481,7 +479,7 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
                                 <div className="flex items-center justify-between">
                                   <div className="flex items-center">
                                     {getMetricIcon(metric.type)}
-                                    <span className="text-xs font-medium capitalize">
+                                    <span className="text-xs font-medium">
                                       {formatMetricWithUnit(metric.type, metric.unit.toLowerCase())}
                                     </span>
                                   </div>
