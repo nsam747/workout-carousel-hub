@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from "react";
-import { Trash, ChevronDown, ChevronUp, Image, Plus, X, Check, Save, Copy } from "lucide-react";
+import { Trash, ChevronDown, ChevronUp, Image, Plus, X, Check, Save, Copy, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Exercise, saveExercise, Set, SelectedMetric, Metric } from "@/lib/mockData";
@@ -16,6 +15,16 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { generateId } from "@/lib/utils";
 import { 
@@ -66,6 +75,7 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
   const [isEditingExercise, setIsEditingExercise] = useState(false);
   const [editedExerciseName, setEditedExerciseName] = useState(exercise.name);
   const [editedExerciseType, setEditedExerciseType] = useState(exercise.type);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   
   // For editing metrics
   const [editingMetricId, setEditingMetricId] = useState<string | null>(null);
@@ -321,6 +331,19 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
     // Update the parent component
     onExerciseUpdate(updatedExercise);
   };
+  
+  // Function to confirm exercise deletion
+  const handleConfirmDelete = () => {
+    onRemove(exercise.id);
+    setShowDeleteDialog(false);
+    toast.success("Exercise removed successfully");
+  };
+  
+  // Function to handle delete click
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowDeleteDialog(true);
+  };
 
   return (
     <Card className="overflow-hidden animate-scale-in">
@@ -342,18 +365,19 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
         </div>
         
         <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 rounded-full"
-            onClick={(e) => {
-              e.stopPropagation();
-              onRemove(exercise.id);
-            }}
-          >
-            <Trash className="h-4 w-4 text-destructive" />
-            <span className="sr-only">Remove</span>
-          </Button>
+          {/* Action buttons - Only visible in expanded state with animation */}
+          <div className={`transform transition-all duration-200 ${expanded ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-8 absolute'}`}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 rounded-full"
+              onClick={handleDeleteClick}
+              tabIndex={expanded ? 0 : -1}
+            >
+              <Trash2 className="h-4 w-4 text-destructive" />
+              <span className="sr-only">Remove</span>
+            </Button>
+          </div>
           
           <Button
             variant="ghost"
@@ -623,6 +647,27 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
           </div>
         </DialogContent>
       </Dialog>
+      
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove Exercise</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove "{exercise.name}" from this workout? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Remove
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 };
