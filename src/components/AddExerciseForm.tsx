@@ -180,8 +180,6 @@ const AddExerciseForm: React.FC<AddExerciseFormProps> = ({
   
   return (
     <div className="space-y-4">
-      <h3 className="text-sm font-medium">Add Exercise</h3>
-      
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid grid-cols-2 mb-4">
           <TabsTrigger value="create">Create New</TabsTrigger>
