@@ -1,3 +1,4 @@
+
 import { v4 as uuidv4 } from 'uuid';
 
 export interface Exercise {
@@ -748,4 +749,58 @@ let workoutData: Workout[] = [
   },
   {
     id: "30",
-    title: "Core
+    title: "Core Strength Session",
+    category: "Core",
+    date: "2024-06-30",
+    exercises: [
+      {
+        id: "e42",
+        name: "Ab Roller",
+        type: "Core",
+        sets: [
+          { id: "s52", setNumber: 1, reps: 12, metrics: [{ id: "m75", type: "repetitions", value: 12, unit: "reps" }] }
+        ],
+        notes: "Keep core engaged.",
+        media: [],
+        selectedMetrics: [{ type: "repetitions", unit: "reps" }]
+      }
+    ]
+  }
+];
+
+// Add function to delete a workout
+export const deleteWorkout = (id: string): boolean => {
+  const initialLength = workoutData.length;
+  workoutData = workoutData.filter(workout => workout.id !== id);
+  return workoutData.length < initialLength;
+};
+
+// Get workouts for a specific date
+export const getWorkoutsByDate = (date: Date): Workout[] => {
+  const dateString = date.toISOString().split('T')[0];
+  return workoutData.filter(workout => workout.date === dateString);
+};
+
+// Get workouts for yesterday
+export const getWorkoutsForYesterday = (): Workout[] => {
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  return getWorkoutsByDate(yesterday);
+};
+
+// Get workouts for the past week
+export const getWorkoutsForPastWeek = (): Workout[] => {
+  const today = new Date();
+  const oneWeekAgo = new Date(today);
+  oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+  
+  return workoutData.filter(workout => {
+    const workoutDate = new Date(workout.date);
+    return workoutDate >= oneWeekAgo && workoutDate < today;
+  });
+};
+
+// Get workout by ID
+export const getWorkoutById = (id: string): Workout | undefined => {
+  return workoutData.find(workout => workout.id === id);
+};
