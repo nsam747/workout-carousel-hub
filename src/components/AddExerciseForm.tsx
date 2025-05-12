@@ -20,6 +20,7 @@ import { Label } from "@/components/ui/label";
 interface AddExerciseFormProps {
   onAddExercise: (exercise: Exercise) => void;
   onCancel: () => void;
+  title: string;
 }
 
 // Helper function to get the appropriate icon for a metric type
@@ -47,7 +48,8 @@ const formatMetricName = (type: string) => {
 
 const AddExerciseForm: React.FC<AddExerciseFormProps> = ({ 
   onAddExercise, 
-  onCancel 
+  onCancel,
+  title
 }) => {
   const [activeTab, setActiveTab] = useState("create");
   
@@ -179,182 +181,203 @@ const AddExerciseForm: React.FC<AddExerciseFormProps> = ({
   };
   
   return (
-    <div className="space-y-4">
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-2 mb-4">
-          <TabsTrigger value="create">Create New</TabsTrigger>
-          <TabsTrigger value="existing">Use Existing</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="create" className="space-y-3">
-          <Input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Exercise name"
-          />
-          
-          <Select value={type} onValueChange={setType}>
-            <SelectTrigger>
-              <SelectValue placeholder="Exercise type" />
-            </SelectTrigger>
-            <SelectContent>
-              {exerciseTypes.map((type) => (
-                <SelectItem key={type} value={type}>
-                  {type}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          
-          {/* Performance metrics selection - Redesigned to be more compact with icons */}
-          <div className="space-y-2 border rounded-md p-3 bg-background/50">
-            <h4 className="text-sm font-medium mb-3">Performance Metrics</h4>
-            <p className="text-xs text-muted-foreground mb-3">
-              Select the metrics you want to track for this exercise:
-            </p>
-            
-            <div className="space-y-3">
-              {supportedMetrics.map((metric) => (
-                <div key={metric.type} className="flex items-center space-x-2">
-                  <Checkbox 
-                    id={`metric-${metric.type}`} 
-                    checked={isMetricSelected(metric.type)} 
-                    onCheckedChange={(checked) => 
-                      handleMetricSelect(metric.type, checked === true)
-                    } 
-                    className="mr-1"
-                  />
+    <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4">
+      <div className="bg-card rounded-t-xl sm:rounded-xl border border-border shadow-lg h-full w-full max-w-lg overflow-auto animate-in fade-in slide-in-from-bottom-5">
+        <div className="p-6 h-full">
+          <h2 className="text-lg font-semibold mb-4">{title}</h2>
+          <div className="space-y-4 h-[calc(100%-2.5rem)]">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full h-full">
+              <TabsList className="grid grid-cols-2 mb-4">
+                <TabsTrigger value="create">Create New</TabsTrigger>
+                <TabsTrigger value="existing">Use Existing</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="create" className={GetTabClassName("create", activeTab)}>
+                <Input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Exercise name"
+                />
+                
+                <Select value={type} onValueChange={setType}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Exercise type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {exerciseTypes.map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {type}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                
+                {/* Performance metrics selection - Redesigned to be more compact with icons */}
+                <div className="space-y-2 border rounded-md p-3 bg-background/50">
+                  <h4 className="text-sm font-medium mb-3">Performance Metrics</h4>
+                  <p className="text-xs text-muted-foreground mb-3">
+                    Select the metrics you want to track for this exercise:
+                  </p>
                   
-                  <div className="flex items-center flex-1 space-x-2">
-                    <div className="flex items-center min-w-[120px]">
-                      {getMetricIcon(metric.type)}
-                      <Label htmlFor={`metric-${metric.type}`} className="text-sm ml-2">
-                        {formatMetricName(metric.type)}
-                      </Label>
-                    </div>
-                    
-                    {isMetricSelected(metric.type) && (
-                      <div className="ml-auto flex items-center" onClick={handleSelectClick}>
-                        {metric.availableUnits.length > 1 ? (
-                          <Select 
-                            value={getSelectedUnit(metric.type)} 
-                            onValueChange={(unit) => handleUnitChange(metric.type, unit)}
-                          >
-                            <SelectTrigger 
-                              className={`h-7 text-xs ${(metric.type === "duration" || metric.type === "restTime") ? "w-28" : "w-20"}`}
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <SelectValue placeholder="Unit" />
-                            </SelectTrigger>
-                            <SelectContent 
-                              className="z-50"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              {metric.availableUnits.map(unit => (
-                                <SelectItem 
-                                  key={unit} 
-                                  value={unit}
-                                  onSelect={(e) => e.stopPropagation()}
+                  <div className="space-y-3">
+                    {supportedMetrics.map((metric) => (
+                      <div key={metric.type} className="flex items-center space-x-2">
+                        <Checkbox 
+                          id={`metric-${metric.type}`} 
+                          checked={isMetricSelected(metric.type)} 
+                          onCheckedChange={(checked) => 
+                            handleMetricSelect(metric.type, checked === true)
+                          } 
+                          className="mr-1"
+                        />
+                        
+                        <div className="flex items-center flex-1 space-x-2">
+                          <div className="flex items-center min-w-[120px]">
+                            {getMetricIcon(metric.type)}
+                            <Label htmlFor={`metric-${metric.type}`} className="text-sm ml-2">
+                              {formatMetricName(metric.type)}
+                            </Label>
+                          </div>
+                          
+                          {isMetricSelected(metric.type) && (
+                            <div className="ml-auto flex items-center" onClick={handleSelectClick}>
+                              {metric.availableUnits.length > 1 ? (
+                                <Select 
+                                  value={getSelectedUnit(metric.type)} 
+                                  onValueChange={(unit) => handleUnitChange(metric.type, unit)}
                                 >
-                                  {unit}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        ) : (
-                          <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-sm">
-                            {metric.availableUnits[0]}
-                          </span>
-                        )}
+                                  <SelectTrigger 
+                                    className={`h-7 text-xs ${(metric.type === "duration" || metric.type === "restTime") ? "w-28" : "w-20"}`}
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <SelectValue placeholder="Unit" />
+                                  </SelectTrigger>
+                                  <SelectContent 
+                                    className="z-50"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    {metric.availableUnits.map(unit => (
+                                      <SelectItem 
+                                        key={unit} 
+                                        value={unit}
+                                        onSelect={(e) => e.stopPropagation()}
+                                      >
+                                        {unit}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              ) : (
+                                <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-sm">
+                                  {metric.availableUnits[0]}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    )}
+                    ))}
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
-          
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" size="sm" onClick={onCancel}>
-              <X className="h-4 w-4 mr-1" />
-              Cancel
-            </Button>
-            <Button size="sm" onClick={handleAddNewExercise} disabled={!name.trim()}>
-              <Plus className="h-4 w-4 mr-1" />
-              Create
-            </Button>
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="existing" className="space-y-3">
-          <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search exercises..."
-              className="pl-9"
-            />
-          </div>
-          
-          <div className="max-h-60 overflow-y-auto border rounded-md">
-            {filteredExercises.length > 0 ? (
-              <div className="divide-y">
-                {filteredExercises.map(exercise => (
-                  <div 
-                    key={exercise.id}
-                    className={cn(
-                      "p-3 cursor-pointer transition-colors",
-                      selectedExerciseId === exercise.id 
-                        ? "bg-secondary" 
-                        : "hover:bg-secondary/50"
-                    )}
-                    onClick={() => setSelectedExerciseId(exercise.id)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h4 className="font-medium">{exercise.name}</h4>
-                        <span className="text-xs text-muted-foreground">{exercise.type}</span>
-                      </div>
-                      {selectedExerciseId === exercise.id && (
-                        <Check className="h-4 w-4 text-primary" />
-                      )}
+                <div className="flex-grow flex flex-col justify-end">
+                  <div className="flex justify-end gap-2">
+                  <Button variant="outline" size="sm" onClick={onCancel}>
+                    <X className="h-4 w-4 mr-1" />
+                    Cancel
+                  </Button>
+                  <Button size="sm" onClick={handleAddNewExercise} disabled={!name.trim()}>
+                    <Plus className="h-4 w-4 mr-1" />
+                    Create
+                  </Button>
+                </div>
+                </div>
+                
+              </TabsContent>
+              
+              <TabsContent value="existing" className={GetTabClassName("existing", activeTab)}>
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Search exercises..."
+                    className="pl-9"
+                  />
+                </div>
+                
+                <div className="max-h-90 overflow-y-auto border rounded-md">
+                  {filteredExercises.length > 0 ? (
+                    <div className="divide-y">
+                      {filteredExercises.map(exercise => (
+                        <div 
+                          key={exercise.id}
+                          className={cn(
+                            "p-3 cursor-pointer transition-colors",
+                            selectedExerciseId === exercise.id 
+                              ? "bg-secondary" 
+                              : "hover:bg-secondary/50"
+                          )}
+                          onClick={() => setSelectedExerciseId(exercise.id)}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h4 className="font-medium">{exercise.name}</h4>
+                              <span className="text-xs text-muted-foreground">{exercise.type}</span>
+                            </div>
+                            {selectedExerciseId === exercise.id && (
+                              <Check className="h-4 w-4 text-primary" />
+                            )}
+                          </div>
+                          
+                          {/* Show selected metrics for all exercises, not just selected ones */}
+                          {exercise.selectedMetrics && exercise.selectedMetrics.length > 0 && 
+                            renderMetricBadges(exercise.selectedMetrics)
+                          }
+                        </div>
+                      ))}
                     </div>
-                    
-                    {/* Show selected metrics for all exercises, not just selected ones */}
-                    {exercise.selectedMetrics && exercise.selectedMetrics.length > 0 && 
-                      renderMetricBadges(exercise.selectedMetrics)
-                    }
+                  ) : (
+                    <div className="p-6 text-center text-muted-foreground">
+                      {searchTerm 
+                        ? "No exercises match your search" 
+                        : "No saved exercises yet"}
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex-grow flex flex-col justify-end">
+                  <div className="flex justify-end gap-2">
+                    <Button variant="outline" size="sm" onClick={onCancel}>
+                      <X className="h-4 w-4 mr-1" />
+                      Cancel
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      onClick={handleAddExistingExercise} 
+                      disabled={!selectedExerciseId}
+                    >
+                      <Check className="h-4 w-4 mr-1" />
+                      Add Selected
+                    </Button>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="p-6 text-center text-muted-foreground">
-                {searchTerm 
-                  ? "No exercises match your search" 
-                  : "No saved exercises yet"}
-              </div>
-            )}
+                </div>
+              
+              </TabsContent>
+            </Tabs>
           </div>
-          
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" size="sm" onClick={onCancel}>
-              <X className="h-4 w-4 mr-1" />
-              Cancel
-            </Button>
-            <Button 
-              size="sm" 
-              onClick={handleAddExistingExercise} 
-              disabled={!selectedExerciseId}
-            >
-              <Check className="h-4 w-4 mr-1" />
-              Add Selected
-            </Button>
-          </div>
-        </TabsContent>
-      </Tabs>
+        </div>
+      </div>
     </div>
   );
 };
+
+type Tab = "create" | "existing";
+
+// Tabs dont dissapear correctly when a height is set, only set a height when visible
+const GetTabClassName = (tab: Tab, activeTab: string) => {
+  return `mt-0 space-y-3 flex flex-col ${
+      activeTab === tab ? "h-[calc(100%-3.5rem)]" : ""
+  }`
+}
 
 export default AddExerciseForm;

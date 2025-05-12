@@ -278,19 +278,13 @@ const EditWorkout = () => {
         </div>
         
         {/* Add Exercise Form */}
-        {isAddingExercise && (
-          <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4">
-            <div className="bg-card rounded-t-xl sm:rounded-xl border border-border shadow-lg w-full max-w-lg max-h-[90vh] overflow-auto animate-in fade-in slide-in-from-bottom-5">
-              <div className="p-6">
-                <h2 className="text-lg font-semibold mb-4">Add Exercise</h2>
-                <AddExerciseForm 
-                  onAddExercise={handleAddExercise}
-                  onCancel={() => setIsAddingExercise(false)}
-                />
-              </div>
-            </div>
-          </div>
-        )}
+        {isAddingExercise && 
+          <AddExerciseForm 
+            onAddExercise={handleAddExercise}
+            onCancel={() => setIsAddingExercise(false)}
+            title="Add Exercise"
+          />
+        }
       </div>
     </div>
   );
