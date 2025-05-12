@@ -63,7 +63,7 @@ const AddWorkout = () => {
       title: workoutTitle,
       category: selectedCategory,
       exercises,
-      date: workoutDate,
+      date: workoutDate.toISOString().split('T')[0], // Convert Date to string in YYYY-MM-DD format
       completed: false
     };
     

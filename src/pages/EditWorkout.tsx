@@ -102,7 +102,7 @@ const EditWorkout = () => {
       title: workoutTitle,
       category: selectedCategory,
       exercises,
-      date: workoutDate, // Use the selected date from the date picker
+      date: workoutDate.toISOString().split('T')[0], // Convert Date to string in YYYY-MM-DD format
       completed: false // Keep the original completion status or update it
     };
     

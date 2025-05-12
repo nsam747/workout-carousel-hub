@@ -1,5 +1,6 @@
 
 import { v4 as uuidv4 } from 'uuid';
+import { format, addDays, startOfDay } from 'date-fns';
 
 export interface Exercise {
   id: string;
@@ -9,6 +10,7 @@ export interface Exercise {
   notes?: string;
   media?: string[];
   selectedMetrics?: SelectedMetric[];
+  duration?: number; // Adding the missing duration property
 }
 
 export interface Set {
@@ -44,7 +46,8 @@ export interface Workout {
   title: string;
   category: string;
   exercises: Exercise[];
-  date: string;
+  date: string; // This needs to remain a string for DB compatibility
+  completed?: boolean;
 }
 
 export interface CategoryInfo {
@@ -53,6 +56,48 @@ export interface CategoryInfo {
   icon: string | null;
 }
 
+// Define supported metrics
+export const supportedMetrics = [
+  {
+    type: "repetitions",
+    defaultUnit: "reps",
+    availableUnits: ["reps"]
+  },
+  {
+    type: "weight",
+    defaultUnit: "kg",
+    availableUnits: ["kg", "lbs"]
+  },
+  {
+    type: "distance",
+    defaultUnit: "km",
+    availableUnits: ["km", "m", "mi"]
+  },
+  {
+    type: "duration",
+    defaultUnit: "minutes",
+    availableUnits: ["seconds", "minutes", "hours"]
+  },
+  {
+    type: "restTime",
+    defaultUnit: "seconds",
+    availableUnits: ["seconds", "minutes"]
+  }
+];
+
+// Generate date range for calendar
+const today = new Date();
+export const dateRange = Array.from({ length: 31 }, (_, i) => {
+  const date = addDays(startOfDay(today), i - 15);
+  return {
+    date,
+    dayName: format(date, 'EEE'),
+    dayNumber: format(date, 'd'),
+    isToday: i === 15
+  };
+});
+
+// Mock data for workouts
 let workoutData: Workout[] = [
   {
     id: "1",
@@ -767,6 +812,109 @@ let workoutData: Workout[] = [
     ]
   }
 ];
+
+// Mock saved exercises (for reuse)
+let savedExercisesData: Exercise[] = [
+  {
+    id: "saved-e1",
+    name: "Squats",
+    type: "Strength",
+    sets: [],
+    selectedMetrics: [{ type: "repetitions", unit: "reps" }, { type: "weight", unit: "kg" }]
+  },
+  {
+    id: "saved-e2",
+    name: "Push-ups",
+    type: "Strength",
+    sets: [],
+    selectedMetrics: [{ type: "repetitions", unit: "reps" }]
+  },
+  {
+    id: "saved-e3",
+    name: "Running",
+    type: "Cardio",
+    sets: [],
+    selectedMetrics: [{ type: "distance", unit: "km" }, { type: "duration", unit: "minutes" }]
+  }
+];
+
+// Mock categories data
+const categoriesData: Record<string, CategoryInfo> = {
+  "Strength": { name: "Strength", color: "#FF5733", icon: "Dumbbell" },
+  "Cardio": { name: "Cardio", color: "#3498DB", icon: "Heart" },
+  "Flexibility": { name: "Flexibility", color: "#2ECC71", icon: "Yoga" },
+  "Balance": { name: "Balance", color: "#F1C40F", icon: "Mountain" },
+  "Core": { name: "Core", color: "#9B59B6", icon: "Target" },
+  "HIIT": { name: "HIIT", color: "#E74C3C", icon: "Zap" },
+  "Recovery": { name: "Recovery", color: "#1ABC9C", icon: "ThumbsUp" },
+  "Other": { name: "Other", color: "#34495E", icon: "Activity" }
+};
+
+// Exercise Type helper functions
+export const getExerciseTypes = (): string[] => {
+  return [
+    "Strength", 
+    "Cardio", 
+    "Flexibility", 
+    "Balance", 
+    "Core", 
+    "HIIT", 
+    "Recovery",
+    "Other"
+  ];
+};
+
+// Get saved exercises
+export const getSavedExercises = (): Exercise[] => {
+  return savedExercisesData;
+};
+
+// Save exercise function
+export const saveExercise = (exercise: Exercise): void => {
+  // Check if exercise already exists
+  const existingIndex = savedExercisesData.findIndex(e => e.id === exercise.id);
+  if (existingIndex !== -1) {
+    // Update existing
+    savedExercisesData[existingIndex] = exercise;
+  } else {
+    // Add new
+    savedExercisesData.push(exercise);
+  }
+};
+
+// Get category info
+export const getCategoryInfo = (categoryName: string): CategoryInfo => {
+  return categoriesData[categoryName] || { 
+    name: categoryName, 
+    color: "#34495E", // Default color
+    icon: null 
+  };
+};
+
+// Get all categories
+export const getAllCategories = (): string[] => {
+  return Object.keys(categoriesData);
+};
+
+// Create category
+export const createCategory = (category: CategoryInfo): void => {
+  categoriesData[category.name] = category;
+};
+
+// Update category
+export const updateCategory = (oldName: string, category: CategoryInfo): void => {
+  if (oldName !== category.name) {
+    // If name changed, remove old entry
+    delete categoriesData[oldName];
+  }
+  // Create or update with new name
+  categoriesData[category.name] = category;
+};
+
+// Get all workouts
+export const getAllWorkouts = (): Workout[] => {
+  return workoutData;
+};
 
 // Add function to delete a workout
 export const deleteWorkout = (id: string): boolean => {
