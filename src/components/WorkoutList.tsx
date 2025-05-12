@@ -1,53 +1,84 @@
 
 import React from "react";
-import { getWorkoutsByDate, Workout } from "@/lib/mockData";
+import { Workout, getWorkoutsByDate, getWorkoutsForYesterday, getWorkoutsForPastWeek } from "@/lib/mockData";
 import WorkoutCard from "./WorkoutCard";
-import { format, isSameDay } from "date-fns";
-import { toast } from "sonner";
+import { format, isSameDay, subDays } from "date-fns";
+import { CalendarDays } from "lucide-react";
 
 interface WorkoutListProps {
   selectedDate: Date;
 }
 
 const WorkoutList: React.FC<WorkoutListProps> = ({ selectedDate }) => {
-  const [workouts, setWorkouts] = React.useState<Workout[]>([]);
-  
-  React.useEffect(() => {
-    // Get workouts for the selected date
-    const fetchedWorkouts = getWorkoutsByDate(selectedDate);
-    setWorkouts(fetchedWorkouts);
-  }, [selectedDate]);
-
-  const handleDeleteWorkout = (id: string) => {
-    // Filter out the deleted workout
-    setWorkouts(current => current.filter(workout => workout.id !== id));
-    // In a real app, you would also delete from the database here
-  };
-  
-  const formattedDate = format(selectedDate, "EEEE, MMMM d");
+  const workouts = getWorkoutsByDate(selectedDate);
+  const formattedDate = format(selectedDate, "EEEE, MMMM d, yyyy");
   const isToday = isSameDay(selectedDate, new Date());
-
+  
+  // Get yesterday's workouts
+  const yesterdayWorkouts = isToday ? getWorkoutsForYesterday() : [];
+  
+  // Get past week workouts (2-6 days ago)
+  const pastWeekWorkouts = isToday ? getWorkoutsForPastWeek() : [];
+  
+  const today = new Date();
+  const yesterday = subDays(today, 1);
+  
   return (
-    <div className="mt-6 animate-fade-in">
-      <h2 className="text-xl font-semibold mb-4">
-        {isToday ? "Today's Workouts" : `Workouts for ${formattedDate}`}
-      </h2>
-
-      {workouts.length > 0 ? (
-        <div className="space-y-4">
-          {workouts.map(workout => (
-            <WorkoutCard key={workout.id} workout={workout} onDeleteWorkout={handleDeleteWorkout} />
-          ))}
+    <div className="flex-1 overflow-hidden animate-fade-in">
+      {/* Today or Selected date section */}
+      <div className="mb-6">
+        <div className="flex items-center mb-4">
+          <CalendarDays className="h-5 w-5 mr-2 text-muted-foreground" />
+          <h2 className="text-lg font-medium">
+            {isToday ? "Today" : formattedDate}
+          </h2>
         </div>
-      ) : (
-        <div className="text-center py-10 bg-muted/40 rounded-lg border border-border/40">
-          <p className="text-muted-foreground">No workouts scheduled for this day</p>
-          <button 
-            className="mt-2 text-primary hover:underline text-sm" 
-            onClick={() => {}}
-          >
-            Create a workout
-          </button>
+
+        <div>
+          {workouts.length > 0 ? (
+            workouts.map((workout) => (
+              <WorkoutCard key={workout.id} workout={workout} />
+            ))
+          ) : (
+            <div className="p-8 text-center rounded-xl bg-secondary/50 border border-border animate-fade-in">
+              <h3 className="font-medium text-muted-foreground">No workouts scheduled</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                This looks like a rest day.
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+      
+      {/* Yesterday section - only show on today's view */}
+      {isToday && yesterdayWorkouts.length > 0 && (
+        <div className="mb-6">
+          <div className="flex items-center mb-4">
+            <CalendarDays className="h-5 w-5 mr-2 text-muted-foreground" />
+            <h2 className="text-lg font-medium">Yesterday</h2>
+          </div>
+          
+          <div>
+            {yesterdayWorkouts.map((workout) => (
+              <WorkoutCard key={workout.id} workout={workout} />
+            ))}
+          </div>
+        </div>
+      )}
+      
+      {/* Past Week section - only show on today's view */}
+      {isToday && pastWeekWorkouts.length > 0 && (
+        <div className="mb-6">
+          <div className="flex items-center mb-4">
+            <CalendarDays className="h-5 w-5 mr-2 text-muted-foreground" />
+            <h2 className="text-lg font-medium">Past Week</h2>
+          </div>
+          
+          <div>
+            {pastWeekWorkouts.map((workout) => (
+              <WorkoutCard key={workout.id} workout={workout} />
+            ))}
+          </div>
         </div>
       )}
     </div>

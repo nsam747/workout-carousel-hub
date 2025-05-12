@@ -1,10 +1,8 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { Check, X, Plus, Search, Weight, Timer, Repeat, Clock, Ruler, Dumbbell } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent } from "@/components/ui/card";
 import { 
   Select, 
   SelectContent, 
@@ -12,330 +10,374 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogClose 
-} from "@/components/ui/dialog";
+import { Exercise, SelectedMetric, getExerciseTypes, getSavedExercises, saveExercise, supportedMetrics } from "@/lib/mockData";
+import { generateId } from "@/lib/utils";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { cn } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
-import { 
-  Exercise, 
-  getSavedExercises, 
-  getExerciseTypes,
-  supportedMetrics, 
-  SelectedMetric
-} from "@/lib/mockData";
-import { toast } from "sonner";
-import { v4 as uuidv4 } from "uuid";
-import { Search, Plus, Dumbbell, X } from "lucide-react";
+import { Label } from "@/components/ui/label";
 
 interface AddExerciseFormProps {
   onAddExercise: (exercise: Exercise) => void;
   onCancel: () => void;
-  title?: string;
+  title: string;
 }
 
-const AddExerciseForm: React.FC<AddExerciseFormProps> = ({
-  onAddExercise,
+// Helper function to get the appropriate icon for a metric type
+const getMetricIcon = (type: string) => {
+  switch (type) {
+    case 'weight':
+      return <Dumbbell className="h-4 w-4 text-muted-foreground" />;
+    case 'distance':
+      return <Ruler className="h-4 w-4 text-muted-foreground" />;
+    case 'duration':
+      return <Clock className="h-4 w-4 text-muted-foreground" />;
+    case 'repetitions':
+      return <Repeat className="h-4 w-4 text-muted-foreground" />;
+    case 'restTime':
+      return <Timer className="h-4 w-4 text-muted-foreground" />;
+    default:
+      return null;
+  }
+};
+
+// Format the metric type for display
+const formatMetricName = (type: string) => {
+  return type.charAt(0).toUpperCase() + type.slice(1).replace(/([A-Z])/g, ' $1');
+};
+
+const AddExerciseForm: React.FC<AddExerciseFormProps> = ({ 
+  onAddExercise, 
   onCancel,
-  title = "Add Exercise"
+  title
 }) => {
-  // State for new exercise inputs
-  const [newExerciseName, setNewExerciseName] = useState("");
-  const [newExerciseType, setNewExerciseType] = useState("");
+  const [activeTab, setActiveTab] = useState("create");
   
-  // State for searching/selecting existing exercises
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedExerciseIds, setSelectedExerciseIds] = useState<string[]>([]);
-  
-  // State for metrics selection modal
-  const [showMetricsModal, setShowMetricsModal] = useState(false);
+  // Create new exercise state
+  const [name, setName] = useState("");
+  const [type, setType] = useState("");
   const [selectedMetrics, setSelectedMetrics] = useState<SelectedMetric[]>([]);
-  const [tempExerciseName, setTempExerciseName] = useState("");
-  const [tempExerciseType, setTempExerciseType] = useState("");
   
-  // Get all saved exercises
+  // Search existing exercises state
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedExerciseId, setSelectedExerciseId] = useState<string | null>(null);
+  
+  const exerciseTypes = getExerciseTypes();
   const savedExercises = getSavedExercises();
   
-  // Filter exercises based on search term
-  const filteredExercises = savedExercises.filter(exercise =>
-    exercise.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-  
-  // Handle creating a new exercise
-  const handleCreateExercise = () => {
-    if (!newExerciseName.trim()) {
-      toast.error("Please enter an exercise name");
-      return;
+  // Handle metric selection
+  const handleMetricSelect = (metricType: string, isChecked: boolean) => {
+    if (isChecked) {
+      // Find the default unit for this metric type
+      const metric = supportedMetrics.find(m => m.type === metricType);
+      if (metric) {
+        setSelectedMetrics(prev => [...prev, { type: metricType, unit: metric.defaultUnit }]);
+      }
+    } else {
+      setSelectedMetrics(prev => prev.filter(m => m.type !== metricType));
     }
-    
-    if (!newExerciseType) {
-      toast.error("Please select an exercise type");
-      return;
-    }
-    
-    // Show metrics selection modal
-    setTempExerciseName(newExerciseName);
-    setTempExerciseType(newExerciseType);
-    setShowMetricsModal(true);
   };
   
-  // Handle adding selected metrics to new exercise
-  const handleAddMetricsToExercise = () => {
-    // Create new exercise with selected metrics
+  // Handle unit change for a selected metric
+  const handleUnitChange = (metricType: string, unit: string) => {
+    setSelectedMetrics(prev => 
+      prev.map(m => m.type === metricType ? { ...m, unit } : m)
+    );
+  };
+  
+  const isMetricSelected = (metricType: string) => {
+    return selectedMetrics.some(m => m.type === metricType);
+  };
+  
+  const getSelectedUnit = (metricType: string) => {
+    const metric = selectedMetrics.find(m => m.type === metricType);
+    return metric?.unit || supportedMetrics.find(m => m.type === metricType)?.defaultUnit || '';
+  };
+  
+  // Stop propagation function for the dropdown
+  const handleSelectClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+  };
+  
+  const handleAddNewExercise = () => {
+    if (!name.trim()) {
+      return;
+    }
+    
     const newExercise: Exercise = {
-      id: uuidv4(),
-      name: tempExerciseName,
-      type: tempExerciseType,
+      id: generateId(),
+      name,
+      type: type || "Other",
+      notes: "",
       sets: [],
+      duration: 0,
+      media: [],
+      selectedMetrics: selectedMetrics.length > 0 ? selectedMetrics : [{ type: "repetitions", unit: "reps" }] // Default to reps if none selected
+    };
+    
+    // Save this exercise for future reuse
+    saveExercise(newExercise);
+    
+    onAddExercise(newExercise);
+    setName("");
+    setType("");
+    setSelectedMetrics([]);
+  };
+  
+  const handleAddExistingExercise = () => {
+    if (!selectedExerciseId) return;
+    
+    const selectedExercise = savedExercises.find(ex => ex.id === selectedExerciseId);
+    if (!selectedExercise) return;
+    
+    // Create a new instance of this exercise with a new ID
+    const exerciseToAdd: Exercise = {
+      ...selectedExercise,
+      id: generateId(), // New instance needs new ID
+      sets: [], // Reset workout-specific data
       notes: "",
       duration: 0,
       media: [],
-      selectedMetrics: selectedMetrics
+      selectedMetrics: selectedExercise.selectedMetrics || [{ type: "repetitions", unit: "reps" }] // Keep the selected metrics
     };
     
-    // Add exercise and reset form
-    onAddExercise(newExercise);
-    
-    // Reset states
-    setNewExerciseName("");
-    setNewExerciseType("");
-    setSelectedMetrics([]);
-    setShowMetricsModal(false);
-  };
-  
-  // Handle selecting an existing exercise
-  const handleSelectExercise = (exerciseId: string) => {
-    setSelectedExerciseIds(prev => {
-      // Toggle selection
-      if (prev.includes(exerciseId)) {
-        return prev.filter(id => id !== exerciseId);
-      } else {
-        return [...prev, exerciseId];
-      }
-    });
-  };
-  
-  // Handle adding selected existing exercises
-  const handleAddSelectedExercises = () => {
-    if (selectedExerciseIds.length === 0) {
-      toast.error("Please select at least one exercise");
-      return;
-    }
-    
-    // For each selected exercise ID, find the exercise and add it
-    selectedExerciseIds.forEach(id => {
-      const exercise = savedExercises.find(e => e.id === id);
-      if (exercise) {
-        // Create a new copy of the exercise with a new ID
-        const exerciseCopy: Exercise = {
-          ...exercise,
-          id: uuidv4(), // Give it a new ID
-        };
-        
-        onAddExercise(exerciseCopy);
-      }
-    });
-    
-    // Reset selection
-    setSelectedExerciseIds([]);
+    onAddExercise(exerciseToAdd);
+    setSelectedExerciseId(null);
     setSearchTerm("");
-    
-    // Close the form if adding multiple exercises
-    if (selectedExerciseIds.length > 1) {
-      onCancel();
-    }
   };
   
-  // Handle toggling a metric in the selection modal
-  const handleToggleMetric = (type: string, defaultUnit: string) => {
-    setSelectedMetrics(prev => {
-      const existingIndex = prev.findIndex(m => m.type === type);
-      if (existingIndex >= 0) {
-        // Remove if already selected
-        return prev.filter(m => m.type !== type);
+  // Update selected metrics when selecting an existing exercise
+  useEffect(() => {
+    if (selectedExerciseId) {
+      const exercise = savedExercises.find(ex => ex.id === selectedExerciseId);
+      if (exercise && exercise.selectedMetrics) {
+        setSelectedMetrics([...exercise.selectedMetrics]);
       } else {
-        // Add if not selected
-        return [...prev, { type, unit: defaultUnit }];
+        setSelectedMetrics([]);
       }
-    });
+    }
+  }, [selectedExerciseId]);
+  
+  // Filter exercises based on search term
+  const filteredExercises = savedExercises.filter(ex => 
+    ex.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    ex.type.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+  
+  // Render exercise metric badges
+  const renderMetricBadges = (exerciseMetrics: SelectedMetric[]) => {
+    if (!exerciseMetrics || exerciseMetrics.length === 0) return null;
+    
+    return (
+      <div className="mt-2 flex flex-wrap gap-1">
+        {exerciseMetrics.map((metric, index) => (
+          <span key={index} className="inline-flex items-center text-xs bg-secondary/60 px-2 py-0.5 rounded">
+            {getMetricIcon(metric.type)}
+            <span className="ml-1">{formatMetricName(metric.type)} ({metric.unit})</span>
+          </span>
+        ))}
+      </div>
+    );
   };
   
   return (
-    <Dialog open={true} onOpenChange={() => onCancel()}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-        </DialogHeader>
-        
-        <Tabs defaultValue="existing" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-4">
-            <TabsTrigger value="existing">Use Existing</TabsTrigger>
-            <TabsTrigger value="new">Create New</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="existing">
-            {/* Search Box */}
-            <div className="flex items-center space-x-2 mb-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search exercises..."
-                  className="pl-8"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-            </div>
-            
-            {/* Exercise List */}
-            <div className="max-h-[300px] overflow-y-auto space-y-2 mb-4">
-              {filteredExercises.length > 0 ? (
-                filteredExercises.map(exercise => (
-                  <Card 
-                    key={exercise.id}
-                    className={`cursor-pointer transition-colors ${
-                      selectedExerciseIds.includes(exercise.id) 
-                        ? 'border-primary bg-primary/5' 
-                        : ''
-                    }`}
-                    onClick={() => handleSelectExercise(exercise.id)}
-                  >
-                    <CardContent className="py-3 px-4 flex items-center justify-between">
-                      <div>
-                        <div className="flex items-center">
-                          <Checkbox
-                            checked={selectedExerciseIds.includes(exercise.id)}
-                            onCheckedChange={() => handleSelectExercise(exercise.id)}
-                            className="mr-2"
-                          />
-                          <h4 className="font-medium">{exercise.name}</h4>
-                        </div>
-                        <p className="text-xs text-muted-foreground mt-1">{exercise.type}</p>
-                      </div>
-                      <Dumbbell className="h-4 w-4 text-muted-foreground" />
-                    </CardContent>
-                  </Card>
-                ))
-              ) : (
-                <p className="text-center py-8 text-muted-foreground">
-                  {searchTerm ? "No exercises found" : "No saved exercises yet"}
-                </p>
-              )}
-            </div>
-            
-            {/* Add Selected Button */}
-            <div className="flex justify-end space-x-2 mt-4">
-              <DialogClose asChild>
-                <Button variant="outline" onClick={onCancel}>Cancel</Button>
-              </DialogClose>
-              <Button 
-                onClick={handleAddSelectedExercises} 
-                disabled={selectedExerciseIds.length === 0}
-              >
-                Add Selected {selectedExerciseIds.length > 0 && `(${selectedExerciseIds.length})`}
-              </Button>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="new">
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Exercise Name</Label>
-                <Input
-                  id="name"
-                  placeholder="e.g., Push-up"
-                  value={newExerciseName}
-                  onChange={(e) => setNewExerciseName(e.target.value)}
-                />
-              </div>
+    <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4">
+      <div className="bg-card rounded-t-xl sm:rounded-xl border border-border shadow-lg h-full w-full max-w-lg overflow-auto animate-in fade-in slide-in-from-bottom-5">
+        <div className="p-6 h-full">
+          <h2 className="text-lg font-semibold mb-4">{title}</h2>
+          <div className="space-y-4 h-[calc(100%-2.5rem)]">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full h-full">
+              <TabsList className="grid grid-cols-2 mb-4">
+                <TabsTrigger value="create">Create New</TabsTrigger>
+                <TabsTrigger value="existing">Use Existing</TabsTrigger>
+              </TabsList>
               
-              <div className="space-y-2">
-                <Label htmlFor="type">Exercise Type</Label>
-                <Select value={newExerciseType} onValueChange={setNewExerciseType}>
-                  <SelectTrigger id="type">
-                    <SelectValue placeholder="Select type" />
+              <TabsContent value="create" className={GetTabClassName("create", activeTab)}>
+                <Input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Exercise name"
+                />
+                
+                <Select value={type} onValueChange={setType}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Exercise type" />
                   </SelectTrigger>
                   <SelectContent>
-                    {getExerciseTypes().map(type => (
+                    {exerciseTypes.map((type) => (
                       <SelectItem key={type} value={type}>
                         {type}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
-              
-              <div className="flex justify-end space-x-2 mt-4">
-                <DialogClose asChild>
-                  <Button variant="outline" onClick={onCancel}>Cancel</Button>
-                </DialogClose>
-                <Button onClick={handleCreateExercise}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create Exercise
-                </Button>
-              </div>
-            </div>
-          </TabsContent>
-        </Tabs>
-      </DialogContent>
-      
-      {/* Metrics Selection Modal */}
-      <Dialog open={showMetricsModal} onOpenChange={(open) => !open && setShowMetricsModal(false)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Select Performance Metrics</DialogTitle>
-          </DialogHeader>
-          
-          <div className="py-4">
-            <p className="text-sm text-muted-foreground mb-4">
-              Choose which metrics to track for this exercise:
-            </p>
-            
-            <div className="space-y-2">
-              {supportedMetrics.map(metric => (
-                <div 
-                  key={metric.type} 
-                  className={`p-3 border rounded-md cursor-pointer flex items-center justify-between transition-colors ${
-                    selectedMetrics.some(m => m.type === metric.type)
-                      ? 'border-primary bg-primary/5'
-                      : 'border-border'
-                  }`}
-                  onClick={() => handleToggleMetric(metric.type, metric.defaultUnit)}
-                >
-                  <div className="flex items-center">
-                    <Checkbox
-                      checked={selectedMetrics.some(m => m.type === metric.type)}
-                      onCheckedChange={() => handleToggleMetric(metric.type, metric.defaultUnit)}
-                      className="mr-2"
-                    />
-                    <span className="capitalize">{metric.type}</span>
+                
+                {/* Performance metrics selection - Redesigned to be more compact with icons */}
+                <div className="space-y-2 border rounded-md p-3 bg-background/50">
+                  <h4 className="text-sm font-medium mb-3">Performance Metrics</h4>
+                  <p className="text-xs text-muted-foreground mb-3">
+                    Select the metrics you want to track for this exercise:
+                  </p>
+                  
+                  <div className="space-y-3">
+                    {supportedMetrics.map((metric) => (
+                      <div key={metric.type} className="flex items-center space-x-2">
+                        <Checkbox 
+                          id={`metric-${metric.type}`} 
+                          checked={isMetricSelected(metric.type)} 
+                          onCheckedChange={(checked) => 
+                            handleMetricSelect(metric.type, checked === true)
+                          } 
+                          className="mr-1"
+                        />
+                        
+                        <div className="flex items-center flex-1 space-x-2">
+                          <div className="flex items-center min-w-[120px]">
+                            {getMetricIcon(metric.type)}
+                            <Label htmlFor={`metric-${metric.type}`} className="text-sm ml-2">
+                              {formatMetricName(metric.type)}
+                            </Label>
+                          </div>
+                          
+                          {isMetricSelected(metric.type) && (
+                            <div className="ml-auto flex items-center" onClick={handleSelectClick}>
+                              {metric.availableUnits.length > 1 ? (
+                                <Select 
+                                  value={getSelectedUnit(metric.type)} 
+                                  onValueChange={(unit) => handleUnitChange(metric.type, unit)}
+                                >
+                                  <SelectTrigger 
+                                    className={`h-7 text-xs ${(metric.type === "duration" || metric.type === "restTime") ? "w-28" : "w-20"}`}
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <SelectValue placeholder="Unit" />
+                                  </SelectTrigger>
+                                  <SelectContent 
+                                    className="z-50"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    {metric.availableUnits.map(unit => (
+                                      <SelectItem 
+                                        key={unit} 
+                                        value={unit}
+                                        onSelect={(e) => e.stopPropagation()}
+                                      >
+                                        {unit}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              ) : (
+                                <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-sm">
+                                  {metric.availableUnits[0]}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <span className="text-xs text-muted-foreground">
-                    ({metric.defaultUnit})
-                  </span>
                 </div>
-              ))}
-            </div>
+                <div className="flex-grow flex flex-col justify-end">
+                  <div className="flex justify-end gap-2">
+                  <Button variant="outline" size="sm" onClick={onCancel}>
+                    <X className="h-4 w-4 mr-1" />
+                    Cancel
+                  </Button>
+                  <Button size="sm" onClick={handleAddNewExercise} disabled={!name.trim()}>
+                    <Plus className="h-4 w-4 mr-1" />
+                    Create
+                  </Button>
+                </div>
+                </div>
+                
+              </TabsContent>
+              
+              <TabsContent value="existing" className={GetTabClassName("existing", activeTab)}>
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Search exercises..."
+                    className="pl-9"
+                  />
+                </div>
+                
+                <div className="max-h-90 overflow-y-auto border rounded-md">
+                  {filteredExercises.length > 0 ? (
+                    <div className="divide-y">
+                      {filteredExercises.map(exercise => (
+                        <div 
+                          key={exercise.id}
+                          className={cn(
+                            "p-3 cursor-pointer transition-colors",
+                            selectedExerciseId === exercise.id 
+                              ? "bg-secondary" 
+                              : "hover:bg-secondary/50"
+                          )}
+                          onClick={() => setSelectedExerciseId(exercise.id)}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h4 className="font-medium">{exercise.name}</h4>
+                              <span className="text-xs text-muted-foreground">{exercise.type}</span>
+                            </div>
+                            {selectedExerciseId === exercise.id && (
+                              <Check className="h-4 w-4 text-primary" />
+                            )}
+                          </div>
+                          
+                          {/* Show selected metrics for all exercises, not just selected ones */}
+                          {exercise.selectedMetrics && exercise.selectedMetrics.length > 0 && 
+                            renderMetricBadges(exercise.selectedMetrics)
+                          }
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="p-6 text-center text-muted-foreground">
+                      {searchTerm 
+                        ? "No exercises match your search" 
+                        : "No saved exercises yet"}
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex-grow flex flex-col justify-end">
+                  <div className="flex justify-end gap-2">
+                    <Button variant="outline" size="sm" onClick={onCancel}>
+                      <X className="h-4 w-4 mr-1" />
+                      Cancel
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      onClick={handleAddExistingExercise} 
+                      disabled={!selectedExerciseId}
+                    >
+                      <Check className="h-4 w-4 mr-1" />
+                      Add Selected
+                    </Button>
+                  </div>
+                </div>
+              
+              </TabsContent>
+            </Tabs>
           </div>
-          
-          <div className="flex justify-end space-x-2">
-            <Button 
-              variant="outline" 
-              onClick={() => setShowMetricsModal(false)}
-            >
-              Cancel
-            </Button>
-            <Button onClick={handleAddMetricsToExercise}>
-              Add to Exercise
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-    </Dialog>
+        </div>
+      </div>
+    </div>
   );
 };
+
+type Tab = "create" | "existing";
+
+// Tabs dont dissapear correctly when a height is set, only set a height when visible
+const GetTabClassName = (tab: Tab, activeTab: string) => {
+  return `mt-0 space-y-3 flex flex-col ${
+      activeTab === tab ? "h-[calc(100%-3.5rem)]" : ""
+  }`
+}
 
 export default AddExerciseForm;
