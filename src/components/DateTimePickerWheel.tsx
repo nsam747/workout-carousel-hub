@@ -1,8 +1,7 @@
 
-import React, { useState, useRef, useEffect } from "react";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { cn } from "@/lib/utils";
-import { format, addMonths, addDays, addYears, addHours, addMinutes, setHours, setMinutes } from "date-fns";
+import React, { useState } from "react";
+import Picker from "react-mobile-picker";
+import { format, addMonths, setHours, setMinutes } from "date-fns";
 
 interface DateTimePickerWheelProps {
   isOpen: boolean;
@@ -20,14 +19,8 @@ const DateTimePickerWheel: React.FC<DateTimePickerWheelProps> = ({
   mode
 }) => {
   const [selectedDate, setSelectedDate] = useState<Date>(initialDate);
-  const monthsRef = useRef<HTMLDivElement>(null);
-  const daysRef = useRef<HTMLDivElement>(null);
-  const yearsRef = useRef<HTMLDivElement>(null);
-  const hoursRef = useRef<HTMLDivElement>(null);
-  const minutesRef = useRef<HTMLDivElement>(null);
-  const ampmRef = useRef<HTMLDivElement>(null);
   
-  // Generate arrays for months, days, years, hours, minutes, ampm
+  // Date picker options
   const months = Array.from({ length: 12 }, (_, i) => {
     const date = addMonths(new Date(2000, 0, 1), i);
     return format(date, "MMMM");
@@ -38,13 +31,76 @@ const DateTimePickerWheel: React.FC<DateTimePickerWheelProps> = ({
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 10 }, (_, i) => String(currentYear - 2 + i));
   
+  // Time picker options
   const hours = Array.from({ length: 12 }, (_, i) => String(i === 0 ? 12 : i));
-  
   const minutes = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, "0"));
-  
   const ampm = ["AM", "PM"];
 
-  // Handle selection
+  // Initial values
+  const initialMonth = format(initialDate, "MMMM");
+  const initialDay = format(initialDate, "d");
+  const initialYear = format(initialDate, "yyyy");
+  const initialHour = format(initialDate, "h");
+  const initialMinute = format(initialDate, "mm");
+  const initialAmPm = format(initialDate, "a");
+
+  // Set up option groups and values based on mode
+  const [datePickerValue, setDatePickerValue] = useState({
+    month: initialMonth,
+    day: initialDay,
+    year: initialYear
+  });
+
+  const [timePickerValue, setTimePickerValue] = useState({
+    hour: initialHour,
+    minute: initialMinute,
+    ampm: initialAmPm
+  });
+
+  const dateOptionGroups = {
+    month: months,
+    day: days,
+    year: years
+  };
+
+  const timeOptionGroups = {
+    hour: hours,
+    minute: minutes,
+    ampm: ampm
+  };
+
+  const handleDateChange = (newValue: any) => {
+    setDatePickerValue(newValue);
+    
+    // Update selectedDate based on picker values
+    const newMonth = months.indexOf(newValue.month);
+    const newDay = parseInt(newValue.day);
+    const newYear = parseInt(newValue.year);
+    
+    const newDate = new Date(selectedDate);
+    newDate.setFullYear(newYear);
+    newDate.setMonth(newMonth);
+    newDate.setDate(newDay);
+    setSelectedDate(newDate);
+  };
+
+  const handleTimeChange = (newValue: any) => {
+    setTimePickerValue(newValue);
+    
+    // Update selectedDate based on picker values
+    let hourValue = parseInt(newValue.hour);
+    if (hourValue === 12) hourValue = 0;
+    if (newValue.ampm === "PM") hourValue += 12;
+    
+    const minuteValue = parseInt(newValue.minute);
+    
+    const newDate = new Date(selectedDate);
+    newDate.setHours(hourValue);
+    newDate.setMinutes(minuteValue);
+    setSelectedDate(newDate);
+  };
+
+  // Handle selection confirmation
   const handleConfirm = () => {
     onSelect(selectedDate);
     onClose();
@@ -72,204 +128,23 @@ const DateTimePickerWheel: React.FC<DateTimePickerWheelProps> = ({
         </div>
         
         {/* Date/Time Picker */}
-        <div className="p-4 bg-black">
+        <div className="bg-white p-4">
           {mode === "date" ? (
-            <div className="flex justify-center gap-4 h-[200px]">
-              {/* Month wheel */}
-              <div className="flex-1 relative">
-                <div className="absolute inset-0 pointer-events-none flex flex-col">
-                  <div className="flex-1 bg-gradient-to-b from-black to-transparent opacity-70" />
-                  <div className="h-10" />
-                  <div className="flex-1 bg-gradient-to-t from-black to-transparent opacity-70" />
-                </div>
-                <ScrollArea className="h-full">
-                  <div ref={monthsRef} className="px-2 py-[80px]">
-                    {months.map((month, index) => (
-                      <div 
-                        key={month}
-                        className={cn(
-                          "py-2 text-center cursor-pointer transition-colors",
-                          format(selectedDate, "MMMM") === month 
-                            ? "text-white bg-primary/20 rounded-md" 
-                            : "text-gray-500"
-                        )}
-                        onClick={() => {
-                          const newDate = new Date(selectedDate);
-                          newDate.setMonth(index);
-                          setSelectedDate(newDate);
-                        }}
-                      >
-                        {month}
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-              </div>
-              
-              {/* Day wheel */}
-              <div className="w-16 relative">
-                <div className="absolute inset-0 pointer-events-none flex flex-col">
-                  <div className="flex-1 bg-gradient-to-b from-black to-transparent opacity-70" />
-                  <div className="h-10" />
-                  <div className="flex-1 bg-gradient-to-t from-black to-transparent opacity-70" />
-                </div>
-                <ScrollArea className="h-full">
-                  <div ref={daysRef} className="px-2 py-[80px]">
-                    {days.map((day) => (
-                      <div 
-                        key={day}
-                        className={cn(
-                          "py-2 text-center cursor-pointer transition-colors",
-                          format(selectedDate, "d") === day 
-                            ? "text-white bg-primary/20 rounded-md" 
-                            : "text-gray-500"
-                        )}
-                        onClick={() => {
-                          const newDate = new Date(selectedDate);
-                          newDate.setDate(parseInt(day));
-                          setSelectedDate(newDate);
-                        }}
-                      >
-                        {day}
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-              </div>
-              
-              {/* Year wheel */}
-              <div className="w-24 relative">
-                <div className="absolute inset-0 pointer-events-none flex flex-col">
-                  <div className="flex-1 bg-gradient-to-b from-black to-transparent opacity-70" />
-                  <div className="h-10" />
-                  <div className="flex-1 bg-gradient-to-t from-black to-transparent opacity-70" />
-                </div>
-                <ScrollArea className="h-full">
-                  <div ref={yearsRef} className="px-2 py-[80px]">
-                    {years.map((year) => (
-                      <div 
-                        key={year}
-                        className={cn(
-                          "py-2 text-center cursor-pointer transition-colors",
-                          format(selectedDate, "yyyy") === year 
-                            ? "text-white bg-primary/20 rounded-md" 
-                            : "text-gray-500"
-                        )}
-                        onClick={() => {
-                          const newDate = new Date(selectedDate);
-                          newDate.setFullYear(parseInt(year));
-                          setSelectedDate(newDate);
-                        }}
-                      >
-                        {year}
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-              </div>
-            </div>
+            <Picker
+              optionGroups={dateOptionGroups}
+              valueGroups={datePickerValue}
+              onChange={handleDateChange}
+              height={200}
+              itemHeight={40}
+            />
           ) : (
-            <div className="flex justify-center gap-4 h-[200px]">
-              {/* Hours wheel */}
-              <div className="w-16 relative">
-                <div className="absolute inset-0 pointer-events-none flex flex-col">
-                  <div className="flex-1 bg-gradient-to-b from-black to-transparent opacity-70" />
-                  <div className="h-10" />
-                  <div className="flex-1 bg-gradient-to-t from-black to-transparent opacity-70" />
-                </div>
-                <ScrollArea className="h-full">
-                  <div ref={hoursRef} className="px-2 py-[80px]">
-                    {hours.map((hour) => (
-                      <div 
-                        key={hour}
-                        className={cn(
-                          "py-2 text-center cursor-pointer transition-colors",
-                          format(selectedDate, "h") === hour 
-                            ? "text-white bg-primary/20 rounded-md" 
-                            : "text-gray-500"
-                        )}
-                        onClick={() => {
-                          let hourValue = parseInt(hour);
-                          if (hourValue === 12) hourValue = 0;
-                          if (format(selectedDate, "a") === "PM") hourValue += 12;
-                          const newDate = setHours(selectedDate, hourValue);
-                          setSelectedDate(newDate);
-                        }}
-                      >
-                        {hour}
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-              </div>
-              
-              {/* Minutes wheel */}
-              <div className="w-16 relative">
-                <div className="absolute inset-0 pointer-events-none flex flex-col">
-                  <div className="flex-1 bg-gradient-to-b from-black to-transparent opacity-70" />
-                  <div className="h-10" />
-                  <div className="flex-1 bg-gradient-to-t from-black to-transparent opacity-70" />
-                </div>
-                <ScrollArea className="h-full">
-                  <div ref={minutesRef} className="px-2 py-[80px]">
-                    {minutes.map((minute) => (
-                      <div 
-                        key={minute}
-                        className={cn(
-                          "py-2 text-center cursor-pointer transition-colors",
-                          format(selectedDate, "mm") === minute 
-                            ? "text-white bg-primary/20 rounded-md" 
-                            : "text-gray-500"
-                        )}
-                        onClick={() => {
-                          const newDate = setMinutes(selectedDate, parseInt(minute));
-                          setSelectedDate(newDate);
-                        }}
-                      >
-                        {minute}
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-              </div>
-              
-              {/* AM/PM wheel */}
-              <div className="w-16 relative">
-                <div className="absolute inset-0 pointer-events-none flex flex-col">
-                  <div className="flex-1 bg-gradient-to-b from-black to-transparent opacity-70" />
-                  <div className="h-10" />
-                  <div className="flex-1 bg-gradient-to-t from-black to-transparent opacity-70" />
-                </div>
-                <ScrollArea className="h-full">
-                  <div ref={ampmRef} className="px-2 py-[80px]">
-                    {ampm.map((period) => (
-                      <div 
-                        key={period}
-                        className={cn(
-                          "py-2 text-center cursor-pointer transition-colors",
-                          format(selectedDate, "a") === period 
-                            ? "text-white bg-primary/20 rounded-md" 
-                            : "text-gray-500"
-                        )}
-                        onClick={() => {
-                          let hours = selectedDate.getHours();
-                          const isPM = period === "PM";
-                          if (isPM && hours < 12) {
-                            hours += 12;
-                          } else if (!isPM && hours >= 12) {
-                            hours -= 12;
-                          }
-                          const newDate = setHours(selectedDate, hours);
-                          setSelectedDate(newDate);
-                        }}
-                      >
-                        {period}
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-              </div>
-            </div>
+            <Picker
+              optionGroups={timeOptionGroups}
+              valueGroups={timePickerValue}
+              onChange={handleTimeChange}
+              height={200}
+              itemHeight={40}
+            />
           )}
         </div>
       </div>

@@ -102,3 +102,66 @@
 .calendar-day .date {
   @apply text-lg font-bold;
 }
+
+/* Custom styles for react-mobile-picker */
+.picker-container {
+  position: relative;
+  height: 200px;
+  overflow: hidden;
+}
+
+.picker-inner {
+  position: relative;
+  top: 80px;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.picker-column {
+  flex: 1;
+  position: relative;
+  max-height: 200px;
+  overflow: hidden;
+  text-align: center;
+  flex: 1;
+}
+
+.picker-scroller {
+  transition: all 0.3s;
+  position: relative;
+}
+
+.picker-item {
+  height: 40px;
+  line-height: 40px;
+  text-align: center;
+  color: #222;
+  font-size: 18px;
+  font-weight: normal;
+  padding: 0 8px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.picker-item.picker-item-selected {
+  font-size: 20px;
+  font-weight: bold;
+  color: #000;
+}
+
+/* Highlight the selected row */
+.picker-highlight {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 40px;
+  transform: translateY(-50%);
+  border-top: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
+  background-color: rgba(245, 245, 245, 0.6);
+  pointer-events: none;
+}
+
