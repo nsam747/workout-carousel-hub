@@ -189,7 +189,7 @@ const mockExercises: Exercise[] = [
         ],
       },
     ],
-    notes: "Focus on form and controlled movements.",
+    notes: "Focus on form and controlled movements. Keep your core engaged throughout the exercise. Lower your body until your chest nearly touches the floor, then push back up. Ensure your back remains straight during the entire movement. Take deep breaths, exhale as you push up, inhale as you lower down.",
     duration: 0,
     media: [],
     selectedMetrics: [
@@ -210,7 +210,7 @@ const mockExercises: Exercise[] = [
         ],
       },
     ],
-    notes: "Easy pace, maintain consistent breathing.",
+    notes: "", // Removed notes for testing
     duration: 25,
     media: [],
     selectedMetrics: [
@@ -260,7 +260,7 @@ const mockExercises: Exercise[] = [
         ],
       },
     ],
-    notes: "Controlled movement, squeeze at the top.",
+    notes: "", // Removed notes for testing
     duration: 0,
     media: [],
     selectedMetrics: [
@@ -410,7 +410,7 @@ const mockExercises: Exercise[] = [
         ],
       },
     ],
-    notes: "Maintain proper form, engage core.",
+    notes: "Stand with feet hip-width apart, toes pointing forward or slightly outward. Keep the bar close to your shins. Bend at hips and knees, maintaining a neutral spine. Grip the bar outside your legs. Drive through the heels, extending knees and hips simultaneously. At the top, stand tall with shoulders back, glutes squeezed. Return the bar to the floor with control, hinging at the hips first, then bending the knees. Repeat for prescribed reps.",
     duration: 0,
     media: [],
     selectedMetrics: [

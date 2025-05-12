@@ -16,6 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { generateExerciseSummary } from "@/lib/exerciseUtils";
+import { cn } from "@/lib/utils";
 
 interface ExerciseItemProps {
   exercise: Exercise;
@@ -208,21 +209,6 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
               return null;
           }
         })}
-        
-        {/* Show notes and media indicators if no performance metrics were displayed */}
-        {hasNotes && Object.keys(metricsByType).length === 0 && (
-          <div className="flex items-center">
-            <StickyNote className="h-3 w-3 mr-1" />
-            <span>Notes</span>
-          </div>
-        )}
-        
-        {hasMedia && Object.keys(metricsByType).length === 0 && (
-          <div className="flex items-center">
-            <Image className="h-3 w-3 mr-1" />
-            <span>Media</span>
-          </div>
-        )}
       </div>
     );
   };
@@ -247,22 +233,51 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
   // Always generate the summary content for rendering
   const summaryContent = generateExerciseSummary(exercise);
 
+  // Truncate notes with ellipsis if they're too long
+  const truncateNotes = (notes: string, maxLines = 4) => {
+    if (!notes) return "";
+    
+    // Rough approximation: average 50 chars per line, so 200 chars for 4 lines
+    const maxChars = maxLines * 50;
+    
+    if (notes.length > maxChars) {
+      return notes.substring(0, maxChars) + "...";
+    }
+    return notes;
+  };
+
   return (
     <div className="mb-0 bg-white/90 border-b border-border last:border-b-0 overflow-hidden animate-slide-up animation-delay-100">
       <div 
-        className="px-4 py-3 cursor-pointer flex items-center justify-between"
+        className="px-4 py-3 cursor-pointer flex items-start justify-between"
         onClick={toggleExpanded}
       >
         <div className="flex-1">
-          <h4 className="font-medium text-left">{exercise.name}</h4>
+          <div className="flex items-center justify-between">
+            <h4 className="font-medium text-left">{exercise.name}</h4>
+          </div>
           
           {/* Render the enhanced summary when collapsed */}
-          {!expanded && summaryContent}
+          {!expanded && (
+            <>
+              {summaryContent}
+              
+              {/* Notes preview in collapsed state */}
+              {hasNotes && (
+                <div className="flex items-start mt-1.5">
+                  <StickyNote className="h-3 w-3 mr-1 mt-0.5 flex-shrink-0" />
+                  <p className="text-sm text-muted-foreground line-clamp-4 text-left">
+                    {truncateNotes(exercise.notes || "")}
+                  </p>
+                </div>
+              )}
+            </>
+          )}
         </div>
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 rounded-full"
+          className="h-8 w-8 rounded-full flex-shrink-0 mt-0"
           onClick={(e) => {
             e.stopPropagation();
             toggleExpanded();

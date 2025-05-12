@@ -1,19 +1,24 @@
 
 import React, { useState } from "react";
 import { Workout, getCategoryInfo } from "@/lib/mockData";
-import { ChevronDown, ChevronUp, Edit2 } from "lucide-react";
+import { ChevronDown, ChevronUp, Edit2, Trash2 } from "lucide-react";
 import ExerciseItem from "./ExerciseItem";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import * as LucideIcons from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { format } from "date-fns";
+import ConfirmDialog from "./ConfirmDialog";
+import { toast } from "sonner";
 
 interface WorkoutCardProps {
   workout: Workout;
+  onDeleteWorkout?: (id: string) => void;
 }
 
-const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout }) => {
+const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout, onDeleteWorkout }) => {
   const [expanded, setExpanded] = useState(false);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const navigate = useNavigate();
 
   const toggleExpanded = () => setExpanded(!expanded);
@@ -22,6 +27,14 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout }) => {
   const handleEditWorkout = (e: React.MouseEvent) => {
     e.stopPropagation();
     navigate(`/edit-workout/${workout.id}`);
+  };
+
+  const handleDeleteWorkout = () => {
+    if (onDeleteWorkout) {
+      onDeleteWorkout(workout.id);
+      toast.success("Workout deleted successfully");
+    }
+    setConfirmDeleteOpen(false);
   };
 
   // Function to determine contrasting text color (black or white) based on background
@@ -63,6 +76,9 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout }) => {
     return <IconComponent size={14} color={color} className="mr-1" />;
   };
 
+  // Format date for display
+  const formattedDate = format(new Date(workout.date), "MMM d, yyyy");
+
   return (
     <div className="mb-4 rounded-xl overflow-hidden glass-card animate-scale-in">
       {/* Workout header */}
@@ -78,43 +94,62 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout }) => {
           >
             {workout.title}
           </h3>
-          {/* Category + count on same row, overflow moves both below title */}
-          <div className="flex flex-row flex-wrap items-center gap-x-3 gap-y-1 mt-2">
-            <span
-              className={cn(
-                "workout-tag flex items-center text-xs py-1 px-2 rounded-full",
-                "max-w-full"
-              )}
-              style={{
-                backgroundColor: categoryInfo.color,
-                color: getContrastColor(categoryInfo.color),
-                borderColor: getBorderColor(categoryInfo.color),
-                borderWidth: "1.5px",
-              }}
-            >
-              {categoryInfo.icon &&
-                renderCategoryIcon(
-                  categoryInfo.icon,
-                  getContrastColor(categoryInfo.color)
+          {/* Category + count + date on same row, overflow moves both below title */}
+          <div className="flex flex-row flex-wrap items-center gap-x-3 gap-y-1 mt-2 justify-between w-full">
+            <div className="flex flex-row flex-wrap items-center gap-x-3 gap-y-1">
+              <span
+                className={cn(
+                  "workout-tag flex items-center text-xs py-1 px-2 rounded-full",
+                  "max-w-full"
                 )}
-              {workout.category}
-            </span>
+                style={{
+                  backgroundColor: categoryInfo.color,
+                  color: getContrastColor(categoryInfo.color),
+                  borderColor: getBorderColor(categoryInfo.color),
+                  borderWidth: "1.5px",
+                }}
+              >
+                {categoryInfo.icon &&
+                  renderCategoryIcon(
+                    categoryInfo.icon,
+                    getContrastColor(categoryInfo.color)
+                  )}
+                {workout.category}
+              </span>
+              <span className="text-sm text-muted-foreground whitespace-nowrap select-none">
+                {workout.exercises.length} exercise
+                {workout.exercises.length !== 1 ? "s" : ""}
+              </span>
+            </div>
             <span className="text-sm text-muted-foreground whitespace-nowrap select-none">
-              {workout.exercises.length} exercise
-              {workout.exercises.length !== 1 ? "s" : ""}
+              {formattedDate}
             </span>
           </div>
         </div>
-        <div className="flex items-center space-x-2 ml-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 rounded-full"
-            onClick={handleEditWorkout}
-            title="Edit Workout"
-          >
-            <Edit2 className="h-4 w-4" />
-          </Button>
+        <div className="flex items-center ml-2 relative">
+          <div className={`flex space-x-2 transition-all duration-300 ${expanded ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-8 absolute'}`}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 rounded-full"
+              onClick={(e) => {
+                e.stopPropagation();
+                setConfirmDeleteOpen(true);
+              }}
+              title="Delete Workout"
+            >
+              <Trash2 className="h-4 w-4 text-destructive/80 hover:text-destructive" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 rounded-full"
+              onClick={handleEditWorkout}
+              title="Edit Workout"
+            >
+              <Edit2 className="h-4 w-4" />
+            </Button>
+          </div>
           <Button
             variant="ghost"
             size="icon"
@@ -141,6 +176,15 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout }) => {
           ))}
         </div>
       )}
+      
+      {/* Confirmation Dialog */}
+      <ConfirmDialog
+        open={confirmDeleteOpen}
+        onOpenChange={setConfirmDeleteOpen}
+        onConfirm={handleDeleteWorkout}
+        title="Delete Workout"
+        description={`Are you sure you want to delete "${workout.title}"? This action cannot be undone.`}
+      />
     </div>
   );
 };

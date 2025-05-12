@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Trash, ChevronDown, ChevronUp, Image, Plus, X, Check, Save, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -24,6 +23,7 @@ import {
   generateExerciseSummary,
   sortMetrics
 } from "@/lib/exerciseUtils";
+import ConfirmDialog from "./ConfirmDialog";
 
 // Helper function to get available exercise types
 // This should be imported from mockData, but adding it here for completeness
@@ -66,6 +66,7 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
   const [isEditingExercise, setIsEditingExercise] = useState(false);
   const [editedExerciseName, setEditedExerciseName] = useState(exercise.name);
   const [editedExerciseType, setEditedExerciseType] = useState(exercise.type);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   
   // For editing metrics
   const [editingMetricId, setEditingMetricId] = useState<string | null>(null);
@@ -322,6 +323,12 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
     onExerciseUpdate(updatedExercise);
   };
 
+  // Handle delete confirmation
+  const handleDeleteConfirm = () => {
+    onRemove(exercise.id);
+    setConfirmDeleteOpen(false);
+  };
+
   return (
     <Card className="overflow-hidden animate-scale-in">
       <div 
@@ -341,19 +348,21 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
           {!expanded && currentSummary}
         </div>
         
-        <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 rounded-full"
-            onClick={(e) => {
-              e.stopPropagation();
-              onRemove(exercise.id);
-            }}
-          >
-            <Trash className="h-4 w-4 text-destructive" />
-            <span className="sr-only">Remove</span>
-          </Button>
+        <div className="flex items-center gap-1 relative">
+          <div className={`transition-all duration-300 ${expanded ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-8 absolute'}`}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 rounded-full"
+              onClick={(e) => {
+                e.stopPropagation();
+                setConfirmDeleteOpen(true);
+              }}
+            >
+              <Trash className="h-4 w-4 text-destructive" />
+              <span className="sr-only">Remove</span>
+            </Button>
+          </div>
           
           <Button
             variant="ghost"
@@ -623,6 +632,15 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Confirmation Dialog */}
+      <ConfirmDialog
+        open={confirmDeleteOpen}
+        onOpenChange={setConfirmDeleteOpen}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Exercise"
+        description={`Are you sure you want to delete "${exercise.name}"? This action cannot be undone.`}
+      />
     </Card>
   );
 };
