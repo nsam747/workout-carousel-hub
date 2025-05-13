@@ -10,6 +10,9 @@ import { WorkoutAccordionProvider } from "./contexts/WorkoutAccordionContext";
 import { ExerciseAccordionProvider } from "./contexts/ExerciseAccordionContext";
 
 function App() {
+  // Create a single instance of initial date to share across providers
+  const initialDate = new Date();
+
   return (
     <BrowserRouter>
       <WorkoutAccordionProvider>

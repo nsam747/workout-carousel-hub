@@ -21,7 +21,7 @@ const MonthCalendarCarousel: React.FC<MonthCalendarCarouselProps> = ({
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
   const isMobile = useIsMobile();
   
-  // Access contexts to reset accordions
+  // Access contexts to update selected date
   const workoutAccordion = useContext(WorkoutAccordionContext);
   const exerciseAccordion = useContext(ExerciseAccordionContext);
   
@@ -36,9 +36,9 @@ const MonthCalendarCarousel: React.FC<MonthCalendarCarouselProps> = ({
   // Function to handle date selection with accordion reset
   const handleDateSelect = (date: Date | undefined) => {
     if (date) {
-      // Reset accordions before changing the date
-      workoutAccordion.resetAccordion();
-      exerciseAccordion.resetAccordion();
+      // Update the date in both contexts
+      workoutAccordion.setSelectedDate(date);
+      exerciseAccordion.setSelectedDate(date);
       
       // Then call the original onDateSelect function
       onDateSelect(date);

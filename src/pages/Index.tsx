@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import WeekCalendarCarousel from "@/components/WeekCalendarCarousel";
 import MonthCalendarCarousel from "@/components/MonthCalendarCarousel";
@@ -7,11 +7,29 @@ import WorkoutList from "@/components/WorkoutList";
 import { Button } from "@/components/ui/button";
 import { CalendarDays, Calendar as CalendarIcon } from "lucide-react";
 import BottomNavigation from "@/components/BottomNavigation";
+import { WorkoutAccordionContext } from "@/contexts/WorkoutAccordionContext";
+import { ExerciseAccordionContext } from "@/contexts/ExerciseAccordionContext";
 
 const Index = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<"week" | "month">("week");
   const navigate = useNavigate();
+  
+  // Access contexts to update selected date
+  const workoutAccordion = useContext(WorkoutAccordionContext);
+  const exerciseAccordion = useContext(ExerciseAccordionContext);
+  
+  // Initialize the date in contexts when the component mounts
+  useEffect(() => {
+    workoutAccordion.setSelectedDate(selectedDate);
+    exerciseAccordion.setSelectedDate(selectedDate);
+  }, []);
+  
+  // Handle date selection and update contexts
+  const handleDateSelect = (date: Date) => {
+    console.log("Index: Date selected", date.toDateString());
+    setSelectedDate(date);
+  };
 
   return (
     <div className="bg-gradient-to-b from-background to-secondary/50 min-h-screen pb-20">
@@ -48,12 +66,12 @@ const Index = () => {
         {viewMode === "week" ? (
           <WeekCalendarCarousel 
             selectedDate={selectedDate} 
-            onDateSelect={setSelectedDate} 
+            onDateSelect={handleDateSelect} 
           />
         ) : (
           <MonthCalendarCarousel 
             selectedDate={selectedDate} 
-            onDateSelect={setSelectedDate} 
+            onDateSelect={handleDateSelect} 
           />
         )}
 

@@ -1,16 +1,20 @@
 
-import React, { createContext, useState, ReactNode, useContext } from "react";
+import React, { createContext, useState, ReactNode, useContext, useEffect } from "react";
 
 interface WorkoutAccordionContextType {
   expandedWorkoutId: string | null;
   setExpandedWorkoutId: (id: string | null) => void;
   resetAccordion: () => void;
+  selectedDate: Date | null;
+  setSelectedDate: (date: Date) => void;
 }
 
 export const WorkoutAccordionContext = createContext<WorkoutAccordionContextType>({
   expandedWorkoutId: null,
   setExpandedWorkoutId: () => {},
   resetAccordion: () => {},
+  selectedDate: null,
+  setSelectedDate: () => {},
 });
 
 interface WorkoutAccordionProviderProps {
@@ -19,13 +23,29 @@ interface WorkoutAccordionProviderProps {
 
 export const WorkoutAccordionProvider: React.FC<WorkoutAccordionProviderProps> = ({ children }) => {
   const [expandedWorkoutId, setExpandedWorkoutId] = useState<string | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+
+  // Reset accordion when date changes
+  useEffect(() => {
+    if (selectedDate) {
+      resetAccordion();
+    }
+  }, [selectedDate]);
 
   const resetAccordion = () => {
     setExpandedWorkoutId(null);
   };
 
   return (
-    <WorkoutAccordionContext.Provider value={{ expandedWorkoutId, setExpandedWorkoutId, resetAccordion }}>
+    <WorkoutAccordionContext.Provider 
+      value={{ 
+        expandedWorkoutId, 
+        setExpandedWorkoutId, 
+        resetAccordion,
+        selectedDate,
+        setSelectedDate
+      }}
+    >
       {children}
     </WorkoutAccordionContext.Provider>
   );
