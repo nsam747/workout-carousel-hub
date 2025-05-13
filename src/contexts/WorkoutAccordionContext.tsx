@@ -27,12 +27,14 @@ export const WorkoutAccordionProvider: React.FC<WorkoutAccordionProviderProps> =
 
   // Reset accordion when date changes
   useEffect(() => {
+    console.log("selected date has changed to: " + selectedDate);
     if (selectedDate) {
       resetAccordion();
     }
   }, [selectedDate]);
 
   const resetAccordion = () => {
+    console.log("Resetting workout accordion");
     setExpandedWorkoutId(null);
   };
 
