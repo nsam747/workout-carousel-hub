@@ -13,7 +13,7 @@ export const WorkoutAccordionContext = createContext<WorkoutAccordionContextType
   expandedWorkoutId: null,
   setExpandedWorkoutId: () => {},
   resetAccordion: () => {},
-  selectedDate: null,
+  selectedDate: new Date(),
   setSelectedDate: () => {},
 });
 

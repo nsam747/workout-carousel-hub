@@ -21,10 +21,6 @@ const MonthCalendarCarousel: React.FC<MonthCalendarCarouselProps> = ({
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
   const isMobile = useIsMobile();
   
-  // Access contexts to update selected date
-  const workoutAccordion = useContext(WorkoutAccordionContext);
-  const exerciseAccordion = useContext(ExerciseAccordionContext);
-  
   const handlePreviousMonth = () => {
     setCurrentMonth(prev => subMonths(prev, 1));
   };
@@ -32,18 +28,7 @@ const MonthCalendarCarousel: React.FC<MonthCalendarCarouselProps> = ({
   const handleNextMonth = () => {
     setCurrentMonth(prev => addMonths(prev, 1));
   };
-  
-  // Function to handle date selection with accordion reset
-  const handleDateSelect = (date: Date | undefined) => {
-    if (date) {
-      // Update the date in both contexts
-      workoutAccordion.setSelectedDate(date);
-      exerciseAccordion.setSelectedDate(date);
-      
-      // Then call the original onDateSelect function
-      onDateSelect(date);
-    }
-  };
+
 
   // Get all workouts and organize them by date
   const allWorkouts = getAllWorkouts();
@@ -160,7 +145,7 @@ const MonthCalendarCarousel: React.FC<MonthCalendarCarouselProps> = ({
       <Calendar
         mode="single"
         selected={selectedDate}
-        onSelect={handleDateSelect}
+        onSelect={onDateSelect}
         month={currentMonth}
         onMonthChange={setCurrentMonth}
         components={{
