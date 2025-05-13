@@ -40,6 +40,15 @@ export const ExerciseAccordionProvider: React.FC<ExerciseAccordionProviderProps>
     setExpandedWorkoutId(newWorkoutId);
   };
 
+  const handleExpandWorkout = (workoutId: string | null) => {
+    // Close the previous accordion and then trigger the opening of the next one separately ?
+    setExpandedWorkoutId(null);
+
+    if(workoutId !== null) {
+      setExpandedWorkoutId(workoutId);
+    } 
+  }
+
   const resetAccordion = () => {
     setExpandedExerciseId(null);
     setExpandedWorkoutId(null);
@@ -50,7 +59,7 @@ export const ExerciseAccordionProvider: React.FC<ExerciseAccordionProviderProps>
       value={{ 
         expandedExerciseId, 
         expandedWorkoutId, 
-        setExpandedWorkoutId,
+        setExpandedWorkoutId: handleExpandWorkout,
         setExpandedExercise, 
         resetAccordion,
         selectedDate,
