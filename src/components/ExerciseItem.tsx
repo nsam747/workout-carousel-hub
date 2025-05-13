@@ -43,8 +43,9 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise, workoutId }) => {
       // Small timeout to ensure the DOM has updated and the element is expanded
       setTimeout(() => {
         if (exerciseRef.current) {
-          // Scroll the exercise to be near the top of the viewport
-          const yOffset = -20; // 20px margin from the top
+          // Account for sticky header (approx 60px)
+          const stickyHeaderHeight = 60;
+          const yOffset = -stickyHeaderHeight - 20; // 20px additional margin
           const exerciseTop = exerciseRef.current.getBoundingClientRect().top;
           const offsetPosition = exerciseTop + window.pageYOffset + yOffset;
           
