@@ -136,14 +136,9 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout, onDelete }) => {
               {workout.exercises.length !== 1 ? "s" : ""}
             </span>
           </div>
-          
-          {/* Date on its own row */}
-          <span className="text-sm text-muted-foreground whitespace-nowrap select-none block mt-1">
-            {formatWorkoutDate(workout.date)}
-          </span>
         </div>
         
-        <div className="flex items-center space-x-2 ml-2">
+        <div className="flex flex-col items-end space-y-2">
           {/* Action buttons - only visible when expanded */}
           <div 
             className={cn(
@@ -173,21 +168,28 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout, onDelete }) => {
           </div>
           
           {/* Toggle expand button - always visible */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 rounded-full"
-            onClick={(e) => {
-              e.stopPropagation();
-              toggleExpanded();
-            }}
-          >
-            {expanded ? (
-              <ChevronUp className="h-4 w-4" />
-            ) : (
-              <ChevronDown className="h-4 w-4" />
-            )}
-          </Button>
+          <div className="flex flex-col items-end">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 rounded-full"
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleExpanded();
+              }}
+            >
+              {expanded ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
+            </Button>
+            
+            {/* Date moved to right side under the button */}
+            <span className="text-sm text-muted-foreground whitespace-nowrap select-none block mt-1">
+              {formatWorkoutDate(workout.date)}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -197,6 +199,22 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout, onDelete }) => {
           {workout.exercises.map((exercise) => (
             <ExerciseItem key={exercise.id} exercise={exercise} />
           ))}
+          
+          {/* Close button at the bottom of expanded card */}
+          <div className="flex justify-center p-2 border-t border-border/40">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="text-xs text-muted-foreground"
+              onClick={(e) => {
+                e.stopPropagation();
+                setExpanded(false);
+              }}
+            >
+              <ChevronUp className="h-4 w-4 mr-1" />
+              Close
+            </Button>
+          </div>
         </div>
       )}
 

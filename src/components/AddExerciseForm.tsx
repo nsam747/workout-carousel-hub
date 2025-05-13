@@ -60,7 +60,8 @@ const AddExerciseForm: React.FC<AddExerciseFormProps> = ({
   
   // Search existing exercises state
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedExerciseId, setSelectedExerciseId] = useState<string | null>(null);
+  // Changed from string | null to string[] for multi-select
+  const [selectedExerciseIds, setSelectedExerciseIds] = useState<string[]>([]);
   
   const exerciseTypes = getExerciseTypes();
   const savedExercises = getSavedExercises();
@@ -123,38 +124,56 @@ const AddExerciseForm: React.FC<AddExerciseFormProps> = ({
     setSelectedMetrics([]);
   };
   
-  const handleAddExistingExercise = () => {
-    if (!selectedExerciseId) return;
+  // Updated to handle multiple exercise selection
+  const handleAddExistingExercises = () => {
+    if (selectedExerciseIds.length === 0) return;
     
-    const selectedExercise = savedExercises.find(ex => ex.id === selectedExerciseId);
-    if (!selectedExercise) return;
+    // Loop through all selected exercises
+    selectedExerciseIds.forEach(exerciseId => {
+      const selectedExercise = savedExercises.find(ex => ex.id === exerciseId);
+      if (!selectedExercise) return;
+      
+      // Create a new instance of this exercise with a new ID
+      const exerciseToAdd: Exercise = {
+        ...selectedExercise,
+        id: generateId(), // New instance needs new ID
+        sets: [], // Reset workout-specific data
+        notes: "",
+        media: [],
+        selectedMetrics: selectedExercise.selectedMetrics || [{ type: "repetitions", unit: "reps" }] // Keep the selected metrics
+      };
+      
+      onAddExercise(exerciseToAdd);
+    });
     
-    // Create a new instance of this exercise with a new ID
-    const exerciseToAdd: Exercise = {
-      ...selectedExercise,
-      id: generateId(), // New instance needs new ID
-      sets: [], // Reset workout-specific data
-      notes: "",
-      media: [],
-      selectedMetrics: selectedExercise.selectedMetrics || [{ type: "repetitions", unit: "reps" }] // Keep the selected metrics
-    };
-    
-    onAddExercise(exerciseToAdd);
-    setSelectedExerciseId(null);
+    // Reset selections
+    setSelectedExerciseIds([]);
     setSearchTerm("");
   };
   
-  // Update selected metrics when selecting an existing exercise
+  // Handle exercise selection (adding or removing from selectedExerciseIds)
+  const toggleExerciseSelection = (exerciseId: string) => {
+    setSelectedExerciseIds(prev => 
+      prev.includes(exerciseId)
+        ? prev.filter(id => id !== exerciseId)
+        : [...prev, exerciseId]
+    );
+  };
+  
+  // Updated to handle multi-selection state
   useEffect(() => {
-    if (selectedExerciseId) {
-      const exercise = savedExercises.find(ex => ex.id === selectedExerciseId);
+    if (selectedExerciseIds.length === 1) {
+      const exercise = savedExercises.find(ex => ex.id === selectedExerciseIds[0]);
       if (exercise && exercise.selectedMetrics) {
         setSelectedMetrics([...exercise.selectedMetrics]);
       } else {
         setSelectedMetrics([]);
       }
+    } else {
+      // For multiple or no selections, clear metric display
+      setSelectedMetrics([]);
     }
-  }, [selectedExerciseId]);
+  }, [selectedExerciseIds]);
   
   // Filter exercises based on search term
   const filteredExercises = savedExercises.filter(ex => 
@@ -210,7 +229,7 @@ const AddExerciseForm: React.FC<AddExerciseFormProps> = ({
                   </SelectContent>
                 </Select>
                 
-                {/* Performance metrics selection - Redesigned to be more compact with icons */}
+                {/* Performance metrics selection */}
                 <div className="space-y-2 border rounded-md p-3 bg-background/50">
                   <h4 className="text-sm font-medium mb-3">Performance Metrics</h4>
                   <p className="text-xs text-muted-foreground mb-3">
@@ -311,23 +330,23 @@ const AddExerciseForm: React.FC<AddExerciseFormProps> = ({
                           key={exercise.id}
                           className={cn(
                             "p-3 cursor-pointer transition-colors",
-                            selectedExerciseId === exercise.id 
+                            selectedExerciseIds.includes(exercise.id) 
                               ? "bg-secondary" 
                               : "hover:bg-secondary/50"
                           )}
-                          onClick={() => setSelectedExerciseId(exercise.id)}
+                          onClick={() => toggleExerciseSelection(exercise.id)}
                         >
                           <div className="flex items-center justify-between">
                             <div>
                               <h4 className="font-medium">{exercise.name}</h4>
                               <span className="text-xs text-muted-foreground">{exercise.type}</span>
                             </div>
-                            {selectedExerciseId === exercise.id && (
+                            {selectedExerciseIds.includes(exercise.id) && (
                               <Check className="h-4 w-4 text-primary" />
                             )}
                           </div>
                           
-                          {/* Show selected metrics for all exercises, not just selected ones */}
+                          {/* Show selected metrics for all exercises */}
                           {exercise.selectedMetrics && exercise.selectedMetrics.length > 0 && 
                             renderMetricBadges(exercise.selectedMetrics)
                           }
@@ -351,11 +370,11 @@ const AddExerciseForm: React.FC<AddExerciseFormProps> = ({
                     </Button>
                     <Button 
                       size="sm" 
-                      onClick={handleAddExistingExercise} 
-                      disabled={!selectedExerciseId}
+                      onClick={handleAddExistingExercises} 
+                      disabled={selectedExerciseIds.length === 0}
                     >
                       <Check className="h-4 w-4 mr-1" />
-                      Add Selected
+                      Add Selected{selectedExerciseIds.length > 0 ? ` (${selectedExerciseIds.length})` : ''}
                     </Button>
                   </div>
                 </div>
