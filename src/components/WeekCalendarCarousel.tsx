@@ -1,10 +1,11 @@
-import React, { useRef, useEffect, useContext } from "react";
+
+import React, { useRef, useEffect } from "react";
 import { dateRange } from "@/lib/mockData";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { WorkoutAccordionContext } from "@/contexts/WorkoutAccordionContext";
-import { ExerciseAccordionContext } from "@/contexts/ExerciseAccordionContext";
+import { useWorkoutAccordion } from "@/contexts/WorkoutAccordionContext";
+import { useExerciseAccordion } from "@/contexts/ExerciseAccordionContext";
 
 interface WeekCalendarCarouselProps {
   selectedDate: Date;
@@ -18,15 +19,15 @@ const WeekCalendarCarousel: React.FC<WeekCalendarCarouselProps> = ({
   const scrollRef = useRef<HTMLDivElement>(null);
   const selectedDateRef = useRef<HTMLDivElement>(null);
   
-  // Access contexts to reset accordions
-  const workoutAccordion = useContext(WorkoutAccordionContext);
-  const exerciseAccordion = useContext(ExerciseAccordionContext);
+  // Access contexts using custom hooks
+  const { resetAccordion: resetWorkoutAccordion } = useWorkoutAccordion();
+  const { resetAccordion: resetExerciseAccordion } = useExerciseAccordion();
 
   // Function to handle date selection with accordion reset
   const handleDateSelect = (date: Date) => {
     // Reset accordions before changing the date
-    workoutAccordion.resetAccordion();
-    exerciseAccordion.resetAccordion();
+    resetWorkoutAccordion();
+    resetExerciseAccordion();
     
     // Then call the original onDateSelect function
     onDateSelect(date);

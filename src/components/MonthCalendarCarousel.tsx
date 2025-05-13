@@ -1,4 +1,5 @@
-import React, { useState, useContext } from "react";
+
+import React, { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { format, addMonths, subMonths } from "date-fns";
@@ -6,8 +7,8 @@ import { cn } from "@/lib/utils";
 import { getWorkoutsByDate, getAllWorkouts, getCategoryInfo, Workout } from "@/lib/mockData";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { WorkoutAccordionContext } from "@/contexts/WorkoutAccordionContext";
-import { ExerciseAccordionContext } from "@/contexts/ExerciseAccordionContext";
+import { useWorkoutAccordion } from "@/contexts/WorkoutAccordionContext";
+import { useExerciseAccordion } from "@/contexts/ExerciseAccordionContext";
 
 interface MonthCalendarCarouselProps {
   selectedDate: Date;
@@ -21,9 +22,9 @@ const MonthCalendarCarousel: React.FC<MonthCalendarCarouselProps> = ({
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
   const isMobile = useIsMobile();
   
-  // Access contexts to reset accordions
-  const workoutAccordion = useContext(WorkoutAccordionContext);
-  const exerciseAccordion = useContext(ExerciseAccordionContext);
+  // Access contexts using custom hooks
+  const { resetAccordion: resetWorkoutAccordion } = useWorkoutAccordion();
+  const { resetAccordion: resetExerciseAccordion } = useExerciseAccordion();
   
   const handlePreviousMonth = () => {
     setCurrentMonth(prev => subMonths(prev, 1));
@@ -37,8 +38,8 @@ const MonthCalendarCarousel: React.FC<MonthCalendarCarouselProps> = ({
   const handleDateSelect = (date: Date | undefined) => {
     if (date) {
       // Reset accordions before changing the date
-      workoutAccordion.resetAccordion();
-      exerciseAccordion.resetAccordion();
+      resetWorkoutAccordion();
+      resetExerciseAccordion();
       
       // Then call the original onDateSelect function
       onDateSelect(date);
