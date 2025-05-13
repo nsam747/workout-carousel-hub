@@ -27,14 +27,16 @@ interface ExerciseItemProps {
 const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise, workoutId }) => {
   const [expanded, setExpanded] = useState(false);
   
-  // Use the exercise accordion context
-  const { expandedExerciseId, workoutId: contextWorkoutId, setExpandedExercise } = useContext(ExerciseAccordionContext);
+  // Use the exercise accordion context directly to ensure we get all updates
+  const exerciseAccordionContext = useContext(ExerciseAccordionContext);
+  const { expandedExerciseId, workoutId: contextWorkoutId, setExpandedExercise, dateIdentifier } = exerciseAccordionContext;
   
   // Create a ref for the exercise item element
   const exerciseRef = useRef<HTMLDivElement>(null);
   
   // Update expanded state based on context
   useEffect(() => {
+    console.log(`ExerciseItem ${exercise.id}: Context changed, expandedExerciseId=${expandedExerciseId}, contextWorkoutId=${contextWorkoutId}, dateIdentifier=${dateIdentifier}`);
     const newExpanded = expandedExerciseId === exercise.id && contextWorkoutId === workoutId;
     setExpanded(newExpanded);
     
@@ -62,7 +64,7 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise, workoutId }) => {
         }
       }, 100);
     }
-  }, [expandedExerciseId, exercise.id, contextWorkoutId, workoutId, expanded]);
+  }, [expandedExerciseId, exercise.id, contextWorkoutId, workoutId, expanded, dateIdentifier]);
 
   const toggleExpanded = () => {
     if (expanded) {

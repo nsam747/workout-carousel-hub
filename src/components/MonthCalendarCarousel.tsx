@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
@@ -37,12 +36,16 @@ const MonthCalendarCarousel: React.FC<MonthCalendarCarouselProps> = ({
   // Function to handle date selection with accordion reset
   const handleDateSelect = (date: Date | undefined) => {
     if (date) {
+      console.log("MonthCalendar: Date selected", date.toDateString());
+      
       // Force reset by directly setting the expanded IDs to null
       setExpandedWorkoutId(null);
       setExpandedExercise(null, null);
       
+      // Generate a unique identifier for this date selection
+      const newDateIdentifier = `${date.toISOString()}-${Date.now()}`;
+      
       // Update date identifiers to force context effects
-      const newDateIdentifier = date.toISOString();
       setWorkoutDateIdentifier(newDateIdentifier);
       setExerciseDateIdentifier(newDateIdentifier);
       

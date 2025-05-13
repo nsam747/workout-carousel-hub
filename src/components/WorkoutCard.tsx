@@ -30,14 +30,16 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout, onDelete }) => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const navigate = useNavigate();
   
-  // Use the accordion context
-  const { expandedWorkoutId, setExpandedWorkoutId } = useContext(WorkoutAccordionContext);
+  // Use the accordion context directly to ensure we get all updates
+  const workoutAccordionContext = useContext(WorkoutAccordionContext);
+  const { expandedWorkoutId, setExpandedWorkoutId, dateIdentifier } = workoutAccordionContext;
   
   // Create a ref to the workout card element
   const cardRef = useRef<HTMLDivElement>(null);
   
   // Update expanded state based on context
   useEffect(() => {
+    console.log(`WorkoutCard ${workout.id}: Context changed, expandedWorkoutId=${expandedWorkoutId}, dateIdentifier=${dateIdentifier}`);
     const newExpanded = expandedWorkoutId === workout.id;
     setExpanded(newExpanded);
     
@@ -59,7 +61,7 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout, onDelete }) => {
         }
       }, 100);
     }
-  }, [expandedWorkoutId, workout.id, expanded]);
+  }, [expandedWorkoutId, workout.id, expanded, dateIdentifier]);
 
   const toggleExpanded = () => {
     if (expanded) {

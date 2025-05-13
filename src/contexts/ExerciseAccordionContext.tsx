@@ -31,7 +31,7 @@ export const ExerciseAccordionProvider: React.FC<ExerciseAccordionProviderProps>
   // Reset accordion when date changes
   useEffect(() => {
     if (dateIdentifier) {
-      console.log("ExerciseAccordion: Date changed, resetting accordion");
+      console.log("ExerciseAccordion: Date changed, resetting accordion", dateIdentifier);
       setExpandedExerciseId(null);
       setWorkoutId(null);
     }
@@ -48,15 +48,18 @@ export const ExerciseAccordionProvider: React.FC<ExerciseAccordionProviderProps>
     setWorkoutId(null);
   };
 
+  // Create a value object that won't change identity unless content changes
+  const contextValue = React.useMemo(() => ({
+    expandedExerciseId, 
+    workoutId, 
+    setExpandedExercise, 
+    resetAccordion,
+    dateIdentifier,
+    setDateIdentifier
+  }), [expandedExerciseId, workoutId, dateIdentifier]);
+
   return (
-    <ExerciseAccordionContext.Provider value={{ 
-      expandedExerciseId, 
-      workoutId, 
-      setExpandedExercise, 
-      resetAccordion,
-      dateIdentifier,
-      setDateIdentifier
-    }}>
+    <ExerciseAccordionContext.Provider value={contextValue}>
       {children}
     </ExerciseAccordionContext.Provider>
   );
