@@ -31,7 +31,7 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout, onDelete }) => {
   const navigate = useNavigate();
   
   // Use the accordion context
-  const { expandedWorkoutId, setExpandedWorkoutId } = useContext(WorkoutAccordionContext);
+  const { expandedWorkoutId, setExpandedWorkoutId, selectedDate } = useContext(WorkoutAccordionContext);
   
   // Create a ref to the workout card element
   const cardRef = useRef<HTMLDivElement>(null);
@@ -60,7 +60,7 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout, onDelete }) => {
         }
       }, 100);
     }
-  }, [expandedWorkoutId, workout.id, expanded]);
+  }, [expandedWorkoutId, workout.id, expanded, selectedDate]);
 
   const toggleExpanded = () => {
     if (expanded) {
