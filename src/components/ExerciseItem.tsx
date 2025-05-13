@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { Exercise } from "@/lib/mockData";
 import { 
   ChevronDown, 
@@ -16,15 +16,31 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { generateExerciseSummary } from "@/lib/exerciseUtils";
+import { ExerciseAccordionContext } from "@/contexts/ExerciseAccordionContext";
 
 interface ExerciseItemProps {
   exercise: Exercise;
+  workoutId: string;
 }
 
-const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
+const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise, workoutId }) => {
   const [expanded, setExpanded] = useState(false);
+  
+  // Use the exercise accordion context
+  const { expandedExerciseId, workoutId: contextWorkoutId, setExpandedExercise } = useContext(ExerciseAccordionContext);
+  
+  // Update expanded state based on context
+  useEffect(() => {
+    setExpanded(expandedExerciseId === exercise.id && contextWorkoutId === workoutId);
+  }, [expandedExerciseId, exercise.id, contextWorkoutId, workoutId]);
 
-  const toggleExpanded = () => setExpanded(!expanded);
+  const toggleExpanded = () => {
+    if (expanded) {
+      setExpandedExercise(null, null);
+    } else {
+      setExpandedExercise(exercise.id, workoutId);
+    }
+  };
 
   // Helper to get total sets
   const getTotalSets = () => exercise.sets?.length || 0;
@@ -353,21 +369,7 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
             </div>
           )}
           
-          {/* Button to collapse section */}
-          <div className="flex justify-center mt-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-xs h-7 flex items-center"
-              onClick={(e) => {
-                e.stopPropagation();
-                setExpanded(false);
-              }}
-            >
-              <ChevronUp className="h-3.5 w-3.5 mr-1" />
-              Close
-            </Button>
-          </div>
+          {/* Close button removed as requested */}
         </div>
       )}
     </div>

@@ -1,3 +1,4 @@
+
 /**
  * EditWorkout Page Component
  * 
@@ -17,6 +18,7 @@ import DateTimeSelector from "@/components/DateTimeSelector";
 import { getAllCategories, getWorkoutById } from "@/lib/mockData";
 import { toast } from "sonner";
 import { Exercise, Workout } from "@/lib/mockData";
+import { ExerciseAccordionProvider } from "@/contexts/ExerciseAccordionContext";
 
 const EditWorkout = () => {
   const navigate = useNavigate();
@@ -162,103 +164,46 @@ const EditWorkout = () => {
       </div>
       
       <div className="max-w-2xl mx-auto px-4 py-6">
-        <div className="space-y-6">
-          {/* Date and Time Selector */}
-          <DateTimeSelector 
-            date={workoutDate}
-            onDateChange={setWorkoutDate}
-            className="mb-4"
-          />
-          
-          {/* Workout Title */}
-          <div>
-            <Input
-              id="title"
-              placeholder="Workout Title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
+        <ExerciseAccordionProvider>
+          <div className="space-y-6">
+            {/* Date and Time Selector */}
+            <DateTimeSelector 
+              date={workoutDate}
+              onDateChange={setWorkoutDate}
+              className="mb-4"
             />
-          </div>
-          
-          {/* Category Selector */}
-          <CategorySelector 
-            categories={getAllCategories()} 
-            selectedCategory={selectedCategory} 
-            onSelectCategory={setSelectedCategory}
-            onCreateCategory={handleCreateCategory}
-          />
-          
-          {/* Exercises */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <h2 className="text-sm font-medium">Exercises</h2>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsAddingExercise(true)}
-                className="rounded-full h-8 w-8 p-0"
-              >
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  className="h-5 w-5"
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor"
-                  strokeWidth="2" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round"
-                >
-                  <circle cx="12" cy="12" r="10" />
-                  <path d="M12 8v8M8 12h8" />
-                </svg>
-              </Button>
+            
+            {/* Workout Title */}
+            <div>
+              <Input
+                id="title"
+                placeholder="Workout Title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+              />
             </div>
             
-            {exercises.length === 0 ? (
-              <div className="bg-muted/50 rounded-lg p-8 text-center">
-                <p className="text-muted-foreground">No exercises added yet</p>
-                <Button 
-                  variant="outline" 
-                  onClick={() => setIsAddingExercise(true)}
-                  className="mt-4"
-                >
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    className="h-4 w-4 mr-2"
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    stroke="currentColor"
-                    strokeWidth="2" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round"
-                  >
-                    <circle cx="12" cy="12" r="10" />
-                    <path d="M12 8v8M8 12h8" />
-                  </svg>
-                  Add Exercise
-                </Button>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {exercises.map((exercise) => (
-                  <ExerciseListItem
-                    key={exercise.id}
-                    exercise={exercise}
-                    onRemove={handleRemoveExercise}
-                    onExerciseUpdate={handleExerciseUpdate}
-                    isNewlyAdded={exercise.id === lastAddedExerciseId}
-                  />
-                ))}
-                
+            {/* Category Selector */}
+            <CategorySelector 
+              categories={getAllCategories()} 
+              selectedCategory={selectedCategory} 
+              onSelectCategory={setSelectedCategory}
+              onCreateCategory={handleCreateCategory}
+            />
+            
+            {/* Exercises */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <h2 className="text-sm font-medium">Exercises</h2>
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
                   onClick={() => setIsAddingExercise(true)}
-                  className="w-full mt-2"
+                  className="rounded-full h-8 w-8 p-0"
                 >
                   <svg 
                     xmlns="http://www.w3.org/2000/svg" 
-                    className="h-4 w-4 mr-2"
+                    className="h-5 w-5"
                     viewBox="0 0 24 24" 
                     fill="none" 
                     stroke="currentColor"
@@ -269,12 +214,71 @@ const EditWorkout = () => {
                     <circle cx="12" cy="12" r="10" />
                     <path d="M12 8v8M8 12h8" />
                   </svg>
-                  Add Exercise
                 </Button>
               </div>
-            )}
+              
+              {exercises.length === 0 ? (
+                <div className="bg-muted/50 rounded-lg p-8 text-center">
+                  <p className="text-muted-foreground">No exercises added yet</p>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setIsAddingExercise(true)}
+                    className="mt-4"
+                  >
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      className="h-4 w-4 mr-2"
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor"
+                      strokeWidth="2" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round"
+                    >
+                      <circle cx="12" cy="12" r="10" />
+                      <path d="M12 8v8M8 12h8" />
+                    </svg>
+                    Add Exercise
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {exercises.map((exercise) => (
+                    <ExerciseListItem
+                      key={exercise.id}
+                      exercise={exercise}
+                      onRemove={handleRemoveExercise}
+                      onExerciseUpdate={handleExerciseUpdate}
+                      isNewlyAdded={exercise.id === lastAddedExerciseId}
+                    />
+                  ))}
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsAddingExercise(true)}
+                    className="w-full mt-2"
+                  >
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      className="h-4 w-4 mr-2"
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor"
+                      strokeWidth="2" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round"
+                    >
+                      <circle cx="12" cy="12" r="10" />
+                      <path d="M12 8v8M8 12h8" />
+                    </svg>
+                    Add Exercise
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        </ExerciseAccordionProvider>
         
         {/* Add Exercise Form */}
         {isAddingExercise && 

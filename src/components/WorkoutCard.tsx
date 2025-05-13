@@ -1,5 +1,4 @@
-
-import React, { useState } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { Workout, getCategoryInfo } from "@/lib/mockData";
 import { ChevronDown, ChevronUp, Edit2, Trash2 } from "lucide-react";
 import ExerciseItem from "./ExerciseItem";
@@ -18,6 +17,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { WorkoutAccordionContext } from "@/contexts/WorkoutAccordionContext";
 
 interface WorkoutCardProps {
   workout: Workout;
@@ -28,8 +28,23 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout, onDelete }) => {
   const [expanded, setExpanded] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const navigate = useNavigate();
+  
+  // Use the accordion context
+  const { expandedWorkoutId, setExpandedWorkoutId } = useContext(WorkoutAccordionContext);
+  
+  // Update expanded state based on context
+  useEffect(() => {
+    setExpanded(expandedWorkoutId === workout.id);
+  }, [expandedWorkoutId, workout.id]);
 
-  const toggleExpanded = () => setExpanded(!expanded);
+  const toggleExpanded = () => {
+    if (expanded) {
+      setExpandedWorkoutId(null);
+    } else {
+      setExpandedWorkoutId(workout.id);
+    }
+  };
+  
   const categoryInfo = getCategoryInfo(workout.category);
 
   const handleEditWorkout = (e: React.MouseEvent) => {
@@ -110,42 +125,47 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout, onDelete }) => {
             {workout.title}
           </h3>
           
-          {/* Category + count on same row */}
-          <div className="flex flex-row flex-wrap items-center gap-x-3 gap-y-1 mt-2">
-            <span
-              className={cn(
-                "workout-tag flex items-center text-xs py-1 px-2 rounded-full",
-                "max-w-full"
-              )}
-              style={{
-                backgroundColor: categoryInfo.color,
-                color: getContrastColor(categoryInfo.color),
-                borderColor: getBorderColor(categoryInfo.color),
-                borderWidth: "1.5px",
-              }}
-            >
-              {categoryInfo.icon &&
-                renderCategoryIcon(
-                  categoryInfo.icon,
-                  getContrastColor(categoryInfo.color)
+          {/* Bottom row - Category, count, date */}
+          <div className="flex flex-row flex-wrap items-center justify-between gap-x-3 gap-y-1 mt-2">
+            <div className="flex flex-row flex-wrap items-center gap-x-3 gap-y-1">
+              <span
+                className={cn(
+                  "workout-tag flex items-center text-xs py-1 px-2 rounded-full",
+                  "max-w-full"
                 )}
-              {workout.category}
-            </span>
+                style={{
+                  backgroundColor: categoryInfo.color,
+                  color: getContrastColor(categoryInfo.color),
+                  borderColor: getBorderColor(categoryInfo.color),
+                  borderWidth: "1.5px",
+                }}
+              >
+                {categoryInfo.icon &&
+                  renderCategoryIcon(
+                    categoryInfo.icon,
+                    getContrastColor(categoryInfo.color)
+                  )}
+                {workout.category}
+              </span>
+              <span className="text-sm text-muted-foreground whitespace-nowrap select-none">
+                {workout.exercises.length} exercise
+                {workout.exercises.length !== 1 ? "s" : ""}
+              </span>
+            </div>
+            
+            {/* Date moved inline with category */}
             <span className="text-sm text-muted-foreground whitespace-nowrap select-none">
-              {workout.exercises.length} exercise
-              {workout.exercises.length !== 1 ? "s" : ""}
+              {formatWorkoutDate(workout.date)}
             </span>
           </div>
         </div>
         
-        <div className="flex flex-col items-end space-y-2">
-          {/* Action buttons - only visible when expanded */}
-          <div 
-            className={cn(
-              "flex items-center gap-2 transition-all duration-300", 
-              expanded ? "opacity-100 translate-x-0" : "opacity-0 translate-x-8 pointer-events-none"
-            )}
-          >
+        <div className="flex items-center gap-2">
+          {/* Action buttons and expand toggle in the same row */}
+          <div className={cn(
+            "flex items-center gap-2 transition-all duration-300", 
+            expanded ? "opacity-100" : "opacity-0 pointer-events-none"
+          )}>
             <Button
               variant="ghost"
               size="icon"
@@ -168,28 +188,21 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout, onDelete }) => {
           </div>
           
           {/* Toggle expand button - always visible */}
-          <div className="flex flex-col items-end">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 rounded-full"
-              onClick={(e) => {
-                e.stopPropagation();
-                toggleExpanded();
-              }}
-            >
-              {expanded ? (
-                <ChevronUp className="h-4 w-4" />
-              ) : (
-                <ChevronDown className="h-4 w-4" />
-              )}
-            </Button>
-            
-            {/* Date moved to right side under the button */}
-            <span className="text-sm text-muted-foreground whitespace-nowrap select-none block mt-1">
-              {formatWorkoutDate(workout.date)}
-            </span>
-          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 rounded-full"
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleExpanded();
+            }}
+          >
+            {expanded ? (
+              <ChevronUp className="h-4 w-4" />
+            ) : (
+              <ChevronDown className="h-4 w-4" />
+            )}
+          </Button>
         </div>
       </div>
 
@@ -197,30 +210,14 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout, onDelete }) => {
       {expanded && (
         <div className="border-t border-border/40 animate-fade-in">
           {workout.exercises.map((exercise) => (
-            <ExerciseItem key={exercise.id} exercise={exercise} />
+            <ExerciseItem key={exercise.id} exercise={exercise} workoutId={workout.id} />
           ))}
-          
-          {/* Close button at the bottom of expanded card */}
-          <div className="flex justify-center p-2 border-t border-border/40">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="text-xs text-muted-foreground"
-              onClick={(e) => {
-                e.stopPropagation();
-                setExpanded(false);
-              }}
-            >
-              <ChevronUp className="h-4 w-4 mr-1" />
-              Close
-            </Button>
-          </div>
         </div>
       )}
 
-      {/* Delete confirmation dialog */}
+      {/* Delete confirmation dialog with rounded corners */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent className="max-w-[90%] w-full sm:max-w-lg p-4 sm:p-6">
+        <AlertDialogContent className="max-w-[90%] w-full sm:max-w-lg p-4 sm:p-6 rounded-xl">
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Workout</AlertDialogTitle>
             <AlertDialogDescription>
