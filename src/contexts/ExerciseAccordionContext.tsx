@@ -1,16 +1,18 @@
 
-import React, { createContext, useState, ReactNode } from "react";
+import React, { createContext, useState, ReactNode, useContext } from "react";
 
 interface ExerciseAccordionContextType {
   expandedExerciseId: string | null;
   workoutId: string | null;
   setExpandedExercise: (exerciseId: string | null, workoutId: string | null) => void;
+  resetAccordion: () => void;
 }
 
 export const ExerciseAccordionContext = createContext<ExerciseAccordionContextType>({
   expandedExerciseId: null,
   workoutId: null,
   setExpandedExercise: () => {},
+  resetAccordion: () => {},
 });
 
 interface ExerciseAccordionProviderProps {
@@ -26,9 +28,17 @@ export const ExerciseAccordionProvider: React.FC<ExerciseAccordionProviderProps>
     setWorkoutId(newWorkoutId);
   };
 
+  const resetAccordion = () => {
+    setExpandedExerciseId(null);
+    setWorkoutId(null);
+  };
+
   return (
-    <ExerciseAccordionContext.Provider value={{ expandedExerciseId, workoutId, setExpandedExercise }}>
+    <ExerciseAccordionContext.Provider value={{ expandedExerciseId, workoutId, setExpandedExercise, resetAccordion }}>
       {children}
     </ExerciseAccordionContext.Provider>
   );
 };
+
+// Custom hook to access the context
+export const useExerciseAccordion = () => useContext(ExerciseAccordionContext);

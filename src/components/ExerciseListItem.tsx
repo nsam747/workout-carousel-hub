@@ -97,10 +97,16 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
     if (expanded && !prevExpandedRef.current && exerciseRef.current) {
       setTimeout(() => {
         if (exerciseRef.current) {
-          // Scroll the exercise to be near the top of the viewport
-          const yOffset = -20; // 20px margin from the top
+          // Calculate header height - assuming the header has a fixed height or can be selected
+          const headerElement = document.querySelector('header') || document.querySelector('.sticky') || document.querySelector('.navbar');
+          const headerHeight = headerElement ? headerElement.getBoundingClientRect().height : 70; // Default to 70px if no header found
+          
+          // Add additional offset for padding/margin
+          const yOffset = headerHeight + 20; // 20px extra margin
+          
+          // Get the element's position
           const elementTop = exerciseRef.current.getBoundingClientRect().top;
-          const offsetPosition = elementTop + window.pageYOffset + yOffset;
+          const offsetPosition = elementTop + window.pageYOffset - yOffset;
           
           window.scrollTo({
             top: offsetPosition,
