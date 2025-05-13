@@ -9,12 +9,13 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
-import { Exercise, SelectedMetric, getExerciseTypes, getSavedExercises, saveExercise, supportedMetrics } from "@/lib/mockData";
+import { Exercise, SelectedMetric } from "@/lib/mockData";
 import { generateId } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { useExerciseTypes, useSupportedMetrics, useSavedExercises } from "@/hooks/useExerciseData";
 
 interface AddExerciseFormProps {
   onAddExercise: (exercise: Exercise) => void;
@@ -62,8 +63,10 @@ const AddExerciseForm: React.FC<AddExerciseFormProps> = ({
   // Changed from string | null to string[] for multi-select
   const [selectedExerciseIds, setSelectedExerciseIds] = useState<string[]>([]);
   
-  const exerciseTypes = getExerciseTypes();
-  const savedExercises = getSavedExercises();
+  // Use our new hooks
+  const { exerciseTypes, loading: typesLoading } = useExerciseTypes();
+  const { supportedMetrics, loading: metricsLoading } = useSupportedMetrics();
+  const { savedExercises, loading: savedExercisesLoading, saveExercise } = useSavedExercises();
   
   // Handle metric selection
   const handleMetricSelect = (metricType: string, isChecked: boolean) => {
@@ -175,10 +178,12 @@ const AddExerciseForm: React.FC<AddExerciseFormProps> = ({
   }, [selectedExerciseIds]);
   
   // Filter exercises based on search term
-  const filteredExercises = savedExercises.filter(ex => 
-    ex.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    (ex.type && ex.type.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  const filteredExercises = savedExercisesLoading 
+    ? [] 
+    : savedExercises.filter(ex => 
+        ex.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        (ex.type && ex.type.toLowerCase().includes(searchTerm.toLowerCase()))
+      );
   
   // Render exercise metric badges
   const renderMetricBadges = (exerciseMetrics: SelectedMetric[]) => {
@@ -220,7 +225,7 @@ const AddExerciseForm: React.FC<AddExerciseFormProps> = ({
                     <SelectValue placeholder="Exercise type" />
                   </SelectTrigger>
                   <SelectContent>
-                    {exerciseTypes.map((type) => (
+                    {!typesLoading && exerciseTypes.map((type) => (
                       <SelectItem key={type} value={type}>
                         {type}
                       </SelectItem>
@@ -236,7 +241,7 @@ const AddExerciseForm: React.FC<AddExerciseFormProps> = ({
                   </p>
                   
                   <div className="space-y-3">
-                    {supportedMetrics.map((metric) => (
+                    {!metricsLoading && supportedMetrics.map((metric) => (
                       <div key={metric.type} className="flex items-center space-x-2">
                         <Checkbox 
                           id={`metric-${metric.type}`} 
@@ -322,7 +327,7 @@ const AddExerciseForm: React.FC<AddExerciseFormProps> = ({
                 </div>
                 
                 <div className="max-h-90 overflow-y-auto border rounded-md">
-                  {filteredExercises.length > 0 ? (
+                  {!savedExercisesLoading && filteredExercises.length > 0 ? (
                     <div className="divide-y">
                       {filteredExercises.map(exercise => (
                         <div 

@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { ChevronDown, ChevronUp, Trash2, Image, StickyNote, Repeat, Weight, Timer, X } from "lucide-react";
 import { Button } from "@/components/ui/button";

@@ -43,9 +43,10 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise, workoutId }) => {
       // Small timeout to ensure the DOM has updated and the element is expanded
       setTimeout(() => {
         if (exerciseRef.current) {
-          // Account for sticky header (approx 60px)
-          const stickyHeaderHeight = 60;
+          // Account for sticky header (approx 70px)
+          const stickyHeaderHeight = 70;
           const yOffset = -stickyHeaderHeight - 20; // 20px additional margin
+          
           const exerciseTop = exerciseRef.current.getBoundingClientRect().top;
           const offsetPosition = exerciseTop + window.pageYOffset + yOffset;
           
