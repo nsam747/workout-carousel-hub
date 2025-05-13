@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { Trash, ChevronDown, ChevronUp, Image, Plus, X, Check, Save, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -441,7 +442,7 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
       </div>
       
       {expanded && (
-        <CardContent className="p-3 pt-0 animate-fade-in">
+        <CardContent className="p-3 pt-0 animate-accordion-down">
           <div className="space-y-3">
             {/* Performance metrics section */}
             <div>              
