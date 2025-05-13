@@ -89,7 +89,7 @@ const MonthCalendarCarousel: React.FC<MonthCalendarCarouselProps> = ({
       <TooltipProvider>
         <Tooltip delayDuration={300}>
           <TooltipTrigger asChild>
-            <div className="absolute bottom-1 left-0 right-0 flex justify-center">
+            <div className="absolute bottom-2 left-0 right-0 flex justify-center">
               <div className="flex gap-1">
                 {categoriesToShow.map((category, index) => {
                   const categoryInfo = getCategoryInfo(category);
@@ -149,7 +149,7 @@ const MonthCalendarCarousel: React.FC<MonthCalendarCarouselProps> = ({
         components={{
           DayContent: ({ date }) => (
             <div className="relative w-full h-full flex items-center justify-center">
-              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 min-h-[16px]">
+              <div className="absolute top-1 left-1/2 transform -translate-x-1/2 -translate-y-1/2 min-h-[16px]">
                 {format(date, 'd')}
               </div>
               {renderDayContent(date)}
