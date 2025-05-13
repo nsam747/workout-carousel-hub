@@ -1,11 +1,13 @@
 
-import React, { createContext, useState, ReactNode, useContext } from "react";
+import React, { createContext, useState, ReactNode, useContext, useEffect } from "react";
 
 interface ExerciseAccordionContextType {
   expandedExerciseId: string | null;
   workoutId: string | null;
   setExpandedExercise: (exerciseId: string | null, workoutId: string | null) => void;
   resetAccordion: () => void;
+  dateIdentifier: string | null; // Track the current date
+  setDateIdentifier: (date: string | null) => void; // Update date identifier
 }
 
 export const ExerciseAccordionContext = createContext<ExerciseAccordionContextType>({
@@ -13,6 +15,8 @@ export const ExerciseAccordionContext = createContext<ExerciseAccordionContextTy
   workoutId: null,
   setExpandedExercise: () => {},
   resetAccordion: () => {},
+  dateIdentifier: null,
+  setDateIdentifier: () => {},
 });
 
 interface ExerciseAccordionProviderProps {
@@ -22,6 +26,15 @@ interface ExerciseAccordionProviderProps {
 export const ExerciseAccordionProvider: React.FC<ExerciseAccordionProviderProps> = ({ children }) => {
   const [expandedExerciseId, setExpandedExerciseId] = useState<string | null>(null);
   const [workoutId, setWorkoutId] = useState<string | null>(null);
+  const [dateIdentifier, setDateIdentifier] = useState<string | null>(null);
+
+  // Reset accordion when date changes
+  useEffect(() => {
+    if (dateIdentifier) {
+      setExpandedExerciseId(null);
+      setWorkoutId(null);
+    }
+  }, [dateIdentifier]);
 
   const setExpandedExercise = (exerciseId: string | null, newWorkoutId: string | null) => {
     setExpandedExerciseId(exerciseId);
@@ -34,7 +47,14 @@ export const ExerciseAccordionProvider: React.FC<ExerciseAccordionProviderProps>
   };
 
   return (
-    <ExerciseAccordionContext.Provider value={{ expandedExerciseId, workoutId, setExpandedExercise, resetAccordion }}>
+    <ExerciseAccordionContext.Provider value={{ 
+      expandedExerciseId, 
+      workoutId, 
+      setExpandedExercise, 
+      resetAccordion,
+      dateIdentifier,
+      setDateIdentifier
+    }}>
       {children}
     </ExerciseAccordionContext.Provider>
   );
