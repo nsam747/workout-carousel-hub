@@ -31,7 +31,9 @@ const MonthCalendarCarousel: React.FC<MonthCalendarCarouselProps> = ({
   // Get all workouts and organize them by date
   const allWorkouts = getAllWorkouts();
   const workoutsByDate = allWorkouts.reduce((acc, workout) => {
-    const dateKey = workout.date.toDateString();
+    // Convert string date to Date object before calling toDateString
+    const workoutDate = new Date(workout.date);
+    const dateKey = workoutDate.toDateString();
     if (!acc[dateKey]) {
       acc[dateKey] = [];
     }

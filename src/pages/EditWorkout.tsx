@@ -1,4 +1,3 @@
-
 /**
  * EditWorkout Page Component
  * 
@@ -102,7 +101,7 @@ const EditWorkout = () => {
       title: workoutTitle,
       category: selectedCategory,
       exercises,
-      date: workoutDate, // Use the selected date from the date picker
+      date: workoutDate.toISOString(), // Convert Date to string
       completed: false // Keep the original completion status or update it
     };
     
