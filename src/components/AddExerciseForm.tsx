@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Check, X, Plus, Search, Weight, Timer, Repeat, Clock, Ruler, Dumbbell } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -178,7 +177,7 @@ const AddExerciseForm: React.FC<AddExerciseFormProps> = ({
   // Filter exercises based on search term
   const filteredExercises = savedExercises.filter(ex => 
     ex.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    ex.type.toLowerCase().includes(searchTerm.toLowerCase())
+    (ex.type && ex.type.toLowerCase().includes(searchTerm.toLowerCase()))
   );
   
   // Render exercise metric badges
@@ -378,7 +377,6 @@ const AddExerciseForm: React.FC<AddExerciseFormProps> = ({
                     </Button>
                   </div>
                 </div>
-              
               </TabsContent>
             </Tabs>
           </div>

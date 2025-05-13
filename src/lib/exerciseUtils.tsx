@@ -1,5 +1,5 @@
 
-import { Exercise, Metric } from "@/lib/mockData";
+import { Exercise, ExerciseMetric as Metric } from "@/lib/mockData";
 import { Clock, Dumbbell, Hash, StickyNote, Ruler, Timer, Repeat, Image } from "lucide-react";
 import { ReactNode } from "react";
 

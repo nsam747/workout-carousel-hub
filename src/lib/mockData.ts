@@ -1,4 +1,3 @@
-
 // Mock Data Types
 export interface ExerciseType {
   id: string;
@@ -6,6 +5,12 @@ export interface ExerciseType {
   category: string;
   targetMuscles: string[];
   description?: string;
+}
+
+export interface Metric {
+  type: string;
+  value: number;
+  unit: string;
 }
 
 export interface ExerciseMetric {
@@ -19,12 +24,19 @@ export interface ExerciseSet {
   metrics: ExerciseMetric[];
 }
 
+export interface SelectedMetric {
+  type: string;
+  unit: string;
+}
+
 export interface Exercise {
   id: string;
   name: string;
+  type?: string;
   sets?: ExerciseSet[];
   notes?: string;
   media?: string[];
+  selectedMetrics?: SelectedMetric[];
 }
 
 export interface Workout {
@@ -49,6 +61,83 @@ export interface CategoryInfo {
   color: string;
   icon: string;
 }
+
+// Define the supported metrics for exercises
+export const supportedMetrics = [
+  {
+    type: 'weight',
+    defaultUnit: 'kg',
+    availableUnits: ['kg', 'lbs']
+  },
+  {
+    type: 'distance',
+    defaultUnit: 'km',
+    availableUnits: ['km', 'miles', 'm']
+  },
+  {
+    type: 'duration',
+    defaultUnit: 'min',
+    availableUnits: ['sec', 'min', 'hour']
+  },
+  {
+    type: 'repetitions',
+    defaultUnit: 'reps',
+    availableUnits: ['reps']
+  },
+  {
+    type: 'restTime',
+    defaultUnit: 'sec',
+    availableUnits: ['sec', 'min']
+  }
+];
+
+// Mock data for saved exercises
+const savedExercises: Exercise[] = [
+  {
+    id: "saved-ex-1",
+    name: "Bench Press",
+    type: "Strength",
+    selectedMetrics: [
+      { type: "weight", unit: "kg" },
+      { type: "repetitions", unit: "reps" }
+    ]
+  },
+  {
+    id: "saved-ex-2",
+    name: "Squat",
+    type: "Strength",
+    selectedMetrics: [
+      { type: "weight", unit: "kg" },
+      { type: "repetitions", unit: "reps" }
+    ]
+  },
+  {
+    id: "saved-ex-3",
+    name: "Deadlift",
+    type: "Strength",
+    selectedMetrics: [
+      { type: "weight", unit: "kg" },
+      { type: "repetitions", unit: "reps" }
+    ]
+  },
+  {
+    id: "saved-ex-4",
+    name: "Running",
+    type: "Cardio",
+    selectedMetrics: [
+      { type: "distance", unit: "km" },
+      { type: "duration", unit: "min" }
+    ]
+  },
+  {
+    id: "saved-ex-5",
+    name: "Plank",
+    type: "Core",
+    selectedMetrics: [
+      { type: "duration", unit: "sec" }
+    ]
+  }
+];
 
 // Mock data
 export const mockExerciseTypes: ExerciseType[] = [
@@ -677,7 +766,7 @@ export const dateRange = (() => {
 })();
 
 // Helper functions - These will be converted to hooks
-export const getExerciseTypes = () => mockExerciseTypes;
+export const getExerciseTypes = () => mockExerciseTypes.map(type => type.name);
 
 export const getAllCategories = () => mockCategories;
 
@@ -699,7 +788,32 @@ export const getWorkoutsByDate = (date: Date) => {
   });
 };
 
+export const getWorkoutsForYesterday = () => {
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  return getWorkoutsByDate(yesterday);
+};
+
+export const getWorkoutsForPastWeek = () => {
+  const today = new Date();
+  const oneWeekAgo = new Date();
+  oneWeekAgo.setDate(today.getDate() - 7);
+  
+  return mockWorkouts.filter(workout => {
+    const workoutDate = new Date(workout.date);
+    return workoutDate >= oneWeekAgo && workoutDate < today;
+  });
+};
+
 export const getAllWorkouts = () => mockWorkouts;
+
+export const deleteWorkout = (id: string) => {
+  const index = mockWorkouts.findIndex(workout => workout.id === id);
+  if (index !== -1) {
+    mockWorkouts.splice(index, 1);
+  }
+  return mockWorkouts;
+};
 
 export const getCategoryInfo = (category: string): CategoryInfo => {
   const colors: Record<string, string> = {
@@ -726,4 +840,40 @@ export const getCategoryInfo = (category: string): CategoryInfo => {
   const icon = icons[category] || 'activity'; // Default icon if not found
   
   return { color, icon };
+};
+
+// Functions for handling saved exercises
+export const getSavedExercises = () => {
+  return savedExercises;
+};
+
+export const saveExercise = (exercise: Exercise) => {
+  // Check if this is an update or new exercise
+  const existingIndex = savedExercises.findIndex(ex => ex.id === exercise.id);
+  
+  if (existingIndex !== -1) {
+    // Update existing
+    savedExercises[existingIndex] = exercise;
+  } else {
+    // Add new
+    savedExercises.push(exercise);
+  }
+  
+  return savedExercises;
+};
+
+// Category creation and update
+export const createCategory = (categoryInfo: { name: string, color: string, icon: string | null }) => {
+  if (!mockCategories.includes(categoryInfo.name)) {
+    mockCategories.push(categoryInfo.name);
+  }
+  return mockCategories;
+};
+
+export const updateCategory = (oldName: string, newInfo: { name: string, color: string, icon: string | null }) => {
+  const index = mockCategories.indexOf(oldName);
+  if (index !== -1) {
+    mockCategories[index] = newInfo.name;
+  }
+  return mockCategories;
 };
