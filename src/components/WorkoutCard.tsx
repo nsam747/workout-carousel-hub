@@ -125,7 +125,7 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout, onDelete }) => {
             {workout.title}
           </h3>
           
-          {/* Bottom row - Category, count, date */}
+          {/* Bottom row with category tag and exercise count */}
           <div className="flex flex-row flex-wrap items-center justify-between gap-x-3 gap-y-1 mt-2">
             <div className="flex flex-row flex-wrap items-center gap-x-3 gap-y-1">
               <span
@@ -152,57 +152,59 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout, onDelete }) => {
                 {workout.exercises.length !== 1 ? "s" : ""}
               </span>
             </div>
-            
-            {/* Date moved inline with category */}
-            <span className="text-sm text-muted-foreground whitespace-nowrap select-none">
-              {formatWorkoutDate(workout.date)}
-            </span>
           </div>
         </div>
         
-        <div className="flex items-center gap-2">
-          {/* Action buttons and expand toggle in the same row */}
-          <div className={cn(
-            "flex items-center gap-2 transition-all duration-300", 
-            expanded ? "opacity-100" : "opacity-0 pointer-events-none"
-          )}>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 rounded-full"
-              onClick={handleDeleteWorkout}
-              title="Delete Workout"
-            >
-              <Trash2 className="h-4 w-4 text-muted-foreground" />
-            </Button>
+        <div className="flex flex-col items-end">
+          <div className="flex items-center gap-2">
+            {/* Action buttons and expand toggle in the same row */}
+            <div className={cn(
+              "flex items-center gap-2 transition-all duration-300", 
+              expanded ? "opacity-100" : "opacity-0 pointer-events-none"
+            )}>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 rounded-full"
+                onClick={handleDeleteWorkout}
+                title="Delete Workout"
+              >
+                <Trash2 className="h-4 w-4 text-muted-foreground" />
+              </Button>
+              
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 rounded-full"
+                onClick={handleEditWorkout}
+                title="Edit Workout"
+              >
+                <Edit2 className="h-4 w-4" />
+              </Button>
+            </div>
             
+            {/* Toggle expand button - always visible */}
             <Button
               variant="ghost"
               size="icon"
               className="h-8 w-8 rounded-full"
-              onClick={handleEditWorkout}
-              title="Edit Workout"
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleExpanded();
+              }}
             >
-              <Edit2 className="h-4 w-4" />
+              {expanded ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
             </Button>
           </div>
           
-          {/* Toggle expand button - always visible */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 rounded-full"
-            onClick={(e) => {
-              e.stopPropagation();
-              toggleExpanded();
-            }}
-          >
-            {expanded ? (
-              <ChevronUp className="h-4 w-4" />
-            ) : (
-              <ChevronDown className="h-4 w-4" />
-            )}
-          </Button>
+          {/* Date right below the chevron */}
+          <span className="text-sm text-muted-foreground whitespace-nowrap select-none mt-2">
+            {formatWorkoutDate(workout.date)}
+          </span>
         </div>
       </div>
 

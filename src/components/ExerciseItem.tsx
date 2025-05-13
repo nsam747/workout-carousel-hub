@@ -11,7 +11,8 @@ import {
   Ruler, 
   Timer, 
   Repeat, 
-  Image
+  Image,
+  X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -369,7 +370,18 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise, workoutId }) => {
             </div>
           )}
           
-          {/* Close button removed as requested */}
+          {/* Restored close button */}
+          <div className="flex justify-center mt-4 mb-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="rounded-full"
+              onClick={toggleExpanded}
+            >
+              <X className="h-4 w-4 mr-2" />
+              Close
+            </Button>
+          </div>
         </div>
       )}
     </div>

@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, createContext, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,56 @@ import { getAllCategories } from "@/lib/mockData";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 import { Exercise, Workout } from "@/lib/mockData";
+
+// Create a local context for exercise accordion in AddWorkout
+interface AddWorkoutExerciseAccordionContextType {
+  expandedExerciseId: string | null;
+  setExpandedExerciseId: (id: string | null) => void;
+}
+
+const AddWorkoutExerciseAccordionContext = createContext<AddWorkoutExerciseAccordionContextType>({
+  expandedExerciseId: null,
+  setExpandedExerciseId: () => {},
+});
+
+// Provider component
+const AddWorkoutExerciseAccordionProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
+  const [expandedExerciseId, setExpandedExerciseId] = useState<string | null>(null);
+  
+  return (
+    <AddWorkoutExerciseAccordionContext.Provider value={{ expandedExerciseId, setExpandedExerciseId }}>
+      {children}
+    </AddWorkoutExerciseAccordionContext.Provider>
+  );
+};
+
+// Modified ExerciseListItem with accordion context
+const AccordionExerciseListItem: React.FC<{
+  exercise: Exercise;
+  onRemove: (id: string) => void;
+  onExerciseUpdate: (exercise: Exercise) => void;
+  isNewlyAdded: boolean;
+}> = ({ exercise, onRemove, onExerciseUpdate, isNewlyAdded }) => {
+  const { expandedExerciseId, setExpandedExerciseId } = useContext(AddWorkoutExerciseAccordionContext);
+  
+  // We'll wrap the original ExerciseListItem and add accordion behavior
+  return (
+    <ExerciseListItem
+      exercise={exercise}
+      onRemove={onRemove}
+      onExerciseUpdate={onExerciseUpdate}
+      isNewlyAdded={isNewlyAdded}
+      isExpanded={expandedExerciseId === exercise.id}
+      onToggleExpand={(isExpanded) => {
+        if (isExpanded) {
+          setExpandedExerciseId(exercise.id);
+        } else {
+          setExpandedExerciseId(null);
+        }
+      }}
+    />
+  );
+};
 
 const AddWorkout = () => {
   const navigate = useNavigate();
@@ -142,7 +192,7 @@ const AddWorkout = () => {
             onCreateCategory={handleCreateCategory}
           />
           
-          {/* Exercises */}
+          {/* Exercises - now with accordion context */}
           <div>
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-sm font-medium">Exercises</h2>
@@ -193,39 +243,41 @@ const AddWorkout = () => {
                 </Button>
               </div>
             ) : (
-              <div className="space-y-2">
-                {exercises.map((exercise) => (
-                  <ExerciseListItem
-                    key={exercise.id}
-                    exercise={exercise}
-                    onRemove={handleRemoveExercise}
-                    onExerciseUpdate={handleExerciseUpdate}
-                    isNewlyAdded={exercise.id === lastAddedExerciseId}
-                  />
-                ))}
-                
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsAddingExercise(true)}
-                  className="w-full mt-2"
-                >
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    className="h-4 w-4 mr-2"
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    stroke="currentColor"
-                    strokeWidth="2" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round"
+              <AddWorkoutExerciseAccordionProvider>
+                <div className="space-y-2">
+                  {exercises.map((exercise) => (
+                    <AccordionExerciseListItem
+                      key={exercise.id}
+                      exercise={exercise}
+                      onRemove={handleRemoveExercise}
+                      onExerciseUpdate={handleExerciseUpdate}
+                      isNewlyAdded={exercise.id === lastAddedExerciseId}
+                    />
+                  ))}
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsAddingExercise(true)}
+                    className="w-full mt-2"
                   >
-                    <circle cx="12" cy="12" r="10" />
-                    <path d="M12 8v8M8 12h8" />
-                  </svg>
-                  Add Exercise
-                </Button>
-              </div>
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      className="h-4 w-4 mr-2"
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor"
+                      strokeWidth="2" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round"
+                    >
+                      <circle cx="12" cy="12" r="10" />
+                      <path d="M12 8v8M8 12h8" />
+                    </svg>
+                    Add Exercise
+                  </Button>
+                </div>
+              </AddWorkoutExerciseAccordionProvider>
             )}
           </div>
         </div>
