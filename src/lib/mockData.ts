@@ -1,3 +1,4 @@
+
 import { v4 as uuidv4 } from 'uuid';
 import { addDays, subDays, format, isSameDay, parseISO } from 'date-fns';
 
@@ -168,6 +169,190 @@ export const mockWorkouts: Workout[] = [
           }
         ],
         notes: "Keep knees tracking over toes, not inward. Remember to breathe!",
+        media: []
+      }
+    ]
+  },
+  // Add three new workouts for today
+  {
+    id: "workout-today-1",
+    title: "Afternoon Yoga",
+    category: "Flexibility",
+    date: new Date().toISOString(),
+    completed: true,
+    exercises: [
+      {
+        id: "ex-today-1-1",
+        name: "Sun Salutation",
+        type: "Flexibility",
+        sets: [
+          {
+            id: "set-today-1-1-1",
+            setNumber: 1,
+            metrics: [
+              { id: "m-today-1-1-1-1", type: "duration", value: 15, unit: "min" }
+            ]
+          }
+        ],
+        notes: "Focused on fluid transitions between poses. Maintained deep breathing throughout.",
+        media: []
+      },
+      {
+        id: "ex-today-1-2",
+        name: "Warrior Sequence",
+        type: "Flexibility",
+        sets: [
+          {
+            id: "set-today-1-2-1",
+            setNumber: 1,
+            metrics: [
+              { id: "m-today-1-2-1-1", type: "duration", value: 10, unit: "min" }
+            ]
+          }
+        ],
+        notes: "Held each warrior pose for 5 deep breaths. Focused on alignment and stability.",
+        media: []
+      }
+    ]
+  },
+  {
+    id: "workout-today-2",
+    title: "Evening Cardio",
+    category: "Cardio",
+    date: new Date().toISOString(),
+    completed: true,
+    exercises: [
+      {
+        id: "ex-today-2-1",
+        name: "Interval Running",
+        type: "Cardio",
+        sets: [
+          {
+            id: "set-today-2-1-1",
+            setNumber: 1,
+            metrics: [
+              { id: "m-today-2-1-1-1", type: "distance", value: 5, unit: "km" },
+              { id: "m-today-2-1-1-2", type: "duration", value: 25, unit: "min" }
+            ]
+          }
+        ],
+        notes: "Alternated between 1 minute sprint and 2 minutes jogging. Heart rate peaked at 165 bpm.",
+        media: []
+      },
+      {
+        id: "ex-today-2-2",
+        name: "Cool Down Walk",
+        type: "Cardio",
+        sets: [
+          {
+            id: "set-today-2-2-1",
+            setNumber: 1,
+            metrics: [
+              { id: "m-today-2-2-1-1", type: "distance", value: 1, unit: "km" },
+              { id: "m-today-2-2-1-2", type: "duration", value: 10, unit: "min" }
+            ]
+          }
+        ],
+        notes: "Focused on deep breathing and gradually lowering heart rate.",
+        media: []
+      }
+    ]
+  },
+  {
+    id: "workout-today-3",
+    title: "Core Workout",
+    category: "Core",
+    date: new Date().toISOString(),
+    completed: false,
+    exercises: [
+      {
+        id: "ex-today-3-1",
+        name: "Plank Circuit",
+        type: "Core",
+        sets: [
+          {
+            id: "set-today-3-1-1",
+            setNumber: 1,
+            metrics: [
+              { id: "m-today-3-1-1-1", type: "duration", value: 60, unit: "sec" }
+            ]
+          },
+          {
+            id: "set-today-3-1-2",
+            setNumber: 2,
+            metrics: [
+              { id: "m-today-3-1-2-1", type: "duration", value: 45, unit: "sec" }
+            ]
+          },
+          {
+            id: "set-today-3-1-3",
+            setNumber: 3,
+            metrics: [
+              { id: "m-today-3-1-3-1", type: "duration", value: 30, unit: "sec" }
+            ]
+          }
+        ],
+        notes: "Rotated between standard, side, and reverse planks. Focus on maintaining proper form.",
+        media: []
+      },
+      {
+        id: "ex-today-3-2",
+        name: "Russian Twists",
+        type: "Core",
+        sets: [
+          {
+            id: "set-today-3-2-1",
+            setNumber: 1,
+            metrics: [
+              { id: "m-today-3-2-1-1", type: "repetitions", value: 20, unit: "reps" }
+            ]
+          },
+          {
+            id: "set-today-3-2-2",
+            setNumber: 2,
+            metrics: [
+              { id: "m-today-3-2-2-1", type: "repetitions", value: 20, unit: "reps" }
+            ]
+          },
+          {
+            id: "set-today-3-2-3",
+            setNumber: 3,
+            metrics: [
+              { id: "m-today-3-2-3-1", type: "repetitions", value: 15, unit: "reps" }
+            ]
+          }
+        ],
+        notes: "Used a 5kg medicine ball. Kept feet slightly elevated throughout.",
+        media: []
+      },
+      {
+        id: "ex-today-3-3",
+        name: "Leg Raises",
+        type: "Core",
+        sets: [
+          {
+            id: "set-today-3-3-1",
+            setNumber: 1,
+            metrics: [
+              { id: "m-today-3-3-1-1", type: "repetitions", value: 15, unit: "reps" }
+            ]
+          },
+          {
+            id: "set-today-3-3-2",
+            setNumber: 2,
+            metrics: [
+              { id: "m-today-3-3-2-1", type: "repetitions", value: 12, unit: "reps" }
+            ]
+          },
+          {
+            id: "set-today-3-3-3",
+            setNumber: 3,
+            metrics: [
+              { id: "m-today-3-3-3-1", type: "repetitions", value: 10, unit: "reps" }
+            ]
+          }
+        ],
+        notes: "Focused on controlled movements, avoiding swinging. Kept lower back pressed against floor.",
         media: []
       }
     ]

@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Trash, ChevronDown, ChevronUp, Image, Plus, X, Check, Save, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -69,11 +68,17 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
   // Use internal state if not controlled externally
   const [internalExpanded, setInternalExpanded] = useState(isNewlyAdded);
   
+  // Add a ref for scrolling
+  const exerciseRef = useRef<HTMLDivElement>(null);
+  
   // Determine if component is controlled or uncontrolled
   const isControlled = controlledExpanded !== undefined && onToggleExpand !== undefined;
   
   // Use either controlled or internal state
   const expanded = isControlled ? controlledExpanded : internalExpanded;
+  
+  // Track previous expanded state
+  const prevExpandedRef = useRef(expanded);
   
   // Handle expansion state changes
   const handleExpandToggle = () => {
@@ -85,6 +90,29 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
       setInternalExpanded(!internalExpanded);
     }
   };
+  
+  // Add scroll effect when expanded changes
+  useEffect(() => {
+    // Only scroll if item is being expanded (not collapsed)
+    if (expanded && !prevExpandedRef.current && exerciseRef.current) {
+      setTimeout(() => {
+        if (exerciseRef.current) {
+          // Scroll the exercise to be near the top of the viewport
+          const yOffset = -20; // 20px margin from the top
+          const elementTop = exerciseRef.current.getBoundingClientRect().top;
+          const offsetPosition = elementTop + window.pageYOffset + yOffset;
+          
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+          });
+        }
+      }, 100);
+    }
+    
+    // Update the previous expanded state
+    prevExpandedRef.current = expanded;
+  }, [expanded]);
   
   const [notes, setNotes] = useState(exercise.notes || "");
   const [sets, setSets] = useState<SetData[]>([]);
@@ -349,7 +377,7 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
   };
 
   return (
-    <Card className="overflow-hidden animate-scale-in">
+    <Card className="overflow-hidden animate-scale-in" ref={exerciseRef}>
       <div 
         className="p-3 flex items-start justify-between cursor-pointer" 
         onClick={handleExpandToggle}

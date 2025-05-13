@@ -1,5 +1,5 @@
 
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useContext, useEffect, useRef } from "react";
 import { Exercise } from "@/lib/mockData";
 import { 
   ChevronDown, 
@@ -30,10 +30,32 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise, workoutId }) => {
   // Use the exercise accordion context
   const { expandedExerciseId, workoutId: contextWorkoutId, setExpandedExercise } = useContext(ExerciseAccordionContext);
   
+  // Create a ref for the exercise item element
+  const exerciseRef = useRef<HTMLDivElement>(null);
+  
   // Update expanded state based on context
   useEffect(() => {
-    setExpanded(expandedExerciseId === exercise.id && contextWorkoutId === workoutId);
-  }, [expandedExerciseId, exercise.id, contextWorkoutId, workoutId]);
+    const newExpanded = expandedExerciseId === exercise.id && contextWorkoutId === workoutId;
+    setExpanded(newExpanded);
+    
+    // If this exercise was just expanded, scroll it into view
+    if (newExpanded && !expanded && exerciseRef.current) {
+      // Small timeout to ensure the DOM has updated and the element is expanded
+      setTimeout(() => {
+        if (exerciseRef.current) {
+          // Scroll the exercise to be near the top of the viewport
+          const yOffset = -20; // 20px margin from the top
+          const exerciseTop = exerciseRef.current.getBoundingClientRect().top;
+          const offsetPosition = exerciseTop + window.pageYOffset + yOffset;
+          
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+          });
+        }
+      }, 100);
+    }
+  }, [expandedExerciseId, exercise.id, contextWorkoutId, workoutId, expanded]);
 
   const toggleExpanded = () => {
     if (expanded) {
@@ -265,7 +287,7 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise, workoutId }) => {
   const summaryContent = generateExerciseSummary(exercise);
 
   return (
-    <div className="mb-0 bg-white/90 border-b border-border last:border-b-0 overflow-hidden animate-slide-up animation-delay-100">
+    <div ref={exerciseRef} className="mb-0 bg-white/90 border-b border-border last:border-b-0 overflow-hidden animate-slide-up animation-delay-100">
       <div 
         className="px-4 py-3 cursor-pointer flex items-start justify-between"
         onClick={toggleExpanded}
@@ -370,7 +392,7 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise, workoutId }) => {
             </div>
           )}
           
-          {/* Restored close button */}
+          {/* Close button */}
           <div className="flex justify-center mt-4 mb-2">
             <Button
               variant="ghost"
