@@ -6,8 +6,6 @@ import { cn } from "@/lib/utils";
 import { getWorkoutsByDate, getAllWorkouts, getCategoryInfo, Workout } from "@/lib/mockData";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { WorkoutAccordionContext } from "@/contexts/WorkoutAccordionContext";
-import { ExerciseAccordionContext } from "@/contexts/ExerciseAccordionContext";
 
 interface MonthCalendarCarouselProps {
   selectedDate: Date;

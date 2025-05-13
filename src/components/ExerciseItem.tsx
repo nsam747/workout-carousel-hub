@@ -28,7 +28,7 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise, workoutId }) => {
   const [expanded, setExpanded] = useState(false);
   
   // Use the exercise accordion context
-  const { expandedExerciseId, workoutId: contextWorkoutId, setExpandedExercise } = useContext(ExerciseAccordionContext);
+  const { expandedExerciseId, expandedWorkoutId: contextWorkoutId, setExpandedExercise } = useContext(ExerciseAccordionContext);
   
   // Create a ref for the exercise item element
   const exerciseRef = useRef<HTMLDivElement>(null);

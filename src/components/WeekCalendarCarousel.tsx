@@ -4,8 +4,6 @@ import { dateRange } from "@/lib/mockData";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { WorkoutAccordionContext } from "@/contexts/WorkoutAccordionContext";
-import { ExerciseAccordionContext } from "@/contexts/ExerciseAccordionContext";
 
 interface WeekCalendarCarouselProps {
   selectedDate: Date;

@@ -3,8 +3,9 @@ import React, { createContext, useState, ReactNode, useContext, useEffect } from
 
 interface ExerciseAccordionContextType {
   expandedExerciseId: string | null;
-  workoutId: string | null;
+  expandedWorkoutId: string | null;
   setExpandedExercise: (exerciseId: string | null, workoutId: string | null) => void;
+  setExpandedWorkoutId: (workoutId: string) => void;
   resetAccordion: () => void;
   selectedDate: Date | null;
   setSelectedDate: (date: Date) => void;
@@ -12,10 +13,11 @@ interface ExerciseAccordionContextType {
 
 export const ExerciseAccordionContext = createContext<ExerciseAccordionContextType>({
   expandedExerciseId: null,
-  workoutId: null,
+  expandedWorkoutId: null,
   setExpandedExercise: () => {},
+  setExpandedWorkoutId: () => {},
   resetAccordion: () => {},
-  selectedDate: null,
+  selectedDate: new Date(),
   setSelectedDate: () => {},
 });
 
@@ -25,31 +27,30 @@ interface ExerciseAccordionProviderProps {
 
 export const ExerciseAccordionProvider: React.FC<ExerciseAccordionProviderProps> = ({ children }) => {
   const [expandedExerciseId, setExpandedExerciseId] = useState<string | null>(null);
-  const [workoutId, setWorkoutId] = useState<string | null>(null);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [expandedWorkoutId, setExpandedWorkoutId] = useState<string | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
   // Reset accordion when date changes
   useEffect(() => {
-    if (selectedDate) {
-      resetAccordion();
-    }
+    resetAccordion();
   }, [selectedDate]);
 
   const setExpandedExercise = (exerciseId: string | null, newWorkoutId: string | null) => {
     setExpandedExerciseId(exerciseId);
-    setWorkoutId(newWorkoutId);
+    setExpandedWorkoutId(newWorkoutId);
   };
 
   const resetAccordion = () => {
     setExpandedExerciseId(null);
-    setWorkoutId(null);
+    setExpandedWorkoutId(null);
   };
 
   return (
     <ExerciseAccordionContext.Provider 
       value={{ 
         expandedExerciseId, 
-        workoutId, 
+        expandedWorkoutId, 
+        setExpandedWorkoutId,
         setExpandedExercise, 
         resetAccordion,
         selectedDate,

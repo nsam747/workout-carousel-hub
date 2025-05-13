@@ -7,14 +7,14 @@ import WorkoutList from "@/components/WorkoutList";
 import { Button } from "@/components/ui/button";
 import { CalendarDays, Calendar as CalendarIcon } from "lucide-react";
 import BottomNavigation from "@/components/BottomNavigation";
-import { WorkoutAccordionContext } from "@/contexts/WorkoutAccordionContext";
+import { ExerciseAccordionContext } from "@/contexts/ExerciseAccordionContext";
 
 const Index = () => {
   const [viewMode, setViewMode] = useState<"week" | "month">("week");
   const navigate = useNavigate();
   
   // Access contexts to update selected date
-  const workoutAccordion = useContext(WorkoutAccordionContext);
+  const exerciseAccordion = useContext(ExerciseAccordionContext);
 
   return (
     <div className="bg-gradient-to-b from-background to-secondary/50 min-h-screen pb-20">
@@ -50,17 +50,17 @@ const Index = () => {
 
         {viewMode === "week" ? (
           <WeekCalendarCarousel 
-            selectedDate={workoutAccordion.selectedDate} 
-            onDateSelect={workoutAccordion.setSelectedDate} 
+            selectedDate={exerciseAccordion.selectedDate} 
+            onDateSelect={exerciseAccordion.setSelectedDate} 
           />
         ) : (
           <MonthCalendarCarousel 
-            selectedDate={workoutAccordion.selectedDate} 
-            onDateSelect={workoutAccordion.setSelectedDate} 
+            selectedDate={exerciseAccordion.selectedDate} 
+            onDateSelect={exerciseAccordion.setSelectedDate} 
           />
         )}
 
-        <WorkoutList selectedDate={workoutAccordion.selectedDate} />
+        <WorkoutList selectedDate={exerciseAccordion.selectedDate} />
       </div>
       
       <BottomNavigation />

@@ -6,16 +6,11 @@ import AddWorkout from "./pages/AddWorkout";
 import EditWorkout from "./pages/EditWorkout";
 import NotFound from "./pages/NotFound";
 import { Toaster } from "./components/ui/sonner";
-import { WorkoutAccordionProvider } from "./contexts/WorkoutAccordionContext";
 import { ExerciseAccordionProvider } from "./contexts/ExerciseAccordionContext";
 
 function App() {
-  // Create a single instance of initial date to share across providers
-  const initialDate = new Date();
-
   return (
     <BrowserRouter>
-      <WorkoutAccordionProvider>
         <ExerciseAccordionProvider>
           <Routes>
             <Route path="/" element={<Index />} />
@@ -25,7 +20,6 @@ function App() {
           </Routes>
           <Toaster position="top-center" />
         </ExerciseAccordionProvider>
-      </WorkoutAccordionProvider>
     </BrowserRouter>
   );
 }
