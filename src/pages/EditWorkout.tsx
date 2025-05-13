@@ -6,7 +6,7 @@
  * It reuses the same structure as AddWorkout but loads the existing workout data.
  */
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,40 @@ import DateTimeSelector from "@/components/DateTimeSelector";
 import { getAllCategories, getWorkoutById } from "@/lib/mockData";
 import { toast } from "sonner";
 import { Exercise, Workout } from "@/lib/mockData";
-import { ExerciseAccordionProvider } from "@/contexts/ExerciseAccordionContext";
+import { ExerciseAccordionContext, ExerciseAccordionProvider } from "@/contexts/ExerciseAccordionContext";
+
+// Create a wrapper component that will handle the accordion functionality
+const AccordionExerciseListItem: React.FC<{
+  exercise: Exercise;
+  onRemove: (id: string) => void;
+  onExerciseUpdate: (updatedExercise: Exercise) => void;
+  isNewlyAdded: boolean;
+}> = ({ exercise, onRemove, onExerciseUpdate, isNewlyAdded }) => {
+  const { expandedExerciseId, setExpandedExercise } = useContext(ExerciseAccordionContext);
+  
+  // Check if this exercise is expanded
+  const isExpanded = expandedExerciseId === exercise.id;
+  
+  // Toggle expansion handler
+  const handleToggleExpand = (expanded: boolean) => {
+    if (expanded) {
+      setExpandedExercise(exercise.id, null);
+    } else {
+      setExpandedExercise(null, null);
+    }
+  };
+  
+  return (
+    <ExerciseListItem
+      exercise={exercise}
+      onRemove={onRemove}
+      onExerciseUpdate={onExerciseUpdate}
+      isNewlyAdded={isNewlyAdded}
+      isExpanded={isExpanded}
+      onToggleExpand={handleToggleExpand}
+    />
+  );
+};
 
 const EditWorkout = () => {
   const navigate = useNavigate();
@@ -244,7 +277,7 @@ const EditWorkout = () => {
               ) : (
                 <div className="space-y-2">
                   {exercises.map((exercise) => (
-                    <ExerciseListItem
+                    <AccordionExerciseListItem
                       key={exercise.id}
                       exercise={exercise}
                       onRemove={handleRemoveExercise}

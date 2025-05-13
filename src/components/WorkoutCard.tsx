@@ -1,4 +1,5 @@
-import React, { useState, useContext, useEffect } from "react";
+
+import React, { useState, useContext, useEffect, useRef } from "react";
 import { Workout, getCategoryInfo } from "@/lib/mockData";
 import { ChevronDown, ChevronUp, Edit2, Trash2 } from "lucide-react";
 import ExerciseItem from "./ExerciseItem";
@@ -32,10 +33,33 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout, onDelete }) => {
   // Use the accordion context
   const { expandedWorkoutId, setExpandedWorkoutId } = useContext(WorkoutAccordionContext);
   
+  // Create a ref to the workout card element
+  const cardRef = useRef<HTMLDivElement>(null);
+  
   // Update expanded state based on context
   useEffect(() => {
-    setExpanded(expandedWorkoutId === workout.id);
-  }, [expandedWorkoutId, workout.id]);
+    const newExpanded = expandedWorkoutId === workout.id;
+    setExpanded(newExpanded);
+    
+    // If this workout was just expanded, scroll it into view
+    if (newExpanded && !expanded && cardRef.current) {
+      // Small timeout to ensure the DOM has updated and the element is expanded
+      setTimeout(() => {
+        if (cardRef.current) {
+          // Scroll the card to be near the top of the viewport
+          // Calculate the position: element's distance from the top - some margin
+          const yOffset = -20; // 20px margin from the top
+          const cardTop = cardRef.current.getBoundingClientRect().top;
+          const offsetPosition = cardTop + window.pageYOffset + yOffset;
+          
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+          });
+        }
+      }, 100);
+    }
+  }, [expandedWorkoutId, workout.id, expanded]);
 
   const toggleExpanded = () => {
     if (expanded) {
@@ -110,7 +134,7 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout, onDelete }) => {
   };
 
   return (
-    <div className="mb-4 rounded-xl overflow-hidden glass-card animate-scale-in">
+    <div ref={cardRef} className="mb-4 rounded-xl overflow-hidden glass-card animate-scale-in">
       {/* Workout header */}
       <div
         className="px-4 py-4 flex items-start justify-between cursor-pointer"
