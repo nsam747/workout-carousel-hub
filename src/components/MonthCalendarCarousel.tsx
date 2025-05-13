@@ -149,7 +149,7 @@ const MonthCalendarCarousel: React.FC<MonthCalendarCarouselProps> = ({
         components={{
           DayContent: ({ date }) => (
             <div className="relative w-full h-full flex items-center justify-center">
-              <div className="absolute top-1 left-1/2 transform -translate-x-1/2 -translate-y-1/2 min-h-[16px]">
+              <div className="absolute top-4 left-1/2 transform -translate-x-1/2 -translate-y-1/2 min-h-[16px]">
                 {format(date, 'd')}
               </div>
               {renderDayContent(date)}
