@@ -46,6 +46,9 @@ interface ExerciseListItemProps {
   onRemove: (id: string) => void;
   onExerciseUpdate?: (updatedExercise: Exercise) => void;
   isNewlyAdded?: boolean;
+  // Add new props for accordion functionality
+  isExpanded?: boolean;
+  onToggleExpand?: (isExpanded: boolean) => void;
 }
 
 interface SetData {
@@ -58,9 +61,31 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
   exercise,
   onRemove,
   onExerciseUpdate,
-  isNewlyAdded = false
+  isNewlyAdded = false,
+  // Use new props with defaults
+  isExpanded: controlledExpanded,
+  onToggleExpand
 }) => {
-  const [expanded, setExpanded] = useState(isNewlyAdded);
+  // Use internal state if not controlled externally
+  const [internalExpanded, setInternalExpanded] = useState(isNewlyAdded);
+  
+  // Determine if component is controlled or uncontrolled
+  const isControlled = controlledExpanded !== undefined && onToggleExpand !== undefined;
+  
+  // Use either controlled or internal state
+  const expanded = isControlled ? controlledExpanded : internalExpanded;
+  
+  // Handle expansion state changes
+  const handleExpandToggle = () => {
+    if (isControlled && onToggleExpand) {
+      // In controlled mode, notify parent
+      onToggleExpand(!expanded);
+    } else {
+      // In uncontrolled mode, update internal state
+      setInternalExpanded(!internalExpanded);
+    }
+  };
+  
   const [notes, setNotes] = useState(exercise.notes || "");
   const [sets, setSets] = useState<SetData[]>([]);
   const [activeSetId, setActiveSetId] = useState<string | null>(null);
@@ -327,7 +352,7 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
     <Card className="overflow-hidden animate-scale-in">
       <div 
         className="p-3 flex items-start justify-between cursor-pointer" 
-        onClick={() => setExpanded(!expanded)}
+        onClick={handleExpandToggle}
         onDoubleClick={() => setIsEditingExercise(true)}
       >
         <div className="flex flex-col items-start gap-1 flex-1">
@@ -369,7 +394,7 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
             className="h-8 w-8 rounded-full"
             onClick={(e) => {
               e.stopPropagation();
-              setExpanded(!expanded);
+              handleExpandToggle();
             }}
           >
             {expanded ? (
@@ -572,7 +597,7 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
                   e.stopPropagation();
                   // Make sure any pending changes are saved
                   handleSaveNotes();
-                  setExpanded(false);
+                  handleExpandToggle();
                 }}
               >
                 <Save className="h-3.5 w-3.5 mr-1" />
