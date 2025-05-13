@@ -39,6 +39,7 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout, onDelete }) => {
   // Update expanded state based on context
   useEffect(() => {
     const newExpanded = expandedWorkoutId === workout.id;
+    console.log("Expanded Id = " + expandedWorkoutId);
     setExpanded(newExpanded);
     
     // If this workout was just expanded, scroll it into view
