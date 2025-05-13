@@ -6,7 +6,7 @@ export interface Workout {
   title: string;
   category: string;
   exercises: Exercise[];
-  date: Date;
+  date: string; // Updated to string to match actual usage
   completed: boolean;
 }
 
@@ -458,7 +458,7 @@ const mockExercises: Exercise[] = [
   },
 ];
 
-// Mock data for workouts
+// Convert dates to strings in workout objects for consistency
 const today = new Date();
 const yesterday = new Date(today);
 yesterday.setDate(today.getDate() - 1);
@@ -473,7 +473,7 @@ const todayWorkouts: Workout[] = [
     title: "Morning Strength",
     category: "Strength",
     exercises: [mockExercises[0], mockExercises[3], mockExercises[4]],
-    date: today,
+    date: today.toISOString(), // Convert to string
     completed: true,
   },
   {
@@ -481,7 +481,7 @@ const todayWorkouts: Workout[] = [
     title: "Evening Cardio",
     category: "Cardio",
     exercises: [mockExercises[1], mockExercises[5]],
-    date: today,
+    date: today.toISOString(), // Convert to string
     completed: false,
   },
   {
@@ -489,7 +489,7 @@ const todayWorkouts: Workout[] = [
     title: "Afternoon Yoga",
     category: "Yoga",
     exercises: [mockExercises[2]],
-    date: today,
+    date: today.toISOString(), // Convert to string
     completed: false,
   },
   {
@@ -497,7 +497,7 @@ const todayWorkouts: Workout[] = [
     title: "Night HIIT",
     category: "HIIT",
     exercises: [mockExercises[9]],
-    date: today,
+    date: today.toISOString(), // Convert to string
     completed: false,
   },
 ];
@@ -508,7 +508,7 @@ const yesterdayWorkouts: Workout[] = [
     title: "Yoga Session",
     category: "Yoga",
     exercises: [mockExercises[2]],
-    date: yesterday,
+    date: yesterday.toISOString(), // Convert to string
     completed: true,
   },
 ];
@@ -519,7 +519,7 @@ const pastWeekWorkouts: Workout[] = [
     title: "Full Body Workout",
     category: "HIIT",
     exercises: [mockExercises[6], mockExercises[7], mockExercises[8]],
-    date: pastWeek,
+    date: pastWeek.toISOString(), // Convert to string
     completed: true,
   },
 ];
@@ -530,7 +530,7 @@ const otherWorkouts: Workout[] = [
     title: "Long Run",
     category: "Cardio",
     exercises: [mockExercises[9]],
-    date: otherDay,
+    date: otherDay.toISOString(), // Convert to string
     completed: false,
   },
 ];
@@ -548,12 +548,11 @@ export const getAllWorkouts = (): Workout[] => {
 // Function to get workouts by date
 export const getWorkoutsByDate = (date: Date): Workout[] => {
   const formattedDate = date.toDateString();
-  return [
-    ...todayWorkouts.filter(workout => workout.date.toDateString() === formattedDate),
-    ...yesterdayWorkouts.filter(workout => workout.date.toDateString() === formattedDate),
-    ...pastWeekWorkouts.filter(workout => workout.date.toDateString() === formattedDate),
-    ...otherWorkouts.filter(workout => workout.date.toDateString() === formattedDate),
-  ];
+  return getAllWorkouts().filter(workout => {
+    // Convert the string date back to a Date object for comparison
+    const workoutDate = new Date(workout.date);
+    return workoutDate.toDateString() === formattedDate;
+  });
 };
 
 // Function to get workouts for yesterday
@@ -568,14 +567,23 @@ export const getWorkoutsForPastWeek = (): Workout[] => {
 
 // Add the getWorkoutById function:
 export const getWorkoutById = (id: string): Workout | undefined => {
-  const allWorkouts = [
-    ...todayWorkouts,
-    ...yesterdayWorkouts,
-    ...pastWeekWorkouts,
-    ...otherWorkouts
-  ];
+  return getAllWorkouts().find(workout => workout.id === id);
+};
+
+// Add the deleteWorkout function
+export const deleteWorkout = (id: string): boolean => {
+  // Check each array and remove the workout if found
+  const allArrays = [todayWorkouts, yesterdayWorkouts, pastWeekWorkouts, otherWorkouts];
   
-  return allWorkouts.find(workout => workout.id === id);
+  for (const workoutArray of allArrays) {
+    const index = workoutArray.findIndex(workout => workout.id === id);
+    if (index !== -1) {
+      workoutArray.splice(index, 1);
+      return true; // Return true if the workout was found and deleted
+    }
+  }
+  
+  return false; // Return false if the workout was not found
 };
 
 // Initialize saved exercises with mock data for reuse
