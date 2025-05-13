@@ -17,7 +17,7 @@ interface WorkoutListProps {
 }
 
 const WorkoutList: React.FC<WorkoutListProps> = ({ selectedDate }) => {
-  const [workouts, setWorkouts] = React.useState<Workout[]>(getWorkoutsByDate(selectedDate));
+  const [workouts, setWorkouts] = React.useState<Workout[]>([]);
   const [yesterdayWorkouts, setYesterdayWorkouts] = React.useState<Workout[]>([]);
   const [pastWeekWorkouts, setPastWeekWorkouts] = React.useState<Workout[]>([]);
   
@@ -25,12 +25,21 @@ const WorkoutList: React.FC<WorkoutListProps> = ({ selectedDate }) => {
   const isToday = isSameDay(selectedDate, new Date());
   
   React.useEffect(() => {
-    setWorkouts(getWorkoutsByDate(selectedDate));
+    // Add console logs to debug data retrieval
+    console.log("Selected date:", selectedDate);
+    const fetchedWorkouts = getWorkoutsByDate(selectedDate);
+    console.log("Fetched workouts:", fetchedWorkouts);
+    setWorkouts(fetchedWorkouts);
     
     // Only fetch yesterday and past week workouts when viewing today
     if (isToday) {
-      setYesterdayWorkouts(getWorkoutsForYesterday());
-      setPastWeekWorkouts(getWorkoutsForPastWeek());
+      const yesterdayData = getWorkoutsForYesterday();
+      console.log("Yesterday workouts:", yesterdayData);
+      setYesterdayWorkouts(yesterdayData);
+      
+      const pastWeekData = getWorkoutsForPastWeek();
+      console.log("Past week workouts:", pastWeekData);
+      setPastWeekWorkouts(pastWeekData);
     } else {
       setYesterdayWorkouts([]);
       setPastWeekWorkouts([]);
@@ -49,9 +58,6 @@ const WorkoutList: React.FC<WorkoutListProps> = ({ selectedDate }) => {
     // Show confirmation toast
     toast.success("Workout deleted successfully");
   };
-  
-  const today = new Date();
-  const yesterday = subDays(today, 1);
   
   return (
     <div className="flex-1 overflow-hidden animate-fade-in">

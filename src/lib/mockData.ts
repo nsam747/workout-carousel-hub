@@ -1,6 +1,5 @@
-
 import { v4 as uuidv4 } from 'uuid';
-import { addDays, subDays, format, isSameDay } from 'date-fns';
+import { addDays, subDays, format, isSameDay, parseISO } from 'date-fns';
 
 export interface Workout {
   id: string;
@@ -66,12 +65,13 @@ export const getCategoryInfo = (categoryName: string): CategoryInfo => {
   return category || { name: "Other", color: "#a8a29e", icon: null };
 };
 
+// Update the date property in mockWorkouts to use today's date
 export const mockWorkouts: Workout[] = [
   {
     id: "workout-1",
     title: "Morning Strength",
     category: "Strength",
-    date: "2023-05-13T08:00:00Z",
+    date: new Date().toISOString(), // Set to today's date
     completed: true,
     exercises: [
       {
@@ -176,7 +176,7 @@ export const mockWorkouts: Workout[] = [
     id: "workout-2",
     title: "Cardio & Core",
     category: "Cardio",
-    date: "2023-05-12T17:30:00Z",
+    date: subDays(new Date(), 1).toISOString(), // Set to yesterday's date
     completed: true,
     exercises: [
       {
@@ -218,7 +218,7 @@ export const mockWorkouts: Workout[] = [
     id: "workout-3",
     title: "Evening Yoga",
     category: "Flexibility",
-    date: "2023-05-11T19:00:00Z",
+    date: subDays(new Date(), 2).toISOString(),
     completed: true,
     exercises: [
       {
@@ -259,7 +259,7 @@ export const mockWorkouts: Workout[] = [
     id: "workout-4",
     title: "HIIT Blast",
     category: "HIIT",
-    date: "2023-05-10T12:00:00Z",
+    date: subDays(new Date(), 3).toISOString(),
     completed: false,
     exercises: [
       {
@@ -328,7 +328,7 @@ export const mockWorkouts: Workout[] = [
     id: "workout-5",
     title: "Restorative Balance",
     category: "Balance",
-    date: "2023-05-09T16:00:00Z",
+    date: subDays(new Date(), 4).toISOString(),
     completed: false,
     exercises: [
       {
@@ -535,10 +535,12 @@ export const dateRange = (() => {
   return range;
 })();
 
-// Get workouts by date
+// Get workouts by date - modified to handle date comparison correctly
 export const getWorkoutsByDate = (date: Date): Workout[] => {
+  console.log("Getting workouts for date:", date);
   return mockWorkouts.filter(workout => {
     const workoutDate = new Date(workout.date);
+    console.log("Comparing with workout date:", workoutDate);
     return isSameDay(workoutDate, date);
   });
 };
@@ -561,7 +563,9 @@ export const getWorkoutsForPastWeek = (): Workout[] => {
   
   return mockWorkouts.filter(workout => {
     const workoutDate = new Date(workout.date);
-    return workoutDate >= oneWeekAgo && workoutDate < today && !isSameDay(workoutDate, today) && !isSameDay(workoutDate, subDays(today, 1));
+    return workoutDate >= oneWeekAgo && workoutDate < today && 
+           !isSameDay(workoutDate, today) && 
+           !isSameDay(workoutDate, subDays(today, 1));
   });
 };
 
