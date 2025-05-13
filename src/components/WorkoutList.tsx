@@ -11,8 +11,6 @@ import WorkoutCard from "./WorkoutCard";
 import { format, isSameDay } from "date-fns";
 import { CalendarDays } from "lucide-react";
 import { toast } from "sonner";
-import { WorkoutAccordionProvider } from "@/contexts/WorkoutAccordionContext";
-import { ExerciseAccordionProvider } from "@/contexts/ExerciseAccordionContext";
 
 interface WorkoutListProps {
   selectedDate: Date;
@@ -78,8 +76,6 @@ const WorkoutList: React.FC<WorkoutListProps> = ({ selectedDate }) => {
   };
   
   return (
-    <WorkoutAccordionProvider>
-      <ExerciseAccordionProvider>
         <div className="flex-1 overflow-hidden animate-fade-in">
           {/* Today or Selected date section */}
           <div className="mb-6">
@@ -156,8 +152,6 @@ const WorkoutList: React.FC<WorkoutListProps> = ({ selectedDate }) => {
             </div>
           )}
         </div>
-      </ExerciseAccordionProvider>
-    </WorkoutAccordionProvider>
   );
 };
 
