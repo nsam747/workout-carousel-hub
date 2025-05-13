@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { 
   Workout, 
   getWorkoutsByDate, 
@@ -8,7 +8,7 @@ import {
   deleteWorkout
 } from "@/lib/mockData";
 import WorkoutCard from "./WorkoutCard";
-import { format, isSameDay, subDays } from "date-fns";
+import { format, isSameDay } from "date-fns";
 import { CalendarDays } from "lucide-react";
 import { toast } from "sonner";
 import { WorkoutAccordionProvider } from "@/contexts/WorkoutAccordionContext";
@@ -19,14 +19,21 @@ interface WorkoutListProps {
 }
 
 const WorkoutList: React.FC<WorkoutListProps> = ({ selectedDate }) => {
-  const [workouts, setWorkouts] = React.useState<Workout[]>([]);
-  const [yesterdayWorkouts, setYesterdayWorkouts] = React.useState<Workout[]>([]);
-  const [pastWeekWorkouts, setPastWeekWorkouts] = React.useState<Workout[]>([]);
+  const [workouts, setWorkouts] = useState<Workout[]>([]);
+  const [yesterdayWorkouts, setYesterdayWorkouts] = useState<Workout[]>([]);
+  const [pastWeekWorkouts, setPastWeekWorkouts] = useState<Workout[]>([]);
+  const [expandedWorkoutId, setExpandedWorkoutId] = useState<string | null>(null);
   
   const formattedDate = format(selectedDate, "EEEE, MMMM d, yyyy");
   const isToday = isSameDay(selectedDate, new Date());
   
-  React.useEffect(() => {
+  // Reset expanded workout when date changes
+  useEffect(() => {
+    console.log("Date changed, resetting expanded workout");
+    setExpandedWorkoutId(null);
+  }, [selectedDate]);
+  
+  useEffect(() => {
     // Add console logs to debug data retrieval
     console.log("Selected date:", selectedDate);
     const fetchedWorkouts = getWorkoutsByDate(selectedDate);
@@ -59,6 +66,15 @@ const WorkoutList: React.FC<WorkoutListProps> = ({ selectedDate }) => {
     
     // Show confirmation toast
     toast.success("Workout deleted successfully");
+    
+    // If the deleted workout was expanded, reset expanded state
+    if (expandedWorkoutId === id) {
+      setExpandedWorkoutId(null);
+    }
+  };
+  
+  const toggleWorkoutExpanded = (id: string) => {
+    setExpandedWorkoutId(prevId => prevId === id ? null : id);
   };
   
   return (
@@ -81,6 +97,8 @@ const WorkoutList: React.FC<WorkoutListProps> = ({ selectedDate }) => {
                     key={workout.id} 
                     workout={workout} 
                     onDelete={handleDeleteWorkout}
+                    isExpanded={expandedWorkoutId === workout.id}
+                    onToggleExpanded={toggleWorkoutExpanded}
                   />
                 ))
               ) : (
@@ -108,6 +126,8 @@ const WorkoutList: React.FC<WorkoutListProps> = ({ selectedDate }) => {
                     key={workout.id} 
                     workout={workout}
                     onDelete={handleDeleteWorkout} 
+                    isExpanded={expandedWorkoutId === workout.id}
+                    onToggleExpanded={toggleWorkoutExpanded}
                   />
                 ))}
               </div>
@@ -127,7 +147,9 @@ const WorkoutList: React.FC<WorkoutListProps> = ({ selectedDate }) => {
                   <WorkoutCard 
                     key={workout.id} 
                     workout={workout}
-                    onDelete={handleDeleteWorkout} 
+                    onDelete={handleDeleteWorkout}
+                    isExpanded={expandedWorkoutId === workout.id}
+                    onToggleExpanded={toggleWorkoutExpanded}
                   />
                 ))}
               </div>

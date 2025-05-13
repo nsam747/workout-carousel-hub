@@ -1,5 +1,5 @@
 
-import React, { useState, useContext, useEffect, useRef } from "react";
+import React, { useRef } from "react";
 import { Workout, getCategoryInfo } from "@/lib/mockData";
 import { ChevronDown, ChevronUp, Edit2, Trash2 } from "lucide-react";
 import ExerciseItem from "./ExerciseItem";
@@ -18,32 +18,29 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { WorkoutAccordionContext } from "@/contexts/WorkoutAccordionContext";
 
 interface WorkoutCardProps {
   workout: Workout;
   onDelete?: (id: string) => void;
+  isExpanded: boolean;
+  onToggleExpanded: (id: string) => void;
 }
 
-const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout, onDelete }) => {
-  const [expanded, setExpanded] = useState(false);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+const WorkoutCard: React.FC<WorkoutCardProps> = ({ 
+  workout, 
+  onDelete, 
+  isExpanded, 
+  onToggleExpanded 
+}) => {
+  const [showDeleteDialog, setShowDeleteDialog] = React.useState(false);
   const navigate = useNavigate();
-  
-  // Use the accordion context
-  const { expandedWorkoutId, setExpandedWorkoutId, selectedDate } = useContext(WorkoutAccordionContext);
   
   // Create a ref to the workout card element
   const cardRef = useRef<HTMLDivElement>(null);
   
-  // Update expanded state based on context
-  useEffect(() => {
-    const newExpanded = expandedWorkoutId === workout.id;
-    console.log("Expanded Id = " + expandedWorkoutId);
-    setExpanded(newExpanded);
-    
-    // If this workout was just expanded, scroll it into view
-    if (newExpanded && !expanded && cardRef.current) {
+  // Scroll the card into view when it's expanded
+  React.useEffect(() => {
+    if (isExpanded && cardRef.current) {
       // Small timeout to ensure the DOM has updated and the element is expanded
       setTimeout(() => {
         if (cardRef.current) {
@@ -60,14 +57,10 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout, onDelete }) => {
         }
       }, 100);
     }
-  }, [expandedWorkoutId, workout.id, expanded, selectedDate]);
+  }, [isExpanded]);
 
   const toggleExpanded = () => {
-    if (expanded) {
-      setExpandedWorkoutId(null);
-    } else {
-      setExpandedWorkoutId(workout.id);
-    }
+    onToggleExpanded(workout.id);
   };
   
   const categoryInfo = getCategoryInfo(workout.category);
@@ -185,7 +178,7 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout, onDelete }) => {
             {/* Action buttons and expand toggle in the same row */}
             <div className={cn(
               "flex items-center gap-2 transition-all duration-300", 
-              expanded ? "opacity-100" : "opacity-0 pointer-events-none"
+              isExpanded ? "opacity-100" : "opacity-0 pointer-events-none"
             )}>
               <Button
                 variant="ghost"
@@ -218,7 +211,7 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout, onDelete }) => {
                 toggleExpanded();
               }}
             >
-              {expanded ? (
+              {isExpanded ? (
                 <ChevronUp className="h-4 w-4" />
               ) : (
                 <ChevronDown className="h-4 w-4" />
@@ -234,7 +227,7 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout, onDelete }) => {
       </div>
 
       {/* Exercises list - shown when expanded */}
-      {expanded && (
+      {isExpanded && (
         <div className="border-t border-border/40 animate-fade-in">
           {workout.exercises.map((exercise) => (
             <ExerciseItem key={exercise.id} exercise={exercise} workoutId={workout.id} />
