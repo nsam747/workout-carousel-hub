@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
@@ -7,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { getWorkoutsByDate, getAllWorkouts, getCategoryInfo, Workout } from "@/lib/mockData";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useAccordionReset } from "@/hooks/useAccordionReset";
 
 interface MonthCalendarCarouselProps {
   selectedDate: Date;
@@ -20,12 +20,21 @@ const MonthCalendarCarousel: React.FC<MonthCalendarCarouselProps> = ({
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
   const isMobile = useIsMobile();
   
+  // Reset accordions when date changes
+  useAccordionReset([selectedDate]);
+  
   const handlePreviousMonth = () => {
     setCurrentMonth(prev => subMonths(prev, 1));
   };
   
   const handleNextMonth = () => {
     setCurrentMonth(prev => addMonths(prev, 1));
+  };
+
+  const handleDateSelect = (date: Date | undefined) => {
+    if (date) {
+      onDateSelect(date);
+    }
   };
 
   // Get all workouts and organize them by date
@@ -143,7 +152,7 @@ const MonthCalendarCarousel: React.FC<MonthCalendarCarouselProps> = ({
       <Calendar
         mode="single"
         selected={selectedDate}
-        onSelect={(date) => date && onDateSelect(date)}
+        onSelect={handleDateSelect}
         month={currentMonth}
         onMonthChange={setCurrentMonth}
         components={{
