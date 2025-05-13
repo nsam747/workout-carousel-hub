@@ -110,7 +110,6 @@ const AddExerciseForm: React.FC<AddExerciseFormProps> = ({
       type: type || "Other",
       notes: "",
       sets: [],
-      duration: 0,
       media: [],
       selectedMetrics: selectedMetrics.length > 0 ? selectedMetrics : [{ type: "repetitions", unit: "reps" }] // Default to reps if none selected
     };
@@ -136,7 +135,6 @@ const AddExerciseForm: React.FC<AddExerciseFormProps> = ({
       id: generateId(), // New instance needs new ID
       sets: [], // Reset workout-specific data
       notes: "",
-      duration: 0,
       media: [],
       selectedMetrics: selectedExercise.selectedMetrics || [{ type: "repetitions", unit: "reps" }] // Keep the selected metrics
     };

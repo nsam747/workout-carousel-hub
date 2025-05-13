@@ -1,4 +1,6 @@
+
 import { v4 as uuidv4 } from 'uuid';
+import { addDays, subDays, format, isSameDay } from 'date-fns';
 
 export interface Workout {
   id: string;
@@ -132,7 +134,7 @@ export const mockWorkouts: Workout[] = [
             ]
           }
         ],
-        notes: "", // Removing notes from this exercise
+        notes: "",
         media: []
       },
       {
@@ -165,7 +167,7 @@ export const mockWorkouts: Workout[] = [
             ]
           }
         ],
-        notes: "Keep knees tracking over toes, not inward. Remember to breathe!", // Shorter note
+        notes: "Keep knees tracking over toes, not inward. Remember to breathe!",
         media: []
       }
     ]
@@ -191,7 +193,7 @@ export const mockWorkouts: Workout[] = [
             ]
           }
         ],
-        notes: "", // Removing notes from this exercise
+        notes: "",
         media: []
       },
       {
@@ -414,6 +416,10 @@ export const deleteWorkout = (id: string): boolean => {
   return false;
 };
 
+export const getWorkoutById = (id: string): Workout | undefined => {
+  return mockWorkouts.find(workout => workout.id === id);
+};
+
 export const saveExercise = (exercise: Exercise): void => {
   mockWorkouts.forEach(workout => {
     const index = workout.exercises.findIndex(e => e.id === exercise.id);
@@ -421,6 +427,62 @@ export const saveExercise = (exercise: Exercise): void => {
       workout.exercises[index] = exercise;
     }
   });
+};
+
+// For AddExerciseForm.tsx
+const savedExercises: Exercise[] = [
+  {
+    id: "saved-ex-1",
+    name: "Bench Press",
+    type: "Strength",
+    sets: [],
+    notes: "",
+    media: [],
+    selectedMetrics: [
+      { type: "weight", unit: "lbs" },
+      { type: "repetitions", unit: "reps" }
+    ]
+  },
+  {
+    id: "saved-ex-2",
+    name: "Squats",
+    type: "Strength",
+    sets: [],
+    notes: "",
+    media: [],
+    selectedMetrics: [
+      { type: "weight", unit: "lbs" },
+      { type: "repetitions", unit: "reps" }
+    ]
+  },
+  {
+    id: "saved-ex-3",
+    name: "Deadlift",
+    type: "Strength",
+    sets: [],
+    notes: "",
+    media: [],
+    selectedMetrics: [
+      { type: "weight", unit: "lbs" },
+      { type: "repetitions", unit: "reps" }
+    ]
+  },
+  {
+    id: "saved-ex-4",
+    name: "Treadmill",
+    type: "Cardio",
+    sets: [],
+    notes: "",
+    media: [],
+    selectedMetrics: [
+      { type: "duration", unit: "min" },
+      { type: "distance", unit: "miles" }
+    ]
+  }
+];
+
+export const getSavedExercises = (): Exercise[] => {
+  return [...savedExercises];
 };
 
 export const addWorkout = (workout: Workout): void => {
@@ -439,3 +501,123 @@ export const deleteExercise = (exerciseId: string): void => {
     workout.exercises = workout.exercises.filter(e => e.id !== exerciseId);
   });
 };
+
+// Exercise types for dropdown
+export const getExerciseTypes = (): string[] => {
+  return [
+    "Strength",
+    "Cardio",
+    "Flexibility",
+    "Balance",
+    "Core",
+    "HIIT",
+    "Recovery",
+    "Other"
+  ];
+};
+
+// Date range for calendars
+export const dateRange = (() => {
+  const today = new Date();
+  const range = [];
+  
+  // Generate dates for the past week and next 2 weeks
+  for (let i = -7; i <= 14; i++) {
+    const date = addDays(today, i);
+    range.push({
+      date,
+      dayName: format(date, 'E'), // Short day name (e.g., Mon, Tue)
+      dayNumber: format(date, 'd'), // Day number (e.g., 1, 2, 31)
+      isToday: i === 0
+    });
+  }
+  
+  return range;
+})();
+
+// Get workouts by date
+export const getWorkoutsByDate = (date: Date): Workout[] => {
+  return mockWorkouts.filter(workout => {
+    const workoutDate = new Date(workout.date);
+    return isSameDay(workoutDate, date);
+  });
+};
+
+// Get all workouts
+export const getAllWorkouts = (): Workout[] => {
+  return [...mockWorkouts];
+};
+
+// Get yesterday's workouts
+export const getWorkoutsForYesterday = (): Workout[] => {
+  const yesterday = subDays(new Date(), 1);
+  return getWorkoutsByDate(yesterday);
+};
+
+// Get workouts from past week
+export const getWorkoutsForPastWeek = (): Workout[] => {
+  const today = new Date();
+  const oneWeekAgo = subDays(today, 7);
+  
+  return mockWorkouts.filter(workout => {
+    const workoutDate = new Date(workout.date);
+    return workoutDate >= oneWeekAgo && workoutDate < today && !isSameDay(workoutDate, today) && !isSameDay(workoutDate, subDays(today, 1));
+  });
+};
+
+// Get all categories
+export const getAllCategories = (): string[] => {
+  return categoryInfo.map(cat => cat.name);
+};
+
+// Create new category
+export const createCategory = (category: CategoryInfo): void => {
+  const existingIndex = categoryInfo.findIndex(cat => cat.name === category.name);
+  if (existingIndex === -1) {
+    categoryInfo.push(category);
+  }
+};
+
+// Update existing category
+export const updateCategory = (oldName: string, newCategory: CategoryInfo): void => {
+  const index = categoryInfo.findIndex(cat => cat.name === oldName);
+  if (index !== -1) {
+    categoryInfo[index] = newCategory;
+    
+    // Update all workouts using this category
+    mockWorkouts.forEach(workout => {
+      if (workout.category === oldName) {
+        workout.category = newCategory.name;
+      }
+    });
+  }
+};
+
+// Supported metrics for exercise tracking
+export const supportedMetrics = [
+  {
+    type: "repetitions",
+    defaultUnit: "reps",
+    availableUnits: ["reps"]
+  },
+  {
+    type: "weight",
+    defaultUnit: "lbs",
+    availableUnits: ["lbs", "kg"]
+  },
+  {
+    type: "duration",
+    defaultUnit: "min",
+    availableUnits: ["sec", "min", "hr"]
+  },
+  {
+    type: "distance",
+    defaultUnit: "miles",
+    availableUnits: ["miles", "km", "meters"]
+  },
+  {
+    type: "restTime",
+    defaultUnit: "min",
+    availableUnits: ["sec", "min"]
+  }
+];
