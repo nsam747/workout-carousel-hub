@@ -20,14 +20,14 @@ const WeekCalendarCarousel: React.FC<WeekCalendarCarouselProps> = ({
   const selectedDateRef = useRef<HTMLDivElement>(null);
   
   // Access contexts using custom hooks
-  const { resetAccordion: resetWorkoutAccordion, setDateIdentifier: setWorkoutDateIdentifier } = useWorkoutAccordion();
-  const { resetAccordion: resetExerciseAccordion, setDateIdentifier: setExerciseDateIdentifier } = useExerciseAccordion();
+  const { setExpandedWorkoutId, setDateIdentifier: setWorkoutDateIdentifier } = useWorkoutAccordion();
+  const { setExpandedExercise, setDateIdentifier: setExerciseDateIdentifier } = useExerciseAccordion();
 
   // Function to handle date selection with accordion reset
   const handleDateSelect = (date: Date) => {
-    // Reset accordions before changing the date
-    resetWorkoutAccordion();
-    resetExerciseAccordion();
+    // Force reset by directly setting the expanded IDs to null
+    setExpandedWorkoutId(null);
+    setExpandedExercise(null, null);
     
     // Update date identifiers to force context effects
     const newDateIdentifier = date.toISOString();

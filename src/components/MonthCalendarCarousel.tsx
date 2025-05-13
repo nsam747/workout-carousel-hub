@@ -23,8 +23,8 @@ const MonthCalendarCarousel: React.FC<MonthCalendarCarouselProps> = ({
   const isMobile = useIsMobile();
   
   // Access contexts using custom hooks
-  const { resetAccordion: resetWorkoutAccordion, setDateIdentifier: setWorkoutDateIdentifier } = useWorkoutAccordion();
-  const { resetAccordion: resetExerciseAccordion, setDateIdentifier: setExerciseDateIdentifier } = useExerciseAccordion();
+  const { setExpandedWorkoutId, setDateIdentifier: setWorkoutDateIdentifier } = useWorkoutAccordion();
+  const { setExpandedExercise, setDateIdentifier: setExerciseDateIdentifier } = useExerciseAccordion();
   
   const handlePreviousMonth = () => {
     setCurrentMonth(prev => subMonths(prev, 1));
@@ -37,9 +37,9 @@ const MonthCalendarCarousel: React.FC<MonthCalendarCarouselProps> = ({
   // Function to handle date selection with accordion reset
   const handleDateSelect = (date: Date | undefined) => {
     if (date) {
-      // Reset accordions before changing the date
-      resetWorkoutAccordion();
-      resetExerciseAccordion();
+      // Force reset by directly setting the expanded IDs to null
+      setExpandedWorkoutId(null);
+      setExpandedExercise(null, null);
       
       // Update date identifiers to force context effects
       const newDateIdentifier = date.toISOString();
