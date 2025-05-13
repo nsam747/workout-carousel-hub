@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { Exercise, Set } from "@/lib/mockData";
 import { Button } from "@/components/ui/button";
@@ -115,9 +116,13 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
     const existingSets = exerciseState.sets || [];
     const lastSet = existingSets.length > 0 ? existingSets[existingSets.length - 1] : null;
     
+    // Calculate the next set number
+    const newSetNumber = lastSet ? lastSet.setNumber + 1 : 1;
+    
     // Create a new set based on the last set or with default values
     const newSet: Set = {
       id: `set-${Date.now()}`,
+      setNumber: newSetNumber,
       metrics: lastSet ? lastSet.metrics.map(metric => ({ ...metric })) : [],
     };
 
