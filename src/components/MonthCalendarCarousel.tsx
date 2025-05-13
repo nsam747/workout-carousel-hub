@@ -1,5 +1,5 @@
 
-import React, { useState, useContext } from "react";
+import React, { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { format, addMonths, subMonths } from "date-fns";
@@ -7,7 +7,6 @@ import { cn } from "@/lib/utils";
 import { getWorkoutsByDate, getAllWorkouts, getCategoryInfo, Workout } from "@/lib/mockData";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { WorkoutAccordionContext } from "@/contexts/WorkoutAccordionContext";
 
 interface MonthCalendarCarouselProps {
   selectedDate: Date;
@@ -21,25 +20,12 @@ const MonthCalendarCarousel: React.FC<MonthCalendarCarouselProps> = ({
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
   const isMobile = useIsMobile();
   
-  // Get the workout accordion context to close any expanded workouts on date change
-  const { setExpandedWorkoutId } = useContext(WorkoutAccordionContext);
-  
   const handlePreviousMonth = () => {
     setCurrentMonth(prev => subMonths(prev, 1));
   };
   
   const handleNextMonth = () => {
     setCurrentMonth(prev => addMonths(prev, 1));
-  };
-  
-  // Handle date selection and close any open accordions
-  const handleDateSelect = (date: Date | undefined) => {
-    if (date) {
-      // Close any open accordions
-      setExpandedWorkoutId(null);
-      // Update the selected date
-      onDateSelect(date);
-    }
   };
 
   // Get all workouts and organize them by date
@@ -71,25 +57,26 @@ const MonthCalendarCarousel: React.FC<MonthCalendarCarouselProps> = ({
     // Get all unique categories for this day
     const uniqueCategories = getUniqueCategories(workouts);
     
-    // Prepare categories to display (max 3)
+    // If we have 3 or fewer workouts, show one dot per workout (up to 3)
+    // If we have more than 3 workouts, prioritize showing different categories
     const categoriesToShow: string[] = [];
     
-    // First priority: Show as many different categories as possible (up to 3)
-    for (const category of uniqueCategories) {
-      if (categoriesToShow.length < 3) {
-        categoriesToShow.push(category);
-      }
+    if (uniqueCategories.length <= 3) {
+      // If we have 3 or fewer unique categories, show them all
+      categoriesToShow.push(...uniqueCategories);
+    } else {
+      // If we have more than 3 unique categories, show only the first 3
+      categoriesToShow.push(...uniqueCategories.slice(0, 3));
     }
-    
-    // If we still have less than 3 indicators and more workouts,
-    // add more based on chronological order
+
+    // If we don't have 3 categories yet, add more workouts based on chronological order
     if (categoriesToShow.length < 3 && workouts.length > categoriesToShow.length) {
-      // Sort workouts by date (earliest first)
+      // Sort workouts by date
       const sortedWorkouts = [...workouts].sort((a, b) => 
         new Date(a.date).getTime() - new Date(b.date).getTime()
       );
       
-      // Add categories from earlier workouts that aren't already shown
+      // Add categories from workouts that aren't already included
       for (const workout of sortedWorkouts) {
         if (!categoriesToShow.includes(workout.category) && categoriesToShow.length < 3) {
           categoriesToShow.push(workout.category);
@@ -156,7 +143,7 @@ const MonthCalendarCarousel: React.FC<MonthCalendarCarouselProps> = ({
       <Calendar
         mode="single"
         selected={selectedDate}
-        onSelect={handleDateSelect}
+        onSelect={(date) => date && onDateSelect(date)}
         month={currentMonth}
         onMonthChange={setCurrentMonth}
         components={{

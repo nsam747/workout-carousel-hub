@@ -1,10 +1,9 @@
 
-import React, { useRef, useEffect, useContext } from "react";
+import React, { useRef, useEffect } from "react";
 import { dateRange } from "@/lib/mockData";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { WorkoutAccordionContext } from "@/contexts/WorkoutAccordionContext";
 
 interface WeekCalendarCarouselProps {
   selectedDate: Date;
@@ -17,9 +16,6 @@ const WeekCalendarCarousel: React.FC<WeekCalendarCarouselProps> = ({
 }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const selectedDateRef = useRef<HTMLDivElement>(null);
-  
-  // Get the workout accordion context to close any expanded workouts on date change
-  const { setExpandedWorkoutId } = useContext(WorkoutAccordionContext);
 
   // Scroll to selected date when component mounts or selectedDate changes
   useEffect(() => {
@@ -67,14 +63,6 @@ const WeekCalendarCarousel: React.FC<WeekCalendarCarouselProps> = ({
 
   const today = new Date();
   const isToday = (date: Date) => isSameDay(date, today);
-  
-  // Handle date selection and close any open accordions
-  const handleDateSelect = (date: Date) => {
-    // Close any open accordions
-    setExpandedWorkoutId(null);
-    // Update the selected date
-    onDateSelect(date);
-  };
 
   return (
     <div className="relative bg-white/80 backdrop-blur-md border border-border rounded-xl p-2 mb-6 animate-fade-in">
@@ -106,7 +94,7 @@ const WeekCalendarCarousel: React.FC<WeekCalendarCarouselProps> = ({
                   : "hover:bg-secondary/80",
                 day.isToday ? "ring-2 ring-primary/20" : ""
               )}
-              onClick={() => handleDateSelect(day.date)}
+              onClick={() => onDateSelect(day.date)}
             >
               <span className="text-xs font-medium">{day.dayName}</span>
               <span className="text-lg font-bold">{day.dayNumber}</span>
