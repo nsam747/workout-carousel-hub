@@ -45,12 +45,12 @@ const Index = () => {
   const handleDateSelect = (date: Date) => {
     console.log("Index: Date selected", date.toDateString());
     
-    // Generate a unique identifier for this date change
-    const dateIdentifier = `${date.toISOString()}-${Date.now()}`;
-    
-    // Reset both accordions
+    // First, forcefully reset the accordions
     resetWorkoutAccordion();
     resetExerciseAccordion();
+    
+    // Generate a unique identifier for this date change
+    const dateIdentifier = `${date.toISOString()}-${Date.now()}`;
     
     // Update date identifiers in both contexts to trigger resets
     setWorkoutDateIdentifier(dateIdentifier);

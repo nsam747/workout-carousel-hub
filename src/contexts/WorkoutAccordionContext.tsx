@@ -26,11 +26,13 @@ export const WorkoutAccordionProvider: React.FC<WorkoutAccordionProviderProps> =
   const [dateIdentifier, setDateIdentifier] = useState<string | null>(null);
   const [isResetting, setIsResetting] = useState<boolean>(false);
 
-  // Reset accordion when date changes
+  // Critical fix: Reset accordion IMMEDIATELY when date changes
   useEffect(() => {
     if (dateIdentifier) {
       console.log("WorkoutAccordion: Date changed, resetting accordion", dateIdentifier);
+      // Immediately reset the expandedWorkoutId to null
       setExpandedWorkoutId(null);
+      
       // Set a flag to prevent any immediate re-expansion
       setIsResetting(true);
       

@@ -50,8 +50,8 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout, onDelete }) => {
     }
     
     // Otherwise update based on expandedWorkoutId
-    console.log(`WorkoutCard ${workout.id}: Context changed, expandedWorkoutId=${expandedWorkoutId}, dateIdentifier=${dateIdentifier}`);
     const newExpanded = expandedWorkoutId === workout.id;
+    console.log(`WorkoutCard ${workout.id}: Context changed, expandedWorkoutId=${expandedWorkoutId}, dateIdentifier=${dateIdentifier}, setting expanded=${newExpanded}`);
     setExpanded(newExpanded);
     
     // If this workout was just expanded, scroll it into view
