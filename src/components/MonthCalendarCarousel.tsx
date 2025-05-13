@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { format, addMonths, subMonths } from "date-fns";
@@ -6,8 +6,8 @@ import { cn } from "@/lib/utils";
 import { getWorkoutsByDate, getAllWorkouts, getCategoryInfo, Workout } from "@/lib/mockData";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useWorkoutAccordion } from "@/contexts/WorkoutAccordionContext";
-import { useExerciseAccordion } from "@/contexts/ExerciseAccordionContext";
+import { WorkoutAccordionContext } from "@/contexts/WorkoutAccordionContext";
+import { ExerciseAccordionContext } from "@/contexts/ExerciseAccordionContext";
 
 interface MonthCalendarCarouselProps {
   selectedDate: Date;
@@ -21,9 +21,9 @@ const MonthCalendarCarousel: React.FC<MonthCalendarCarouselProps> = ({
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
   const isMobile = useIsMobile();
   
-  // Access contexts using custom hooks
-  const { setExpandedWorkoutId, setDateIdentifier: setWorkoutDateIdentifier } = useWorkoutAccordion();
-  const { setExpandedExercise, setDateIdentifier: setExerciseDateIdentifier } = useExerciseAccordion();
+  // Access contexts to reset accordions
+  const workoutAccordion = useContext(WorkoutAccordionContext);
+  const exerciseAccordion = useContext(ExerciseAccordionContext);
   
   const handlePreviousMonth = () => {
     setCurrentMonth(prev => subMonths(prev, 1));
@@ -36,18 +36,9 @@ const MonthCalendarCarousel: React.FC<MonthCalendarCarouselProps> = ({
   // Function to handle date selection with accordion reset
   const handleDateSelect = (date: Date | undefined) => {
     if (date) {
-      console.log("MonthCalendar: Date selected", date.toDateString());
-      
-      // Force reset by directly setting the expanded IDs to null
-      setExpandedWorkoutId(null);
-      setExpandedExercise(null, null);
-      
-      // Generate a unique identifier for this date selection
-      const newDateIdentifier = `${date.toISOString()}-${Date.now()}`;
-      
-      // Update date identifiers to force context effects
-      setWorkoutDateIdentifier(newDateIdentifier);
-      setExerciseDateIdentifier(newDateIdentifier);
+      // Reset accordions before changing the date
+      workoutAccordion.resetAccordion();
+      exerciseAccordion.resetAccordion();
       
       // Then call the original onDateSelect function
       onDateSelect(date);

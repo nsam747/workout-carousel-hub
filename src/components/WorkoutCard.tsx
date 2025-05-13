@@ -1,3 +1,4 @@
+
 import React, { useState, useContext, useEffect, useRef } from "react";
 import { Workout, getCategoryInfo } from "@/lib/mockData";
 import { ChevronDown, ChevronUp, Edit2, Trash2 } from "lucide-react";
@@ -29,29 +30,15 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout, onDelete }) => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const navigate = useNavigate();
   
-  // Use the accordion context directly to ensure we get all updates
-  const workoutAccordionContext = useContext(WorkoutAccordionContext);
-  const { expandedWorkoutId, setExpandedWorkoutId, dateIdentifier } = workoutAccordionContext;
+  // Use the accordion context
+  const { expandedWorkoutId, setExpandedWorkoutId } = useContext(WorkoutAccordionContext);
   
   // Create a ref to the workout card element
   const cardRef = useRef<HTMLDivElement>(null);
   
-  // Ref to track the most recent date identifier we've seen
-  const lastDateIdentifierRef = useRef<string | null>(null);
-  
   // Update expanded state based on context
   useEffect(() => {
-    // If dateIdentifier changed and is not null, always close
-    if (dateIdentifier && dateIdentifier !== lastDateIdentifierRef.current) {
-      console.log(`WorkoutCard ${workout.id}: Date changed to ${dateIdentifier}, forcing collapse`);
-      setExpanded(false);
-      lastDateIdentifierRef.current = dateIdentifier;
-      return;
-    }
-    
-    // Otherwise update based on expandedWorkoutId
     const newExpanded = expandedWorkoutId === workout.id;
-    console.log(`WorkoutCard ${workout.id}: Context changed, expandedWorkoutId=${expandedWorkoutId}, dateIdentifier=${dateIdentifier}, setting expanded=${newExpanded}`);
     setExpanded(newExpanded);
     
     // If this workout was just expanded, scroll it into view
@@ -72,7 +59,7 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout, onDelete }) => {
         }
       }, 100);
     }
-  }, [expandedWorkoutId, workout.id, expanded, dateIdentifier]);
+  }, [expandedWorkoutId, workout.id, expanded]);
 
   const toggleExpanded = () => {
     if (expanded) {
