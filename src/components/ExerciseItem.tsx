@@ -330,7 +330,7 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise, workoutId }) => {
       </div>
 
       {expanded && (
-        <div className="border-t border-border/50 animate-accordion-down bg-muted/30">
+        <div className="border-t border-border/50 animate-slide-down bg-muted/30">
           {/* Performance metrics */}
           {exercise.sets && exercise.sets.length > 0 && (
             <div className="mb-3 px-4">
