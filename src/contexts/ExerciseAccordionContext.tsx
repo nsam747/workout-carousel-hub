@@ -1,5 +1,5 @@
 
-import React, { createContext, useState, ReactNode, useContext, useEffect } from "react";
+import React, { createContext, useState, ReactNode, useContext, useEffect, useCallback } from "react";
 
 interface ExerciseAccordionContextType {
   expandedExerciseId: string | null;
@@ -27,6 +27,7 @@ export const ExerciseAccordionProvider: React.FC<ExerciseAccordionProviderProps>
   const [expandedExerciseId, setExpandedExerciseId] = useState<string | null>(null);
   const [workoutId, setWorkoutId] = useState<string | null>(null);
   const [dateIdentifier, setDateIdentifier] = useState<string | null>(null);
+  const [isResetting, setIsResetting] = useState<boolean>(false);
 
   // Reset accordion when date changes
   useEffect(() => {
@@ -34,29 +35,50 @@ export const ExerciseAccordionProvider: React.FC<ExerciseAccordionProviderProps>
       console.log("ExerciseAccordion: Date changed, resetting accordion", dateIdentifier);
       setExpandedExerciseId(null);
       setWorkoutId(null);
+      
+      // Set a flag to prevent any immediate re-expansion
+      setIsResetting(true);
+      
+      // Clear the resetting flag after a short delay
+      const timer = setTimeout(() => {
+        setIsResetting(false);
+      }, 100);
+      
+      return () => clearTimeout(timer);
     }
   }, [dateIdentifier]);
 
-  const setExpandedExercise = (exerciseId: string | null, newWorkoutId: string | null) => {
-    setExpandedExerciseId(exerciseId);
-    setWorkoutId(newWorkoutId);
-  };
+  // Ensure expand IDs are always null during reset operations
+  const safeSetExpandedExercise = useCallback((exerciseId: string | null, newWorkoutId: string | null) => {
+    if (!isResetting) {
+      setExpandedExerciseId(exerciseId);
+      setWorkoutId(newWorkoutId);
+    } else {
+      console.log("ExerciseAccordion: Ignoring expand request during reset");
+    }
+  }, [isResetting]);
 
-  const resetAccordion = () => {
+  const resetAccordion = useCallback(() => {
     console.log("ExerciseAccordion: Manually resetting accordion");
     setExpandedExerciseId(null);
     setWorkoutId(null);
-  };
+    setIsResetting(true);
+    
+    // Clear the resetting flag after a short delay
+    setTimeout(() => {
+      setIsResetting(false);
+    }, 100);
+  }, []);
 
   // Create a value object that won't change identity unless content changes
   const contextValue = React.useMemo(() => ({
     expandedExerciseId, 
     workoutId, 
-    setExpandedExercise, 
+    setExpandedExercise: safeSetExpandedExercise, 
     resetAccordion,
     dateIdentifier,
     setDateIdentifier
-  }), [expandedExerciseId, workoutId, dateIdentifier]);
+  }), [expandedExerciseId, workoutId, safeSetExpandedExercise, resetAccordion, dateIdentifier]);
 
   return (
     <ExerciseAccordionContext.Provider value={contextValue}>

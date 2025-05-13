@@ -1,4 +1,3 @@
-
 import React, { useState, useContext, useEffect, useRef } from "react";
 import { Exercise } from "@/lib/mockData";
 import { 
@@ -34,8 +33,20 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise, workoutId }) => {
   // Create a ref for the exercise item element
   const exerciseRef = useRef<HTMLDivElement>(null);
   
+  // Ref to track the most recent date identifier we've seen
+  const lastDateIdentifierRef = useRef<string | null>(null);
+  
   // Update expanded state based on context
   useEffect(() => {
+    // If dateIdentifier changed and is not null, always close
+    if (dateIdentifier && dateIdentifier !== lastDateIdentifierRef.current) {
+      console.log(`ExerciseItem ${exercise.id}: Date changed to ${dateIdentifier}, forcing collapse`);
+      setExpanded(false);
+      lastDateIdentifierRef.current = dateIdentifier;
+      return;
+    }
+    
+    // Otherwise update based on expandedExerciseId
     console.log(`ExerciseItem ${exercise.id}: Context changed, expandedExerciseId=${expandedExerciseId}, contextWorkoutId=${contextWorkoutId}, dateIdentifier=${dateIdentifier}`);
     const newExpanded = expandedExerciseId === exercise.id && contextWorkoutId === workoutId;
     setExpanded(newExpanded);

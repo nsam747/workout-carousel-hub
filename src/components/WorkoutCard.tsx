@@ -1,4 +1,3 @@
-
 import React, { useState, useContext, useEffect, useRef } from "react";
 import { Workout, getCategoryInfo } from "@/lib/mockData";
 import { ChevronDown, ChevronUp, Edit2, Trash2 } from "lucide-react";
@@ -37,8 +36,20 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout, onDelete }) => {
   // Create a ref to the workout card element
   const cardRef = useRef<HTMLDivElement>(null);
   
+  // Ref to track the most recent date identifier we've seen
+  const lastDateIdentifierRef = useRef<string | null>(null);
+  
   // Update expanded state based on context
   useEffect(() => {
+    // If dateIdentifier changed and is not null, always close
+    if (dateIdentifier && dateIdentifier !== lastDateIdentifierRef.current) {
+      console.log(`WorkoutCard ${workout.id}: Date changed to ${dateIdentifier}, forcing collapse`);
+      setExpanded(false);
+      lastDateIdentifierRef.current = dateIdentifier;
+      return;
+    }
+    
+    // Otherwise update based on expandedWorkoutId
     console.log(`WorkoutCard ${workout.id}: Context changed, expandedWorkoutId=${expandedWorkoutId}, dateIdentifier=${dateIdentifier}`);
     const newExpanded = expandedWorkoutId === workout.id;
     setExpanded(newExpanded);

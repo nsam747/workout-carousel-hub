@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect } from "react";
 import { dateRange } from "@/lib/mockData";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -19,23 +20,16 @@ const WeekCalendarCarousel: React.FC<WeekCalendarCarouselProps> = ({
   const selectedDateRef = useRef<HTMLDivElement>(null);
   
   // Access contexts using custom hooks
-  const { setExpandedWorkoutId, setDateIdentifier: setWorkoutDateIdentifier } = useWorkoutAccordion();
-  const { setExpandedExercise, setDateIdentifier: setExerciseDateIdentifier } = useExerciseAccordion();
+  const { resetAccordion: resetWorkoutAccordion } = useWorkoutAccordion();
+  const { resetAccordion: resetExerciseAccordion } = useExerciseAccordion();
 
-  // Function to handle date selection with accordion reset
+  // Function to handle date selection with immediate accordion reset
   const handleDateSelect = (date: Date) => {
     console.log("WeekCalendar: Date selected", date.toDateString());
     
-    // Force reset by directly setting the expanded IDs to null
-    setExpandedWorkoutId(null);
-    setExpandedExercise(null, null);
-    
-    // Generate a unique identifier for this date selection
-    const newDateIdentifier = `${date.toISOString()}-${Date.now()}`;
-    
-    // Update date identifiers to force context effects
-    setWorkoutDateIdentifier(newDateIdentifier);
-    setExerciseDateIdentifier(newDateIdentifier);
+    // Immediately reset accordions before the date changes
+    resetWorkoutAccordion();
+    resetExerciseAccordion();
     
     // Then call the original onDateSelect function
     onDateSelect(date);
