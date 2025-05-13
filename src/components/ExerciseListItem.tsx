@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Trash, ChevronDown, ChevronUp, Image, Plus, X, Check, Save, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -325,7 +326,7 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
   return (
     <Card className="overflow-hidden animate-scale-in">
       <div 
-        className="p-3 flex items-center justify-between cursor-pointer" 
+        className="p-3 flex items-start justify-between cursor-pointer" 
         onClick={() => setExpanded(!expanded)}
         onDoubleClick={() => setIsEditingExercise(true)}
       >
@@ -341,7 +342,7 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
           {!expanded && currentSummary}
         </div>
         
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 mt-0">
           <div 
             className={cn(
               "transition-all duration-300", 

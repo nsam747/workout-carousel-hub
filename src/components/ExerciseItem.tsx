@@ -250,19 +250,30 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
   return (
     <div className="mb-0 bg-white/90 border-b border-border last:border-b-0 overflow-hidden animate-slide-up animation-delay-100">
       <div 
-        className="px-4 py-3 cursor-pointer flex items-center justify-between"
+        className="px-4 py-3 cursor-pointer flex items-start justify-between"
         onClick={toggleExpanded}
       >
         <div className="flex-1">
           <h4 className="font-medium text-left">{exercise.name}</h4>
           
           {/* Render the enhanced summary when collapsed */}
-          {!expanded && summaryContent}
+          {!expanded && (
+            <>
+              {summaryContent}
+              
+              {/* Display notes preview when not expanded */}
+              {hasNotes && (
+                <div className="mt-1 text-sm text-muted-foreground text-left line-clamp-4">
+                  {exercise.notes}
+                </div>
+              )}
+            </>
+          )}
         </div>
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 rounded-full"
+          className="h-8 w-8 rounded-full mt-0"
           onClick={(e) => {
             e.stopPropagation();
             toggleExpanded();

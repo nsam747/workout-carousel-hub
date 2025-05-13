@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Workout, getCategoryInfo } from "@/lib/mockData";
 import { ChevronDown, ChevronUp, Edit2, Trash2 } from "lucide-react";
@@ -109,39 +110,37 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout, onDelete }) => {
             {workout.title}
           </h3>
           
-          {/* Category + count + date on same row */}
-          <div className="flex flex-row flex-wrap items-center justify-between mt-2">
-            <div className="flex flex-row flex-wrap items-center gap-x-3 gap-y-1">
-              <span
-                className={cn(
-                  "workout-tag flex items-center text-xs py-1 px-2 rounded-full",
-                  "max-w-full"
+          {/* Category + count on same row */}
+          <div className="flex flex-row flex-wrap items-center gap-x-3 gap-y-1 mt-2">
+            <span
+              className={cn(
+                "workout-tag flex items-center text-xs py-1 px-2 rounded-full",
+                "max-w-full"
+              )}
+              style={{
+                backgroundColor: categoryInfo.color,
+                color: getContrastColor(categoryInfo.color),
+                borderColor: getBorderColor(categoryInfo.color),
+                borderWidth: "1.5px",
+              }}
+            >
+              {categoryInfo.icon &&
+                renderCategoryIcon(
+                  categoryInfo.icon,
+                  getContrastColor(categoryInfo.color)
                 )}
-                style={{
-                  backgroundColor: categoryInfo.color,
-                  color: getContrastColor(categoryInfo.color),
-                  borderColor: getBorderColor(categoryInfo.color),
-                  borderWidth: "1.5px",
-                }}
-              >
-                {categoryInfo.icon &&
-                  renderCategoryIcon(
-                    categoryInfo.icon,
-                    getContrastColor(categoryInfo.color)
-                  )}
-                {workout.category}
-              </span>
-              <span className="text-sm text-muted-foreground whitespace-nowrap select-none">
-                {workout.exercises.length} exercise
-                {workout.exercises.length !== 1 ? "s" : ""}
-              </span>
-            </div>
-            
-            {/* Date on right side */}
-            <span className="text-sm text-muted-foreground whitespace-nowrap select-none ml-auto">
-              {formatWorkoutDate(workout.date)}
+              {workout.category}
+            </span>
+            <span className="text-sm text-muted-foreground whitespace-nowrap select-none">
+              {workout.exercises.length} exercise
+              {workout.exercises.length !== 1 ? "s" : ""}
             </span>
           </div>
+          
+          {/* Date on its own row */}
+          <span className="text-sm text-muted-foreground whitespace-nowrap select-none block mt-1">
+            {formatWorkoutDate(workout.date)}
+          </span>
         </div>
         
         <div className="flex items-center space-x-2 ml-2">
@@ -203,16 +202,16 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({ workout, onDelete }) => {
 
       {/* Delete confirmation dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
+        <AlertDialogContent className="max-w-[90%] w-full sm:max-w-lg p-4 sm:p-6">
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Workout</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to delete "{workout.title}"? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground">
+          <AlertDialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0">
+            <AlertDialogCancel className="mt-0 w-full sm:w-auto">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground w-full sm:w-auto">
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>
