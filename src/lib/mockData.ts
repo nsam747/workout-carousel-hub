@@ -1,4 +1,3 @@
-
 import { v4 as uuidv4 } from 'uuid';
 import { addDays, subDays, format, isSameDay, parseISO } from 'date-fns';
 
@@ -567,7 +566,6 @@ export const mockWorkouts: Workout[] = [
           },
           {
             id: "set-5-2-3",
-            setNumber: 3,
             metrics: [
               { id: "m-5-2-3-1", type: "duration", value: 60, unit: "sec" }
             ]
@@ -810,3 +808,9 @@ export const supportedMetrics = [
     availableUnits: ["sec", "min"]
   }
 ];
+
+// Format metric with unit for display next to metric name
+export const formatMetricWithUnit = (type: string, unit: string) => {
+  const name = type.charAt(0).toUpperCase() + type.slice(1).replace(/([A-Z])/g, ' $1');
+  return `${name} (${unit.toLowerCase()})`;
+};

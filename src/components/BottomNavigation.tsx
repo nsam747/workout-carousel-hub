@@ -23,8 +23,7 @@ const BottomNavigation = () => {
   };
   
   const handleDataClick = () => {
-    // Placeholder for future functionality
-    console.log("Data view functionality coming soon");
+    navigate("/data");
   };
   
   const handleSettingsClick = () => {
@@ -63,7 +62,10 @@ const BottomNavigation = () => {
         </button>
         
         <button 
-          className="flex flex-col items-center justify-center h-full w-16 text-muted-foreground"
+          className={cn(
+            "flex flex-col items-center justify-center h-full w-16 transition-colors",
+            isActive("/data") ? "text-primary" : "text-muted-foreground"
+          )}
           onClick={handleDataClick}
         >
           <BarChart className="h-5 w-5 mb-1" />
