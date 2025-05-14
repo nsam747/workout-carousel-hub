@@ -85,7 +85,16 @@ const EditWorkout = () => {
                   set.metrics.map(metric => ({ ...metric })) : 
                   []
               })) : 
-              []
+              [],
+            // Make sure we extract and store selectedMetrics for each exercise
+            selectedMetrics: exercise.selectedMetrics || (
+              exercise.sets && exercise.sets.length > 0 && exercise.sets[0].metrics ?
+                exercise.sets[0].metrics.map(metric => ({
+                  type: metric.type,
+                  unit: metric.unit
+                })) : 
+                []
+            )
           };
           return exerciseCopy;
         });
@@ -130,6 +139,36 @@ const EditWorkout = () => {
   
   const handleExerciseUpdate = (updatedExercise: Exercise) => {
     console.log("Updating exercise:", updatedExercise);
+    
+    // Check if this is a set addition with empty metrics
+    const isEmptySetAdded = updatedExercise.sets && updatedExercise.sets.some(set => 
+      !set.metrics || set.metrics.length === 0
+    );
+    
+    if (isEmptySetAdded) {
+      // Find the current exercise to get its selectedMetrics
+      const currentExercise = exercises.find(e => e.id === updatedExercise.id);
+      
+      if (currentExercise && currentExercise.selectedMetrics && currentExercise.selectedMetrics.length > 0) {
+        // Find sets without metrics and apply the selectedMetrics
+        updatedExercise.sets = updatedExercise.sets.map(set => {
+          if (!set.metrics || set.metrics.length === 0) {
+            // Create new metrics for this set based on the exercise's selectedMetrics
+            return {
+              ...set,
+              metrics: currentExercise.selectedMetrics.map(metric => ({
+                id: Math.random().toString(36).substring(2, 11),
+                type: metric.type,
+                value: 0, // Default value
+                unit: metric.unit
+              }))
+            };
+          }
+          return set;
+        });
+      }
+    }
+    
     setExercises(prevExercises => 
       prevExercises.map(exercise => 
         exercise.id === updatedExercise.id ? {
