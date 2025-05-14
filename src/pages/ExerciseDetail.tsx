@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -27,48 +28,54 @@ const ExerciseDetail = () => {
   useEffect(() => {
     if (!id) return;
     
-    // Get the exercise
+    // Get the exercise template
     const exercises = getSavedExercises();
     const foundExercise = exercises.find(e => e.id === id);
     
     if (foundExercise) {
       setExercise(foundExercise);
       
-      // Find all workouts containing this exercise
+      // Find all workouts containing this exercise (by name rather than ID)
       const allWorkouts = getAllWorkouts();
       const relevantWorkouts = allWorkouts.filter(workout => 
-        workout.exercises.some(e => e.id === id)
+        workout.exercises.some(e => e.name === foundExercise.name)
       );
       setWorkouts(relevantWorkouts);
       
-      // Calculate metrics stats
-      calculateMetricStats(relevantWorkouts, id);
+      // Calculate metrics stats using workouts with matching exercise names
+      if (relevantWorkouts.length > 0) {
+        calculateMetricStats(relevantWorkouts, foundExercise.name);
+      }
     }
   }, [id]);
   
-  const calculateMetricStats = (workouts: Workout[], exerciseId: string) => {
+  const calculateMetricStats = (workouts: Workout[], exerciseName: string) => {
     const stats: Record<string, MetricStats> = {};
     
     workouts.forEach(workout => {
-      const exerciseInstance = workout.exercises.find(e => e.id === exerciseId);
-      if (!exerciseInstance || !exerciseInstance.sets) return;
+      // Find exercises by name rather than ID
+      const exerciseInstances = workout.exercises.filter(e => e.name === exerciseName);
       
-      exerciseInstance.sets.forEach(set => {
-        if (!set.metrics) return;
+      exerciseInstances.forEach(exerciseInstance => {
+        if (!exerciseInstance.sets) return;
         
-        set.metrics.forEach(metric => {
-          if (!stats[metric.type]) {
-            stats[metric.type] = {
-              totalValue: 0,
-              maxValue: 0,
-              count: 0,
-              unit: metric.unit
-            };
-          }
+        exerciseInstance.sets.forEach(set => {
+          if (!set.metrics) return;
           
-          stats[metric.type].totalValue += metric.value;
-          stats[metric.type].maxValue = Math.max(stats[metric.type].maxValue, metric.value);
-          stats[metric.type].count++;
+          set.metrics.forEach(metric => {
+            if (!stats[metric.type]) {
+              stats[metric.type] = {
+                totalValue: 0,
+                maxValue: 0,
+                count: 0,
+                unit: metric.unit
+              };
+            }
+            
+            stats[metric.type].totalValue += metric.value;
+            stats[metric.type].maxValue = Math.max(stats[metric.type].maxValue, metric.value);
+            stats[metric.type].count++;
+          });
         });
       });
     });
@@ -80,19 +87,25 @@ const ExerciseDetail = () => {
     let totalSets = 0;
     let totalReps = 0;
     
+    if (!exercise) return { totalSets, totalReps };
+    
     workouts.forEach(workout => {
-      const exerciseInstance = workout.exercises.find(e => e.id === id);
-      if (!exerciseInstance || !exerciseInstance.sets) return;
+      // Find exercises by name rather than ID
+      const exerciseInstances = workout.exercises.filter(e => e.name === exercise.name);
       
-      totalSets += exerciseInstance.sets.length;
-      
-      exerciseInstance.sets.forEach(set => {
-        if (!set.metrics) return;
+      exerciseInstances.forEach(exerciseInstance => {
+        if (!exerciseInstance.sets) return;
         
-        const repsMetric = set.metrics.find(m => m.type === 'repetitions');
-        if (repsMetric) {
-          totalReps += repsMetric.value;
-        }
+        totalSets += exerciseInstance.sets.length;
+        
+        exerciseInstance.sets.forEach(set => {
+          if (!set.metrics) return;
+          
+          const repsMetric = set.metrics.find(m => m.type === 'repetitions');
+          if (repsMetric) {
+            totalReps += repsMetric.value;
+          }
+        });
       });
     });
     
@@ -102,11 +115,17 @@ const ExerciseDetail = () => {
   const getAllNotes = () => {
     const notes: string[] = [];
     
+    if (!exercise) return notes;
+    
     workouts.forEach(workout => {
-      const exerciseInstance = workout.exercises.find(e => e.id === id);
-      if (exerciseInstance && exerciseInstance.notes && exerciseInstance.notes.trim().length > 0) {
-        notes.push(exerciseInstance.notes);
-      }
+      // Find exercises by name rather than ID
+      const exerciseInstances = workout.exercises.filter(e => e.name === exercise.name);
+      
+      exerciseInstances.forEach(exerciseInstance => {
+        if (exerciseInstance && exerciseInstance.notes && exerciseInstance.notes.trim().length > 0) {
+          notes.push(exerciseInstance.notes);
+        }
+      });
     });
     
     return notes;
@@ -115,11 +134,17 @@ const ExerciseDetail = () => {
   const getAllMedia = () => {
     const media: string[] = [];
     
+    if (!exercise) return media;
+    
     workouts.forEach(workout => {
-      const exerciseInstance = workout.exercises.find(e => e.id === id);
-      if (exerciseInstance && exerciseInstance.media && exerciseInstance.media.length > 0) {
-        media.push(...exerciseInstance.media);
-      }
+      // Find exercises by name rather than ID
+      const exerciseInstances = workout.exercises.filter(e => e.name === exercise.name);
+      
+      exerciseInstances.forEach(exerciseInstance => {
+        if (exerciseInstance && exerciseInstance.media && exerciseInstance.media.length > 0) {
+          media.push(...exerciseInstance.media);
+        }
+      });
     });
     
     return media;
