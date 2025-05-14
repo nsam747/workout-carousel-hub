@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Exercise, getCategoryInfo } from '@/lib/mockData';
 import { generateExerciseSummary } from '@/lib/exerciseUtils';
+import { cn } from '@/lib/utils';
 
 interface ExercisesListProps {
   exercises: Exercise[];
@@ -21,15 +22,59 @@ const ExercisesList: React.FC<ExercisesListProps> = ({ exercises }) => {
     exercisesByCategory[exercise.type].push(exercise);
   });
   
+  // Function to determine contrasting text color (black or white) based on background
+  const getContrastColor = (hexColor: string) => {
+    // Convert hex to RGB
+    const r = parseInt(hexColor.slice(1, 3), 16);
+    const g = parseInt(hexColor.slice(3, 5), 16);
+    const b = parseInt(hexColor.slice(5, 7), 16);
+    // Calculate luminance - perceived brightness
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    // Return black for bright colors, white for dark colors
+    return luminance > 0.5 ? "#000000" : "#FFFFFF";
+  };
+  
+  // Function to get a complementary border color with opacity
+  const getBorderColor = (hexColor: string) => {
+    // Convert hex to RGB
+    const r = parseInt(hexColor.slice(1, 3), 16);
+    const g = parseInt(hexColor.slice(3, 5), 16);
+    const b = parseInt(hexColor.slice(5, 7), 16);
+
+    // Adjust brightness slightly for border
+    const darkerR = Math.max(0, r - 30);
+    const darkerG = Math.max(0, g - 30);
+    const darkerB = Math.max(0, b - 30);
+
+    // Return with 40% opacity
+    return `rgba(${darkerR}, ${darkerG}, ${darkerB}, 0.4)`;
+  };
+  
   return (
     <div className="space-y-6 mt-4">
-      {Object.keys(exercisesByCategory).map(category => (
-        <div key={category}>
-          <h3 className="text-lg font-semibold mb-2">{category}</h3>
-          <div className="space-y-2">
-            {exercisesByCategory[category].map(exercise => {
-              const categoryInfo = getCategoryInfo(exercise.type);
-              return (
+      {Object.keys(exercisesByCategory).map(category => {
+        const categoryInfo = getCategoryInfo(category);
+        return (
+          <div key={category}>
+            <div className="flex items-center gap-2 mb-2">
+              <span
+                className={cn(
+                  "flex items-center text-xs py-1 px-2 rounded-full",
+                  "max-w-full"
+                )}
+                style={{
+                  backgroundColor: categoryInfo.color,
+                  color: getContrastColor(categoryInfo.color),
+                  borderColor: getBorderColor(categoryInfo.color),
+                  borderWidth: "1.5px",
+                }}
+              >
+                {category}
+              </span>
+              <span className="text-lg font-semibold">{category}</span>
+            </div>
+            <div className="space-y-2">
+              {exercisesByCategory[category].map(exercise => (
                 <Card 
                   key={exercise.id}
                   className="p-4 cursor-pointer hover:bg-accent/50 transition-colors"
@@ -42,17 +87,17 @@ const ExercisesList: React.FC<ExercisesListProps> = ({ exercises }) => {
                         {generateExerciseSummary(exercise)}
                       </div>
                     </div>
-                    <div 
+                    <span 
                       className="w-3 h-3 rounded-full" 
                       style={{ backgroundColor: categoryInfo.color }}
                     />
                   </div>
                 </Card>
-              );
-            })}
+              ))}
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
       
       {Object.keys(exercisesByCategory).length === 0 && (
         <div className="text-center py-8 text-muted-foreground">
