@@ -178,7 +178,9 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({
             {/* Action buttons and expand toggle in the same row */}
             <div className={cn(
               "flex items-center gap-2 transition-all duration-300", 
-              isExpanded ? "opacity-100" : "opacity-0 pointer-events-none"
+              isExpanded 
+                ? "opacity-100 translate-x-0" 
+                : "opacity-0 translate-x-8 pointer-events-none"
             )}>
               <Button
                 variant="ghost"

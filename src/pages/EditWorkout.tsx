@@ -102,8 +102,22 @@ const EditWorkout = () => {
   }, [id, navigate]);
   
   const handleAddExercise = (exercise: Exercise) => {
-    setExercises(prevExercises => [...prevExercises, exercise]);
-    setLastAddedExerciseId(exercise.id);
+    // Make sure the new exercise includes selectedMetrics for future set additions
+    const exerciseWithMetrics = {
+      ...exercise,
+      // If exercise doesn't have selectedMetrics but has sets with metrics, extract them
+      selectedMetrics: exercise.selectedMetrics || (
+        exercise.sets && exercise.sets.length > 0 && exercise.sets[0].metrics ?
+          exercise.sets[0].metrics.map(metric => ({
+            type: metric.type,
+            unit: metric.unit
+          })) :
+          []
+      )
+    };
+    
+    setExercises(prevExercises => [...prevExercises, exerciseWithMetrics]);
+    setLastAddedExerciseId(exerciseWithMetrics.id);
     setIsAddingExercise(false);
   };
   
@@ -118,7 +132,20 @@ const EditWorkout = () => {
     console.log("Updating exercise:", updatedExercise);
     setExercises(prevExercises => 
       prevExercises.map(exercise => 
-        exercise.id === updatedExercise.id ? updatedExercise : exercise
+        exercise.id === updatedExercise.id ? {
+          ...updatedExercise,
+          // Preserve selectedMetrics from existing exercise or extract them from the sets
+          selectedMetrics: updatedExercise.selectedMetrics || (
+            exercise.selectedMetrics || (
+              updatedExercise.sets && updatedExercise.sets.length > 0 && updatedExercise.sets[0].metrics ?
+                updatedExercise.sets[0].metrics.map(metric => ({
+                  type: metric.type,
+                  unit: metric.unit
+                })) :
+                []
+            )
+          )
+        } : exercise
       )
     );
   };

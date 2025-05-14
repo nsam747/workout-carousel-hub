@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Picker from "react-mobile-picker";
 import { format, addMonths, setHours, setMinutes } from "date-fns";
 
@@ -108,12 +108,33 @@ const DateTimePickerWheel: React.FC<DateTimePickerWheelProps> = ({
     onSelect(selectedDate);
     onClose();
   };
+  
+  // Prevent background scrolling when picker is open
+  useEffect(() => {
+    if (isOpen) {
+      // Disable scrolling on body when picker is open
+      document.body.style.overflow = 'hidden';
+      
+      // Re-enable scrolling when component is unmounted or closed
+      return () => {
+        document.body.style.overflow = 'auto';
+      };
+    }
+  }, [isOpen]);
+  
+  // Handle wheel events to prevent scroll propagation
+  const preventScroll = (e: React.WheelEvent) => {
+    e.stopPropagation();
+  };
 
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm">
-      <div className="fixed bottom-0 left-0 right-0 z-50 flex flex-col rounded-t-xl bg-card shadow-lg animate-in slide-in-from-bottom">
+      <div 
+        className="fixed bottom-0 left-0 right-0 z-50 flex flex-col rounded-t-xl bg-card shadow-lg animate-in slide-in-from-bottom"
+        onWheel={preventScroll}
+      >
         {/* Header with Cancel and Done buttons */}
         <div className="flex items-center justify-between bg-primary px-4 py-3 rounded-t-xl">
           <button 
