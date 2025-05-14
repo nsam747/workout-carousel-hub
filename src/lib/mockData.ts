@@ -566,6 +566,7 @@ export const mockWorkouts: Workout[] = [
           },
           {
             id: "set-5-2-3",
+            setNumber: 3,
             metrics: [
               { id: "m-5-2-3-1", type: "duration", value: 60, unit: "sec" }
             ]
