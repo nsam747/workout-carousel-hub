@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Exercise, getCategoryInfo } from '@/lib/mockData';
 import { generateExerciseSummary } from '@/lib/exerciseUtils';
 import { cn } from '@/lib/utils';
+import * as LucideIcons from 'lucide-react';
 
 interface ExercisesListProps {
   exercises: Exercise[];
@@ -50,16 +51,27 @@ const ExercisesList: React.FC<ExercisesListProps> = ({ exercises }) => {
     return `rgba(${darkerR}, ${darkerG}, ${darkerB}, 0.4)`;
   };
   
+  // Render icon by name if it exists
+  const renderCategoryIcon = (iconName: string | null, color: string) => {
+    if (!iconName) return null;
+    
+    // Get the icon component by name
+    const IconComponent = (LucideIcons as any)[iconName];
+    if (!IconComponent) return null;
+    
+    return <IconComponent size={16} color={color} className="mr-1" />;
+  };
+  
   return (
     <div className="space-y-6 mt-4">
       {Object.keys(exercisesByCategory).map(category => {
         const categoryInfo = getCategoryInfo(category);
         return (
           <div key={category}>
-            <div className="flex items-center gap-2 mb-2">
+            <div className="mb-4">
               <span
                 className={cn(
-                  "flex items-center text-xs py-1 px-2 rounded-full",
+                  "flex items-center text-sm py-2 px-4 rounded-full",
                   "max-w-full"
                 )}
                 style={{
@@ -67,11 +79,12 @@ const ExercisesList: React.FC<ExercisesListProps> = ({ exercises }) => {
                   color: getContrastColor(categoryInfo.color),
                   borderColor: getBorderColor(categoryInfo.color),
                   borderWidth: "1.5px",
+                  display: "inline-flex"
                 }}
               >
+                {categoryInfo.icon && renderCategoryIcon(categoryInfo.icon, getContrastColor(categoryInfo.color))}
                 {category}
               </span>
-              <span className="text-lg font-semibold">{category}</span>
             </div>
             <div className="space-y-2">
               {exercisesByCategory[category].map(exercise => (
