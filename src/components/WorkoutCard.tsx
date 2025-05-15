@@ -1,7 +1,7 @@
 
 import React, { useRef } from "react";
 import { Workout, getCategoryInfo } from "@/lib/mockData";
-import { ChevronDown, ChevronUp, Edit2, Trash2, Plus } from "lucide-react";
+import { ChevronDown, ChevronUp, Edit2, Trash2 } from "lucide-react";
 import ExerciseItem from "./ExerciseItem";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -24,17 +24,13 @@ interface WorkoutCardProps {
   onDelete?: (id: string) => void;
   isExpanded: boolean;
   onToggleExpanded: (id: string) => void;
-  isReadOnly?: boolean;
-  onTryWorkout?: () => void;
 }
 
 const WorkoutCard: React.FC<WorkoutCardProps> = ({ 
   workout, 
   onDelete, 
   isExpanded, 
-  onToggleExpanded,
-  isReadOnly = false,
-  onTryWorkout
+  onToggleExpanded 
 }) => {
   const [showDeleteDialog, setShowDeleteDialog] = React.useState(false);
   const navigate = useNavigate();
@@ -84,13 +80,6 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({
       onDelete(workout.id);
     }
     setShowDeleteDialog(false);
-  };
-
-  const handleTryWorkout = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (onTryWorkout) {
-      onTryWorkout();
-    }
   };
 
   // Function to determine contrasting text color (black or white) based on background
@@ -193,42 +182,25 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({
                 ? "opacity-100 translate-x-0" 
                 : "opacity-0 translate-x-8 pointer-events-none"
             )}>
-              {!isReadOnly && onDelete && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 rounded-full"
-                  onClick={handleDeleteWorkout}
-                  title="Delete Workout"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              )}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 rounded-full"
+                onClick={handleDeleteWorkout}
+                title="Delete Workout"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
               
-              {!isReadOnly && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 rounded-full"
-                  onClick={handleEditWorkout}
-                  title="Edit Workout"
-                >
-                  <Edit2 className="h-4 w-4" />
-                </Button>
-              )}
-              
-              {isReadOnly && onTryWorkout && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8 rounded-full"
-                  onClick={handleTryWorkout}
-                  title="Try This Workout"
-                >
-                  <Plus className="h-4 w-4 mr-1" />
-                  <span className="text-xs">Try Workout</span>
-                </Button>
-              )}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 rounded-full"
+                onClick={handleEditWorkout}
+                title="Edit Workout"
+              >
+                <Edit2 className="h-4 w-4" />
+              </Button>
             </div>
             
             {/* Toggle expand button - always visible */}
@@ -260,7 +232,7 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({
       {isExpanded && (
         <div className="border-t border-border/40 animate-fade-in">
           {workout.exercises.map((exercise) => (
-            <ExerciseItem key={exercise.id} exercise={exercise} workoutId={workout.id} isReadOnly={isReadOnly} />
+            <ExerciseItem key={exercise.id} exercise={exercise} workoutId={workout.id} />
           ))}
         </div>
       )}

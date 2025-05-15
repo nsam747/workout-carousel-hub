@@ -5,21 +5,11 @@ export interface User {
   id: string;
   name: string;
   avatar: string;
-  followers?: string[]; // Array of user IDs who follow this user
 }
 
 export type PostTag = 'Calisthenics' | 'Aerials' | 'Yoga' | 'Gym' | 'Dance' | 'Other';
 
 export type PostContentType = 'workout' | 'exercise';
-
-export interface Report {
-  id: string;
-  postId: string;
-  userId: string;
-  reason: string;
-  timestamp: string;
-  status: 'pending' | 'reviewed' | 'resolved';
-}
 
 export interface Post {
   id: string;
@@ -33,21 +23,20 @@ export interface Post {
   likes: number;
   likedBy: string[]; // Array of user IDs
   media?: string[];
-  reports?: Report[]; // Array of reports for this post
 }
 
 // List of users for mock data
 export const users: User[] = [
-  { id: uuidv4(), name: "Alex Trainer", avatar: "https://i.pravatar.cc/150?u=alex", followers: [] },
-  { id: uuidv4(), name: "Sam Fitness", avatar: "https://i.pravatar.cc/150?u=sam", followers: [] },
-  { id: uuidv4(), name: "Jordan Flex", avatar: "https://i.pravatar.cc/150?u=jordan", followers: [] },
-  { id: uuidv4(), name: "Taylor Stretch", avatar: "https://i.pravatar.cc/150?u=taylor", followers: [] },
-  { id: uuidv4(), name: "Casey Climber", avatar: "https://i.pravatar.cc/150?u=casey", followers: [] },
-  { id: uuidv4(), name: "Morgan Dancer", avatar: "https://i.pravatar.cc/150?u=morgan", followers: [] },
-  { id: uuidv4(), name: "Riley Yogi", avatar: "https://i.pravatar.cc/150?u=riley", followers: [] },
-  { id: uuidv4(), name: "Jamie Strong", avatar: "https://i.pravatar.cc/150?u=jamie", followers: [] },
-  { id: uuidv4(), name: "Quinn Gymnast", avatar: "https://i.pravatar.cc/150?u=quinn", followers: [] },
-  { id: uuidv4(), name: "Avery Aerial", avatar: "https://i.pravatar.cc/150?u=avery", followers: [] }
+  { id: uuidv4(), name: "Alex Trainer", avatar: "https://i.pravatar.cc/150?u=alex" },
+  { id: uuidv4(), name: "Sam Fitness", avatar: "https://i.pravatar.cc/150?u=sam" },
+  { id: uuidv4(), name: "Jordan Flex", avatar: "https://i.pravatar.cc/150?u=jordan" },
+  { id: uuidv4(), name: "Taylor Stretch", avatar: "https://i.pravatar.cc/150?u=taylor" },
+  { id: uuidv4(), name: "Casey Climber", avatar: "https://i.pravatar.cc/150?u=casey" },
+  { id: uuidv4(), name: "Morgan Dancer", avatar: "https://i.pravatar.cc/150?u=morgan" },
+  { id: uuidv4(), name: "Riley Yogi", avatar: "https://i.pravatar.cc/150?u=riley" },
+  { id: uuidv4(), name: "Jamie Strong", avatar: "https://i.pravatar.cc/150?u=jamie" },
+  { id: uuidv4(), name: "Quinn Gymnast", avatar: "https://i.pravatar.cc/150?u=quinn" },
+  { id: uuidv4(), name: "Avery Aerial", avatar: "https://i.pravatar.cc/150?u=avery" }
 ];
 
 // Create an array of available media paths
@@ -306,9 +295,6 @@ const generateMessageForTag = (tag: PostTag, isWorkout: boolean): string => {
 // Generate and export the mock posts
 export const mockPosts: Post[] = generateMockPosts();
 
-// Array to store reports
-export const reports: Report[] = [];
-
 // Function to toggle like on a post
 export const toggleLike = (postId: string, userId: string): void => {
   const post = mockPosts.find(p => p.id === postId);
@@ -326,54 +312,6 @@ export const toggleLike = (postId: string, userId: string): void => {
   }
 };
 
-// Function to toggle follow on a user
-export const toggleFollow = (targetUserId: string, followerId: string): void => {
-  const targetUser = users.find(u => u.id === targetUserId);
-  if (targetUser) {
-    if (!targetUser.followers) {
-      targetUser.followers = [];
-    }
-    
-    const isFollowing = targetUser.followers.includes(followerId);
-    if (isFollowing) {
-      // Unfollow
-      targetUser.followers = targetUser.followers.filter(id => id !== followerId);
-    } else {
-      // Follow
-      targetUser.followers.push(followerId);
-    }
-  }
-};
-
-// Function to check if a user is following another user
-export const isFollowingUser = (targetUserId: string, followerId: string): boolean => {
-  const targetUser = users.find(u => u.id === targetUserId);
-  return targetUser?.followers?.includes(followerId) || false;
-};
-
-// Function to report a post
-export const reportPost = (postId: string, userId: string, reason: string): void => {
-  const report: Report = {
-    id: uuidv4(),
-    postId,
-    userId,
-    reason,
-    timestamp: new Date().toISOString(),
-    status: 'pending'
-  };
-  
-  reports.push(report);
-  
-  // Optional: Add report to the post as well
-  const post = mockPosts.find(p => p.id === postId);
-  if (post) {
-    if (!post.reports) {
-      post.reports = [];
-    }
-    post.reports.push(report);
-  }
-};
-
 // Function to get all posts
 export const getAllPosts = (): Post[] => {
   return [...mockPosts];
@@ -384,32 +322,15 @@ export const getPostsByTag = (tag: PostTag): Post[] => {
   return mockPosts.filter(post => post.tag === tag);
 };
 
-// Function to get posts from users the current user follows
-export const getFollowedPosts = (userId: string): Post[] => {
-  const followedUserIds = users
-    .filter(user => user.followers?.includes(userId))
-    .map(user => user.id);
-  
-  return mockPosts.filter(post => followedUserIds.includes(post.user.id));
-};
-
 // Function to check if a post is liked by a user
 export const isLikedByUser = (postId: string, userId: string): boolean => {
   const post = mockPosts.find(p => p.id === postId);
   return post ? post.likedBy.includes(userId) : false;
 };
 
-// Function to copy a workout to a user's own workouts
-export const copyWorkoutToUser = (workoutId: string, userId: string): void => {
-  // In a real application, this would add the workout to the user's collection
-  console.log(`Workout ${workoutId} copied to user ${userId}`);
-  // Implementation would depend on how workouts are stored
-};
-
 // For development purposes - the current user
 export const currentUser: User = {
   id: uuidv4(),
   name: "Current User",
-  avatar: "https://i.pravatar.cc/150?u=current",
-  followers: []
+  avatar: "https://i.pravatar.cc/150?u=current"
 };
