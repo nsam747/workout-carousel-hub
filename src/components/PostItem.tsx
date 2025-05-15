@@ -1,13 +1,15 @@
 
 import React, { useState } from "react";
-import { Post, toggleLike, currentUser, isLikedByUser } from "@/lib/feedsData";
+import { Post, toggleLike, currentUser, isLikedByUser, tryWorkout } from "@/lib/feedsData";
 import WorkoutCard from "@/components/WorkoutCard";
 import ExerciseItem from "@/components/ExerciseItem";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { formatDistanceToNow } from "date-fns";
-import { Heart } from "lucide-react";
+import { Heart, Flag, UserPlus, UserCheck, Copy, Check, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
 
 interface PostItemProps {
   post: Post;
@@ -19,6 +21,8 @@ const PostItem: React.FC<PostItemProps> = ({ post }) => {
   );
   const [likeCount, setLikeCount] = useState<number>(post.likes);
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
+  const [isFollowing, setIsFollowing] = useState<boolean>(post.user.isFollowing || false);
+  const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
 
   const handleLikeToggle = () => {
     toggleLike(post.id, currentUser.id);
@@ -30,6 +34,22 @@ const PostItem: React.FC<PostItemProps> = ({ post }) => {
       setLikeCount(prev => prev + 1);
       setIsLiked(true);
       toast.success("Post liked!");
+    }
+  };
+
+  const handleReportPost = () => {
+    toast.success("Post reported. Our team will review it.");
+  };
+
+  const handleFollowToggle = () => {
+    setIsFollowing(!isFollowing);
+    toast.success(isFollowing ? "Unfollowed user" : "Following user");
+  };
+
+  const handleTryWorkout = () => {
+    if (post.contentType === "workout" && post.workoutData) {
+      tryWorkout(post.workoutData);
+      toast.success("Workout added to your routines!");
     }
   };
 
@@ -55,6 +75,24 @@ const PostItem: React.FC<PostItemProps> = ({ post }) => {
       .substring(0, 2);
   };
 
+  // Check if post has media
+  const hasMedia = post.media && post.media.length > 0;
+  
+  // Handle media navigation
+  const showNextMedia = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (post.media) {
+      setCurrentMediaIndex((prev) => (prev + 1) % post.media!.length);
+    }
+  };
+
+  const showPrevMedia = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (post.media) {
+      setCurrentMediaIndex((prev) => (prev - 1 + post.media!.length) % post.media!.length);
+    }
+  };
+
   return (
     <div className="mb-6 bg-background border border-border rounded-xl overflow-hidden glass-card animate-scale-in">
       {/* User info header */}
@@ -71,7 +109,28 @@ const PostItem: React.FC<PostItemProps> = ({ post }) => {
             </span>
           </div>
         </div>
-        <div>
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className={cn(
+              "text-xs rounded-full h-8",
+              isFollowing ? "bg-primary/10 text-primary" : "hover:bg-primary/5"
+            )}
+            onClick={handleFollowToggle}
+          >
+            {isFollowing ? (
+              <>
+                <UserCheck className="h-3.5 w-3.5 mr-1" />
+                Following
+              </>
+            ) : (
+              <>
+                <UserPlus className="h-3.5 w-3.5 mr-1" />
+                Follow
+              </>
+            )}
+          </Button>
           <span 
             className="inline-flex items-center justify-center text-xs py-1 px-2.5 rounded-full bg-primary/10 text-primary"
           >
@@ -79,6 +138,53 @@ const PostItem: React.FC<PostItemProps> = ({ post }) => {
           </span>
         </div>
       </div>
+      
+      {/* Post media carousel (if available) */}
+      {hasMedia && (
+        <div className="relative">
+          <AspectRatio ratio={16/9} className="bg-gray-100">
+            <img 
+              src={post.media![currentMediaIndex]} 
+              alt={`Post image ${currentMediaIndex + 1}`}
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
+          </AspectRatio>
+
+          {/* Media navigation */}
+          {post.media && post.media.length > 1 && (
+            <>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute left-2 top-1/2 transform -translate-y-1/2 h-8 w-8 rounded-full bg-background/70"
+                onClick={showPrevMedia}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8 rounded-full bg-background/70"
+                onClick={showNextMedia}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+              <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1">
+                {post.media.map((_, index) => (
+                  <span 
+                    key={index} 
+                    className={cn(
+                      "block h-2 w-2 rounded-full",
+                      index === currentMediaIndex ? "bg-primary" : "bg-white/50"
+                    )}
+                  />
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      )}
       
       {/* Post message */}
       {post.message && (
@@ -94,8 +200,7 @@ const PostItem: React.FC<PostItemProps> = ({ post }) => {
             workout={post.workoutData} 
             isExpanded={isExpanded}
             onToggleExpanded={toggleExpand}
-            // We don't want to allow deletion in the feed
-            onDelete={undefined}
+            isReadOnly={true}
           />
         )}
         
@@ -109,29 +214,53 @@ const PostItem: React.FC<PostItemProps> = ({ post }) => {
         )}
       </div>
       
-      {/* Like counter and button */}
+      {/* Like counter, try workout and report buttons */}
       <div className="px-4 py-3 flex items-center justify-between">
-        <span className="text-sm text-muted-foreground">
-          {likeCount} {likeCount === 1 ? "like" : "likes"}
-        </span>
-        <button 
-          className={cn(
-            "inline-flex items-center justify-center gap-1.5 text-sm py-1.5 px-3 rounded-full transition-colors",
-            isLiked 
-              ? "bg-primary/10 text-primary font-medium" 
-              : "text-muted-foreground hover:bg-primary/5"
-          )}
-          onClick={handleLikeToggle}
-          aria-label={isLiked ? "Unlike post" : "Like post"}
-        >
-          <Heart 
+        <div className="flex items-center">
+          <span className="text-sm text-muted-foreground mr-2">
+            {likeCount} {likeCount === 1 ? "like" : "likes"}
+          </span>
+          
+          <button 
             className={cn(
-              "h-4 w-4 transition-transform", 
-              isLiked && "fill-primary text-primary scale-110"
-            )} 
-          />
-          {isLiked ? "Liked" : "Like"}
-        </button>
+              "inline-flex items-center justify-center gap-1.5 text-sm py-1.5 px-3 rounded-full transition-colors mr-2",
+              isLiked 
+                ? "bg-primary/10 text-primary font-medium" 
+                : "text-muted-foreground hover:bg-primary/5"
+            )}
+            onClick={handleLikeToggle}
+            aria-label={isLiked ? "Unlike post" : "Like post"}
+          >
+            <Heart 
+              className={cn(
+                "h-4 w-4 transition-transform", 
+                isLiked && "fill-primary text-primary scale-110"
+              )} 
+            />
+            {isLiked ? "Liked" : "Like"}
+          </button>
+          
+          {/* Report button */}
+          <button 
+            className="inline-flex items-center justify-center gap-1.5 text-sm py-1.5 px-3 rounded-full transition-colors text-muted-foreground hover:bg-primary/5"
+            onClick={handleReportPost}
+            aria-label="Report post"
+          >
+            <Flag className="h-4 w-4" />
+            Report
+          </button>
+        </div>
+        
+        {/* Try this workout button (only for workout posts) */}
+        {post.contentType === "workout" && post.workoutData && (
+          <button 
+            className="inline-flex items-center justify-center gap-1.5 text-sm py-1.5 px-3 rounded-full transition-colors bg-primary/10 text-primary font-medium hover:bg-primary/20"
+            onClick={handleTryWorkout}
+          >
+            <Copy className="h-4 w-4" />
+            Try Workout
+          </button>
+        )}
       </div>
     </div>
   );

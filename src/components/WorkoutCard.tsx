@@ -18,19 +18,22 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
 
 interface WorkoutCardProps {
   workout: Workout;
   onDelete?: (id: string) => void;
   isExpanded: boolean;
   onToggleExpanded: (id: string) => void;
+  isReadOnly?: boolean;
 }
 
 const WorkoutCard: React.FC<WorkoutCardProps> = ({ 
   workout, 
   onDelete, 
   isExpanded, 
-  onToggleExpanded 
+  onToggleExpanded,
+  isReadOnly = false
 }) => {
   const [showDeleteDialog, setShowDeleteDialog] = React.useState(false);
   const navigate = useNavigate();
@@ -58,6 +61,23 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({
       }, 100);
     }
   }, [isExpanded]);
+
+  // Check if this workout has any media in its exercises
+  const hasMedia = workout.exercises.some(exercise => 
+    exercise.media && exercise.media.length > 0
+  );
+
+  // Get all media from all exercises
+  const getAllMedia = () => {
+    const allMedia: string[] = [];
+    workout.exercises.forEach(exercise => {
+      if (exercise.media && exercise.media.length > 0) {
+        allMedia.push(...exercise.media);
+      }
+    });
+    // Return at most 3 media items
+    return allMedia.slice(0, 3);
+  };
 
   const toggleExpanded = () => {
     onToggleExpanded(workout.id);
@@ -127,6 +147,9 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({
     return format(date, "MMM d, yyyy");
   };
 
+  // Get all media thumbnails from exercises
+  const mediaThumbnails = getAllMedia();
+
   return (
     <div ref={cardRef} className="mb-4 rounded-xl overflow-hidden glass-card animate-scale-in">
       {/* Workout header */}
@@ -176,32 +199,34 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({
         <div className="flex flex-col items-end">
           <div className="flex items-center gap-2">
             {/* Action buttons and expand toggle in the same row */}
-            <div className={cn(
-              "flex items-center gap-2 transition-all duration-300", 
-              isExpanded 
-                ? "opacity-100 translate-x-0" 
-                : "opacity-0 translate-x-8 pointer-events-none"
-            )}>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 rounded-full"
-                onClick={handleDeleteWorkout}
-                title="Delete Workout"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-              
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 rounded-full"
-                onClick={handleEditWorkout}
-                title="Edit Workout"
-              >
-                <Edit2 className="h-4 w-4" />
-              </Button>
-            </div>
+            {!isReadOnly && (
+              <div className={cn(
+                "flex items-center gap-2 transition-all duration-300", 
+                isExpanded 
+                  ? "opacity-100 translate-x-0" 
+                  : "opacity-0 translate-x-8 pointer-events-none"
+              )}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 rounded-full"
+                  onClick={handleDeleteWorkout}
+                  title="Delete Workout"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+                
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 rounded-full"
+                  onClick={handleEditWorkout}
+                  title="Edit Workout"
+                >
+                  <Edit2 className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
             
             {/* Toggle expand button - always visible */}
             <Button
@@ -227,6 +252,26 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({
           </span>
         </div>
       </div>
+
+      {/* Show media thumbnails if available in collapsed state */}
+      {!isExpanded && hasMedia && (
+        <div className="px-4 pb-4">
+          <div className="grid grid-cols-3 gap-2">
+            {mediaThumbnails.map((media, index) => (
+              <div key={index} className="relative rounded-md overflow-hidden aspect-video">
+                <AspectRatio ratio={16/9}>
+                  <img 
+                    src={media} 
+                    alt={`Workout media ${index + 1}`}
+                    className="w-full h-full object-cover" 
+                    loading="lazy"
+                  />
+                </AspectRatio>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Exercises list - shown when expanded */}
       {isExpanded && (

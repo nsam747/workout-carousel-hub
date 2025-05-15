@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { generateExerciseSummary } from "@/lib/exerciseUtils";
 import { ExerciseAccordionContext } from "@/contexts/ExerciseAccordionContext";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
 
 interface ExerciseItemProps {
   exercise: Exercise;
@@ -107,6 +108,9 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise, workoutId }) => {
   // Check if exercise has notes or media
   const hasNotes = exercise.notes && exercise.notes.trim().length > 0;
   const hasMedia = exercise.media && exercise.media.length > 0;
+
+  // Get thumbnails to display (limit to 2 for mobile)
+  const mediaThumbnails = hasMedia ? exercise.media?.slice(0, 2) : [];
 
   // Collect all metrics from all sets
   const collectAllMetrics = () => {
@@ -296,37 +300,62 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise, workoutId }) => {
   return (
     <div ref={exerciseRef} className="mb-0 bg-white/90 border-b border-border last:border-b-0 overflow-hidden animate-slide-up animation-delay-100">
       <div 
-        className="px-4 py-3 cursor-pointer flex items-start justify-between"
+        className="px-4 py-3 cursor-pointer"
         onClick={toggleExpanded}
       >
-        <div className="flex-1">
-          <h4 className="font-medium text-left">{exercise.name}</h4>
-          
-          {/* Render the enhanced summary when collapsed */}
-          {!expanded && (
-            <>
-              {summaryContent}
-              
-              {/* Display notes preview when not expanded */}
-              {hasNotes && (
-                <div className="mt-1 text-sm text-muted-foreground text-left line-clamp-4">
-                  {exercise.notes}
-                </div>
-              )}
-            </>
-          )}
+        <div className="flex items-start justify-between">
+          <div className="flex-1">
+            <h4 className="font-medium text-left">{exercise.name}</h4>
+            
+            {/* Render the enhanced summary when collapsed */}
+            {!expanded && (
+              <>
+                {summaryContent}
+                
+                {/* Display notes preview when not expanded */}
+                {hasNotes && (
+                  <div className="mt-1 text-sm text-muted-foreground text-left line-clamp-4">
+                    {exercise.notes}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 rounded-full mt-0"
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleExpanded();
+            }}
+          >
+            {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </Button>
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 rounded-full mt-0"
-          onClick={(e) => {
-            e.stopPropagation();
-            toggleExpanded();
-          }}
-        >
-          {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-        </Button>
+
+        {/* Show media thumbnails when not expanded */}
+        {!expanded && hasMedia && (
+          <div className="mt-2 grid grid-cols-2 gap-2">
+            {mediaThumbnails.map((url, index) => (
+              <div key={index} className="relative rounded-md overflow-hidden">
+                <AspectRatio ratio={16/9}>
+                  <img 
+                    src={url} 
+                    alt={`${exercise.name} thumbnail ${index + 1}`}
+                    className="w-full h-full object-cover" 
+                    loading="lazy"
+                  />
+                </AspectRatio>
+              </div>
+            ))}
+            {exercise.media && exercise.media.length > 2 && (
+              <div className="absolute bottom-1 right-1 bg-black/60 text-white text-xs py-1 px-2 rounded-full">
+                +{exercise.media.length - 2} more
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {expanded && (
@@ -385,14 +414,16 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise, workoutId }) => {
                 {exercise.media.map((url, index) => (
                   <div 
                     key={index} 
-                    className="rounded-md overflow-hidden aspect-video border border-border relative"
+                    className="rounded-md overflow-hidden border border-border relative"
                   >
-                    <img
-                      src={url}
-                      alt={`${exercise.name} media ${index + 1}`}
-                      className="w-full h-full object-cover transition-transform hover:scale-105 duration-300"
-                      loading="lazy"
-                    />
+                    <AspectRatio ratio={16/9}>
+                      <img
+                        src={url}
+                        alt={`${exercise.name} media ${index + 1}`}
+                        className="w-full h-full object-cover transition-transform hover:scale-105 duration-300"
+                        loading="lazy"
+                      />
+                    </AspectRatio>
                   </div>
                 ))}
               </div>
