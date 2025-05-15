@@ -1,4 +1,3 @@
-
 import { v4 as uuidv4 } from 'uuid';
 import { Exercise, Workout } from './mockData';
 import { toast } from 'sonner';
@@ -388,7 +387,7 @@ export const posts: Post[] = [
     user: users[3],
     timestamp: new Date(Date.now() - 518400000).toISOString(), // 6 days ago
     likes: 36,
-    message: 'Check out these aerial silks moves I've been working on!',
+    message: "Check out these aerial silks moves I've been working on!",
     tag: 'Flexibility',
     contentType: 'exercise',
     exerciseData: {
