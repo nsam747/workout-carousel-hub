@@ -1,7 +1,7 @@
 
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Home, Filter, PlusCircle, BarChart, Settings } from "lucide-react";
+import { Home, PlusCircle, BarChart, Settings, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const BottomNavigation = () => {
@@ -17,9 +17,8 @@ const BottomNavigation = () => {
     }
   };
   
-  const handleFilterClick = () => {
-    // Placeholder for future functionality
-    console.log("Filter functionality coming soon");
+  const handleFeedsClick = () => {
+    navigate("/feeds");
   };
   
   const handleDataClick = () => {
@@ -46,11 +45,14 @@ const BottomNavigation = () => {
         </button>
         
         <button 
-          className="flex flex-col items-center justify-center h-full w-16 text-muted-foreground"
-          onClick={handleFilterClick}
+          className={cn(
+            "flex flex-col items-center justify-center h-full w-16 transition-colors",
+            isActive("/feeds") ? "text-primary" : "text-muted-foreground"
+          )}
+          onClick={handleFeedsClick}
         >
-          <Filter className="h-5 w-5 mb-1" />
-          <span className="text-xs">Filter</span>
+          <Users className="h-5 w-5 mb-1" />
+          <span className="text-xs">Feeds</span>
         </button>
         
         <button 
