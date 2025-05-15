@@ -1,4 +1,3 @@
-
 import { v4 as uuidv4 } from 'uuid';
 import { Exercise, Workout } from '@/lib/mockData';
 
@@ -254,14 +253,14 @@ const generateMessageForTag = (tag: PostTag, isWorkout: boolean): string => {
     'Aerials': [
       'Defying gravity one move at a time.',
       'The feeling of flight is addictive.',
-      'New sequence I've been working on for weeks.',
+      "New sequence I've been working on for weeks.",
       'Building strength and grace simultaneously.'
     ],
     'Yoga': [
-      'Finding my center in today's practice.',
+      "Finding my center in today's practice.",
       'Breathe in, breathe out. Finding peace in movement.',
       'Mind-body connection growing stronger every day.',
-      'Today's practice was exactly what I needed.'
+      "Today's practice was exactly what I needed."
     ],
     'Gym': [
       'New PR today! Feeling stronger than ever.',
@@ -273,13 +272,13 @@ const generateMessageForTag = (tag: PostTag, isWorkout: boolean): string => {
       'Moving to the rhythm of my own heart.',
       'Dance is the hidden language of the soul.',
       'Expression through movement heals everything.',
-      'New choreography I've been working on.'
+      "New choreography I've been working on."
     ],
     'Other': [
       'Trying something different today!',
       'Cross-training keeps things interesting.',
       'Breaking out of my comfort zone with this one.',
-      'Sometimes the best workouts don't fit in a category.'
+      "Sometimes the best workouts don't fit in a category."
     ]
   };
   
