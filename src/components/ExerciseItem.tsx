@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useContext, useEffect, useRef } from "react";
 import { Exercise } from "@/lib/mockData";
 import { 
   ChevronDown, 
@@ -11,20 +11,66 @@ import {
   Ruler, 
   Timer, 
   Repeat, 
-  Image
+  Image,
+  X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { generateExerciseSummary } from "@/lib/exerciseUtils";
+import { ExerciseAccordionContext } from "@/contexts/ExerciseAccordionContext";
 
 interface ExerciseItemProps {
   exercise: Exercise;
+  workoutId: string;
 }
 
-const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
+const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise, workoutId }) => {
   const [expanded, setExpanded] = useState(false);
+  
+  // Use the exercise accordion context
+  const { expandedExerciseId, expandedWorkoutId: contextWorkoutId, setExpandedExercise } = useContext(ExerciseAccordionContext);
+  
+  // Create a ref for the exercise item element
+  const exerciseRef = useRef<HTMLDivElement>(null);
+  
+  // Update expanded state based on context
+  useEffect(() => {
+    const newExpanded = expandedExerciseId === exercise.id && contextWorkoutId === workoutId;
+    setExpanded(newExpanded);
+    
+    // If this exercise was just expanded, scroll it into view
+    if (newExpanded && !expanded && exerciseRef.current) {
+      // Small timeout to ensure the DOM has updated and the element is expanded
+      setTimeout(() => {
+        if (exerciseRef.current) {
+          // Calculate header height - assuming the header has a fixed height or can be selected
+          const headerElement = document.querySelector('header') || document.querySelector('.sticky') || document.querySelector('.navbar');
+          const headerHeight = headerElement ? headerElement.getBoundingClientRect().height : 70; // Default to 70px if no header found
+          
+          // Add additional offset for padding/margin
+          const yOffset = headerHeight + 20; // 20px extra margin 
+          
+          // Get the element's position
+          const exerciseTop = exerciseRef.current.getBoundingClientRect().top;
+          const offsetPosition = exerciseTop + window.pageYOffset - yOffset;
+          
+          // Scroll to the element
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+          });
+        }
+      }, 100);
+    }
+  }, [expandedExerciseId, exercise.id, contextWorkoutId, workoutId, expanded]);
 
-  const toggleExpanded = () => setExpanded(!expanded);
+  const toggleExpanded = () => {
+    if (expanded) {
+      setExpandedExercise(null, null);
+    } else {
+      setExpandedExercise(exercise.id, workoutId);
+    }
+  };
 
   // Helper to get total sets
   const getTotalSets = () => exercise.sets?.length || 0;
@@ -248,21 +294,32 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
   const summaryContent = generateExerciseSummary(exercise);
 
   return (
-    <div className="mb-0 bg-white/90 border-b border-border last:border-b-0 overflow-hidden animate-slide-up animation-delay-100">
+    <div ref={exerciseRef} className="mb-0 bg-white/90 border-b border-border last:border-b-0 overflow-hidden animate-slide-up animation-delay-100">
       <div 
-        className="px-4 py-3 cursor-pointer flex items-center justify-between"
+        className="px-4 py-3 cursor-pointer flex items-start justify-between"
         onClick={toggleExpanded}
       >
         <div className="flex-1">
           <h4 className="font-medium text-left">{exercise.name}</h4>
           
           {/* Render the enhanced summary when collapsed */}
-          {!expanded && summaryContent}
+          {!expanded && (
+            <>
+              {summaryContent}
+              
+              {/* Display notes preview when not expanded */}
+              {hasNotes && (
+                <div className="mt-1 text-sm text-muted-foreground text-left line-clamp-4">
+                  {exercise.notes}
+                </div>
+              )}
+            </>
+          )}
         </div>
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 rounded-full"
+          className="h-8 w-8 rounded-full mt-0"
           onClick={(e) => {
             e.stopPropagation();
             toggleExpanded();
@@ -342,18 +399,15 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({ exercise }) => {
             </div>
           )}
           
-          {/* Button to collapse section */}
-          <div className="flex justify-center mt-4">
+          {/* Close button */}
+          <div className="flex justify-center mt-4 mb-2">
             <Button
               variant="ghost"
               size="sm"
-              className="text-xs h-7 flex items-center"
-              onClick={(e) => {
-                e.stopPropagation();
-                setExpanded(false);
-              }}
+              className="rounded-full"
+              onClick={toggleExpanded}
             >
-              <ChevronUp className="h-3.5 w-3.5 mr-1" />
+              <X className="h-4 w-4 mr-2" />
               Close
             </Button>
           </div>

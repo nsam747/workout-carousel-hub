@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Trash, ChevronDown, ChevronUp, Image, Plus, X, Check, Save, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +23,7 @@ import {
   generateExerciseSummary,
   sortMetrics
 } from "@/lib/exerciseUtils";
+import { cn } from "@/lib/utils";
 
 // Helper function to get available exercise types
 // This should be imported from mockData, but adding it here for completeness
@@ -45,6 +45,9 @@ interface ExerciseListItemProps {
   onRemove: (id: string) => void;
   onExerciseUpdate?: (updatedExercise: Exercise) => void;
   isNewlyAdded?: boolean;
+  // Add new props for accordion functionality
+  isExpanded?: boolean;
+  onToggleExpand?: (isExpanded: boolean) => void;
 }
 
 interface SetData {
@@ -57,9 +60,66 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
   exercise,
   onRemove,
   onExerciseUpdate,
-  isNewlyAdded = false
+  isNewlyAdded = false,
+  // Use new props with defaults
+  isExpanded: controlledExpanded,
+  onToggleExpand
 }) => {
-  const [expanded, setExpanded] = useState(isNewlyAdded);
+  // Use internal state if not controlled externally
+  const [internalExpanded, setInternalExpanded] = useState(isNewlyAdded);
+  
+  // Add a ref for scrolling
+  const exerciseRef = useRef<HTMLDivElement>(null);
+  
+  // Determine if component is controlled or uncontrolled
+  const isControlled = controlledExpanded !== undefined && onToggleExpand !== undefined;
+  
+  // Use either controlled or internal state
+  const expanded = isControlled ? controlledExpanded : internalExpanded;
+  
+  // Track previous expanded state
+  const prevExpandedRef = useRef(expanded);
+  
+  // Handle expansion state changes
+  const handleExpandToggle = () => {
+    if (isControlled && onToggleExpand) {
+      // In controlled mode, notify parent
+      onToggleExpand(!expanded);
+    } else {
+      // In uncontrolled mode, update internal state
+      setInternalExpanded(!internalExpanded);
+    }
+  };
+  
+  // Add scroll effect when expanded changes
+  useEffect(() => {
+    // Only scroll if item is being expanded (not collapsed)
+    if (expanded && !prevExpandedRef.current && exerciseRef.current) {
+      setTimeout(() => {
+        if (exerciseRef.current) {
+          // Calculate header height - assuming the header has a fixed height or can be selected
+          const headerElement = document.querySelector('header') || document.querySelector('.sticky') || document.querySelector('.navbar');
+          const headerHeight = headerElement ? headerElement.getBoundingClientRect().height : 70; // Default to 70px if no header found
+          
+          // Add additional offset for padding/margin
+          const yOffset = headerHeight + 20; // 20px extra margin
+          
+          // Get the element's position
+          const elementTop = exerciseRef.current.getBoundingClientRect().top;
+          const offsetPosition = elementTop + window.pageYOffset - yOffset;
+          
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+          });
+        }
+      }, 100);
+    }
+    
+    // Update the previous expanded state
+    prevExpandedRef.current = expanded;
+  }, [expanded]);
+  
   const [notes, setNotes] = useState(exercise.notes || "");
   const [sets, setSets] = useState<SetData[]>([]);
   const [activeSetId, setActiveSetId] = useState<string | null>(null);
@@ -323,10 +383,10 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
   };
 
   return (
-    <Card className="overflow-hidden animate-scale-in">
+    <Card className="overflow-hidden animate-scale-in" ref={exerciseRef}>
       <div 
-        className="p-3 flex items-center justify-between cursor-pointer" 
-        onClick={() => setExpanded(!expanded)}
+        className="p-3 flex items-start justify-between cursor-pointer" 
+        onClick={handleExpandToggle}
         onDoubleClick={() => setIsEditingExercise(true)}
       >
         <div className="flex flex-col items-start gap-1 flex-1">
@@ -341,19 +401,26 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
           {!expanded && currentSummary}
         </div>
         
-        <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 rounded-full"
-            onClick={(e) => {
-              e.stopPropagation();
-              onRemove(exercise.id);
-            }}
+        <div className="flex items-center gap-1 mt-0">
+          <div 
+            className={cn(
+              "transition-all duration-300", 
+              expanded ? "opacity-100 translate-x-0" : "opacity-0 translate-x-8 pointer-events-none"
+            )}
           >
-            <Trash className="h-4 w-4 text-destructive" />
-            <span className="sr-only">Remove</span>
-          </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 rounded-full"
+              onClick={(e) => {
+                e.stopPropagation();
+                onRemove(exercise.id);
+              }}
+            >
+              <Trash className="h-4 w-4 text-destructive" />
+              <span className="sr-only">Remove</span>
+            </Button>
+          </div>
           
           <Button
             variant="ghost"
@@ -361,7 +428,7 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
             className="h-8 w-8 rounded-full"
             onClick={(e) => {
               e.stopPropagation();
-              setExpanded(!expanded);
+              handleExpandToggle();
             }}
           >
             {expanded ? (
@@ -564,7 +631,7 @@ const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
                   e.stopPropagation();
                   // Make sure any pending changes are saved
                   handleSaveNotes();
-                  setExpanded(false);
+                  handleExpandToggle();
                 }}
               >
                 <Save className="h-3.5 w-3.5 mr-1" />

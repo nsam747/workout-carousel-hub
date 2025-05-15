@@ -1,39 +1,34 @@
 import { v4 as uuidv4 } from 'uuid';
-import { addDays, format, startOfWeek, isSameDay } from 'date-fns';
+import { addDays, subDays, format, isSameDay, parseISO } from 'date-fns';
 
 export interface Workout {
   id: string;
   title: string;
   category: string;
-  exercises: Exercise[];
-  date: Date;
+  date: string;
   completed: boolean;
+  exercises: Exercise[];
 }
 
 export interface Exercise {
   id: string;
   name: string;
   type: string;
-  sets?: Set[];
+  sets: Set[];
   notes?: string;
-  duration: number;
-  media: string[];
-  selectedMetrics?: SelectedMetric[]; // Added selectedMetrics property
-}
-
-// New interface for selected metrics in an exercise
-export interface SelectedMetric {
-  type: string;
-  unit: string;
+  media?: string[];
+  selectedMetrics?: SelectedMetric[];
 }
 
 export interface Set {
   id: string;
   setNumber: number;
-  metrics: Metric[];
-  // These are no longer needed as we've moved to metrics
   reps?: number;
   weight?: number;
+  distance?: number;
+  duration?: number;
+  restTime?: number;
+  metrics: Metric[];
 }
 
 export interface Metric {
@@ -43,540 +38,780 @@ export interface Metric {
   unit: string;
 }
 
+export interface SelectedMetric {
+  type: string;
+  unit: string;
+}
+
 export interface CategoryInfo {
   name: string;
   color: string;
   icon: string | null;
 }
 
-// Mock data for categories
-const categories: CategoryInfo[] = [
+export const categoryInfo: CategoryInfo[] = [
   { name: "Strength", color: "#f43f5e", icon: "Dumbbell" },
-  { name: "Cardio", color: "#14b8a6", icon: "Heart" },
-  { name: "Yoga", color: "#8b5cf6", icon: "Yoga" },
-  { name: "Stretching", color: "#f97316", icon: "Stretch" },
-  { name: "HIIT", color: "#0ea5e9", icon: "Bolt" },
-  { name: "Pilates", color: "#64748b", icon: "Pilates" },
+  { name: "Cardio", color: "#14b8a6", icon: "Activity" },
+  { name: "Flexibility", color: "#3b82f6", icon: "StretchHorizontal" },
+  { name: "Balance", color: "#8b5cf6", icon: " accessibility" },
+  { name: "Core", color: "#f59e0b", icon: "Pilcrow" },
+  { name: "HIIT", color: "#7dd3fc", icon: "lightning" },
+  { name: "Recovery", color: "#a8a29e", icon: "heart" },
+  { name: "Other", color: "#a8a29e", icon: null },
 ];
 
-// Function to get all categories
-export const getAllCategories = (): string[] => {
-  return categories.map(category => category.name);
-};
-
-// Function to get category info by name
 export const getCategoryInfo = (categoryName: string): CategoryInfo => {
-  const category = categories.find(cat => cat.name === categoryName);
-  return category || { name: "Unknown", color: "#64748b", icon: null };
+  const category = categoryInfo.find((cat) => cat.name === categoryName);
+  return category || { name: "Other", color: "#a8a29e", icon: null };
 };
 
-// Function to create a new category
-export const createCategory = (categoryInfo: CategoryInfo): void => {
-  categories.push(categoryInfo);
-};
-
-// Function to update an existing category
-export const updateCategory = (oldName: string, newCategoryInfo: CategoryInfo): void => {
-  const index = categories.findIndex(cat => cat.name === oldName);
-  if (index !== -1) {
-    categories[index] = newCategoryInfo;
-  }
-};
-
-// Exercise types
-const exerciseTypes = [
-  "Strength", "Cardio", "Yoga", "Stretching", "HIIT", "Pilates", "Other",
-// Strength,
-// Power,
-// Hypertrophy,
-// Endurance,
-// Cardio,
-// Mobility,
-// Flexibility,
-// Balance,
-// Coordination,
-// Rehab,
-// Prehab,
-// Skill, Work
-// Warm,-Up
-// Cooldown,
-// Isometric,
-// Plyometric,
-// Explosive,
-// Static,
-// Dynamic,
-// Flow,
-// Sequence,
+// Update the date property in mockWorkouts to use today's date
+export const mockWorkouts: Workout[] = [
+  {
+    id: "workout-1",
+    title: "Morning Strength",
+    category: "Strength",
+    date: new Date().toISOString(), // Set to today's date
+    completed: true,
+    exercises: [
+      {
+        id: "ex-1-1",
+        name: "Bench Press",
+        type: "Strength",
+        sets: [
+          {
+            id: "set-1-1-1",
+            setNumber: 1,
+            metrics: [
+              { id: "m-1-1-1-1", type: "weight", value: 135, unit: "lbs" },
+              { id: "m-1-1-1-2", type: "repetitions", value: 10, unit: "reps" }
+            ]
+          },
+          {
+            id: "set-1-1-2",
+            setNumber: 2,
+            metrics: [
+              { id: "m-1-1-2-1", type: "weight", value: 155, unit: "lbs" },
+              { id: "m-1-1-2-2", type: "repetitions", value: 8, unit: "reps" }
+            ]
+          },
+          {
+            id: "set-1-1-3",
+            setNumber: 3,
+            metrics: [
+              { id: "m-1-1-3-1", type: "weight", value: 175, unit: "lbs" },
+              { id: "m-1-1-3-2", type: "repetitions", value: 6, unit: "reps" }
+            ]
+          }
+        ],
+        notes: "This exercise was particularly challenging today. I managed to increase the weight on every set while maintaining good form. Next time I will aim for even higher weights since I've been making consistent progress over the past few weeks. Remember to focus on slow, controlled movements and proper breathing throughout each repetition.",
+        media: []
+      },
+      {
+        id: "ex-1-2",
+        name: "Pull-ups",
+        type: "Strength",
+        sets: [
+          {
+            id: "set-1-2-1",
+            setNumber: 1,
+            metrics: [
+              { id: "m-1-2-1-1", type: "repetitions", value: 12, unit: "reps" }
+            ]
+          },
+          {
+            id: "set-1-2-2",
+            setNumber: 2,
+            metrics: [
+              { id: "m-1-2-2-1", type: "repetitions", value: 10, unit: "reps" }
+            ]
+          },
+          {
+            id: "set-1-2-3",
+            setNumber: 3,
+            metrics: [
+              { id: "m-1-2-3-1", type: "repetitions", value: 8, unit: "reps" }
+            ]
+          }
+        ],
+        notes: "",
+        media: []
+      },
+      {
+        id: "ex-1-3",
+        name: "Squats",
+        type: "Strength",
+        sets: [
+          {
+            id: "set-1-3-1",
+            setNumber: 1,
+            metrics: [
+              { id: "m-1-3-1-1", type: "weight", value: 185, unit: "lbs" },
+              { id: "m-1-3-1-2", type: "repetitions", value: 8, unit: "reps" }
+            ]
+          },
+          {
+            id: "set-1-3-2",
+            setNumber: 2,
+            metrics: [
+              { id: "m-1-3-2-1", type: "weight", value: 205, unit: "lbs" },
+              { id: "m-1-3-2-2", type: "repetitions", value: 6, unit: "reps" }
+            ]
+          },
+          {
+            id: "set-1-3-3",
+            setNumber: 3,
+            metrics: [
+              { id: "m-1-3-3-1", type: "weight", value: 225, unit: "lbs" },
+              { id: "m-1-3-3-2", type: "repetitions", value: 4, unit: "reps" }
+            ]
+          }
+        ],
+        notes: "Keep knees tracking over toes, not inward. Remember to breathe!",
+        media: []
+      }
+    ]
+  },
+  // Add three new workouts for today
+  {
+    id: "workout-today-1",
+    title: "Afternoon Yoga",
+    category: "Flexibility",
+    date: new Date().toISOString(),
+    completed: true,
+    exercises: [
+      {
+        id: "ex-today-1-1",
+        name: "Sun Salutation",
+        type: "Flexibility",
+        sets: [
+          {
+            id: "set-today-1-1-1",
+            setNumber: 1,
+            metrics: [
+              { id: "m-today-1-1-1-1", type: "duration", value: 15, unit: "min" }
+            ]
+          }
+        ],
+        notes: "Focused on fluid transitions between poses. Maintained deep breathing throughout.",
+        media: []
+      },
+      {
+        id: "ex-today-1-2",
+        name: "Warrior Sequence",
+        type: "Flexibility",
+        sets: [
+          {
+            id: "set-today-1-2-1",
+            setNumber: 1,
+            metrics: [
+              { id: "m-today-1-2-1-1", type: "duration", value: 10, unit: "min" }
+            ]
+          }
+        ],
+        notes: "Held each warrior pose for 5 deep breaths. Focused on alignment and stability.",
+        media: []
+      }
+    ]
+  },
+  {
+    id: "workout-today-2",
+    title: "Evening Cardio",
+    category: "Cardio",
+    date: new Date().toISOString(),
+    completed: true,
+    exercises: [
+      {
+        id: "ex-today-2-1",
+        name: "Interval Running",
+        type: "Cardio",
+        sets: [
+          {
+            id: "set-today-2-1-1",
+            setNumber: 1,
+            metrics: [
+              { id: "m-today-2-1-1-1", type: "distance", value: 5, unit: "km" },
+              { id: "m-today-2-1-1-2", type: "duration", value: 25, unit: "min" }
+            ]
+          }
+        ],
+        notes: "Alternated between 1 minute sprint and 2 minutes jogging. Heart rate peaked at 165 bpm.",
+        media: []
+      },
+      {
+        id: "ex-today-2-2",
+        name: "Cool Down Walk",
+        type: "Cardio",
+        sets: [
+          {
+            id: "set-today-2-2-1",
+            setNumber: 1,
+            metrics: [
+              { id: "m-today-2-2-1-1", type: "distance", value: 1, unit: "km" },
+              { id: "m-today-2-2-1-2", type: "duration", value: 10, unit: "min" }
+            ]
+          }
+        ],
+        notes: "Focused on deep breathing and gradually lowering heart rate.",
+        media: []
+      }
+    ]
+  },
+  {
+    id: "workout-today-3",
+    title: "Core Workout",
+    category: "Core",
+    date: new Date().toISOString(),
+    completed: false,
+    exercises: [
+      {
+        id: "ex-today-3-1",
+        name: "Plank Circuit",
+        type: "Core",
+        sets: [
+          {
+            id: "set-today-3-1-1",
+            setNumber: 1,
+            metrics: [
+              { id: "m-today-3-1-1-1", type: "duration", value: 60, unit: "sec" }
+            ]
+          },
+          {
+            id: "set-today-3-1-2",
+            setNumber: 2,
+            metrics: [
+              { id: "m-today-3-1-2-1", type: "duration", value: 45, unit: "sec" }
+            ]
+          },
+          {
+            id: "set-today-3-1-3",
+            setNumber: 3,
+            metrics: [
+              { id: "m-today-3-1-3-1", type: "duration", value: 30, unit: "sec" }
+            ]
+          }
+        ],
+        notes: "Rotated between standard, side, and reverse planks. Focus on maintaining proper form.",
+        media: []
+      },
+      {
+        id: "ex-today-3-2",
+        name: "Russian Twists",
+        type: "Core",
+        sets: [
+          {
+            id: "set-today-3-2-1",
+            setNumber: 1,
+            metrics: [
+              { id: "m-today-3-2-1-1", type: "repetitions", value: 20, unit: "reps" }
+            ]
+          },
+          {
+            id: "set-today-3-2-2",
+            setNumber: 2,
+            metrics: [
+              { id: "m-today-3-2-2-1", type: "repetitions", value: 20, unit: "reps" }
+            ]
+          },
+          {
+            id: "set-today-3-2-3",
+            setNumber: 3,
+            metrics: [
+              { id: "m-today-3-2-3-1", type: "repetitions", value: 15, unit: "reps" }
+            ]
+          }
+        ],
+        notes: "Used a 5kg medicine ball. Kept feet slightly elevated throughout.",
+        media: []
+      },
+      {
+        id: "ex-today-3-3",
+        name: "Leg Raises",
+        type: "Core",
+        sets: [
+          {
+            id: "set-today-3-3-1",
+            setNumber: 1,
+            metrics: [
+              { id: "m-today-3-3-1-1", type: "repetitions", value: 15, unit: "reps" }
+            ]
+          },
+          {
+            id: "set-today-3-3-2",
+            setNumber: 2,
+            metrics: [
+              { id: "m-today-3-3-2-1", type: "repetitions", value: 12, unit: "reps" }
+            ]
+          },
+          {
+            id: "set-today-3-3-3",
+            setNumber: 3,
+            metrics: [
+              { id: "m-today-3-3-3-1", type: "repetitions", value: 10, unit: "reps" }
+            ]
+          }
+        ],
+        notes: "Focused on controlled movements, avoiding swinging. Kept lower back pressed against floor.",
+        media: []
+      }
+    ]
+  },
+  {
+    id: "workout-2",
+    title: "Cardio & Core",
+    category: "Cardio",
+    date: subDays(new Date(), 1).toISOString(), // Set to yesterday's date
+    completed: true,
+    exercises: [
+      {
+        id: "ex-2-1",
+        name: "Treadmill",
+        type: "Cardio",
+        sets: [
+          {
+            id: "set-2-1-1",
+            setNumber: 1,
+            metrics: [
+              { id: "m-2-1-1-1", type: "duration", value: 30, unit: "min" },
+              { id: "m-2-1-1-2", type: "distance", value: 3.5, unit: "miles" }
+            ]
+          }
+        ],
+        notes: "",
+        media: []
+      },
+      {
+        id: "ex-2-2",
+        name: "Ab Circuit",
+        type: "Core",
+        sets: [
+          {
+            id: "set-2-2-1",
+            setNumber: 1,
+            metrics: [
+              { id: "m-2-2-1-1", type: "duration", value: 15, unit: "min" }
+            ]
+          }
+        ],
+        notes: "Circuit included: Russian twists, bicycle crunches, planks, and leg raises. Focus on form especially during Russian twists - keep back straight and twist from core not shoulders. The planks were particularly difficult today so I'll need to work on core endurance more consistently. Next time try to increase plank duration by 10 seconds per set.",
+        media: []
+      }
+    ]
+  },
+  {
+    id: "workout-3",
+    title: "Evening Yoga",
+    category: "Flexibility",
+    date: subDays(new Date(), 2).toISOString(),
+    completed: true,
+    exercises: [
+      {
+        id: "ex-3-1",
+        name: "Downward Dog",
+        type: "Flexibility",
+        sets: [
+          {
+            id: "set-3-1-1",
+            setNumber: 1,
+            metrics: [
+              { id: "m-3-1-1-1", type: "duration", value: 60, unit: "sec" }
+            ]
+          }
+        ],
+        notes: "Focus on lengthening the spine and pushing through the heels.",
+        media: []
+      },
+      {
+        id: "ex-3-2",
+        name: "Cobra Pose",
+        type: "Flexibility",
+        sets: [
+          {
+            id: "set-3-2-1",
+            setNumber: 1,
+            metrics: [
+              { id: "m-3-2-1-1", type: "duration", value: 30, unit: "sec" }
+            ]
+          }
+        ],
+        notes: "Engage the back muscles and keep the shoulders down.",
+        media: []
+      }
+    ]
+  },
+  {
+    id: "workout-4",
+    title: "HIIT Blast",
+    category: "HIIT",
+    date: subDays(new Date(), 3).toISOString(),
+    completed: false,
+    exercises: [
+      {
+        id: "ex-4-1",
+        name: "Burpees",
+        type: "HIIT",
+        sets: [
+          {
+            id: "set-4-1-1",
+            setNumber: 1,
+            metrics: [
+              { id: "m-4-1-1-1", type: "repetitions", value: 15, unit: "reps" }
+            ]
+          },
+          {
+            id: "set-4-1-2",
+            setNumber: 2,
+            metrics: [
+              { id: "m-4-1-2-1", type: "repetitions", value: 15, unit: "reps" }
+            ]
+          },
+          {
+            id: "set-4-1-3",
+            setNumber: 3,
+            metrics: [
+              { id: "m-4-1-3-1", type: "repetitions", value: 15, unit: "reps" }
+            ]
+          }
+        ],
+        notes: "Maintain a fast pace and focus on full body movement.",
+        media: []
+      },
+      {
+        id: "ex-4-2",
+        name: "Mountain Climbers",
+        type: "HIIT",
+        sets: [
+          {
+            id: "set-4-2-1",
+            setNumber: 1,
+            metrics: [
+              { id: "m-4-2-1-1", type: "duration", value: 30, unit: "sec" }
+            ]
+          },
+          {
+            id: "set-4-2-2",
+            setNumber: 2,
+            metrics: [
+              { id: "m-4-2-2-1", type: "duration", value: 30, unit: "sec" }
+            ]
+          },
+          {
+            id: "set-4-2-3",
+            setNumber: 3,
+            metrics: [
+              { id: "m-4-2-3-1", type: "duration", value: 30, unit: "sec" }
+            ]
+          }
+        ],
+        notes: "Keep your core engaged and bring your knees high.",
+        media: []
+      }
+    ]
+  },
+  {
+    id: "workout-5",
+    title: "Restorative Balance",
+    category: "Balance",
+    date: subDays(new Date(), 4).toISOString(),
+    completed: false,
+    exercises: [
+      {
+        id: "ex-5-1",
+        name: "Single Leg Stand",
+        type: "Balance",
+        sets: [
+          {
+            id: "set-5-1-1",
+            setNumber: 1,
+            metrics: [
+              { id: "m-5-1-1-1", type: "duration", value: 45, unit: "sec" }
+            ]
+          },
+          {
+            id: "set-5-1-2",
+            setNumber: 2,
+            metrics: [
+              { id: "m-5-1-2-1", type: "duration", value: 45, unit: "sec" }
+            ]
+          },
+          {
+            id: "set-5-1-3",
+            setNumber: 3,
+            metrics: [
+              { id: "m-5-1-3-1", type: "duration", value: 45, unit: "sec" }
+            ]
+          }
+        ],
+        notes: "Focus on a fixed point to improve stability.",
+        media: []
+      },
+      {
+        id: "ex-5-2",
+        name: "Tree Pose",
+        type: "Balance",
+        sets: [
+          {
+            id: "set-5-2-1",
+            setNumber: 1,
+            metrics: [
+              { id: "m-5-2-1-1", type: "duration", value: 60, unit: "sec" }
+            ]
+          },
+          {
+            id: "set-5-2-2",
+            setNumber: 2,
+            metrics: [
+              { id: "m-5-2-2-1", type: "duration", value: 60, unit: "sec" }
+            ]
+          },
+          {
+            id: "set-5-2-3",
+            setNumber: 3,
+            metrics: [
+              { id: "m-5-2-3-1", type: "duration", value: 60, unit: "sec" }
+            ]
+          }
+        ],
+        notes: "Keep your core tight and your gaze steady.",
+        media: []
+      }
+    ]
+  },
 ];
 
-// Function to get all exercise types
-export const getExerciseTypes = (): string[] => {
-  return exerciseTypes;
-};
-
-// Saved exercises for reuse
-let savedExercises: Exercise[] = [];
-
-// Function to get saved exercises
-export const getSavedExercises = (): Exercise[] => {
-  return savedExercises;
-};
-
-// Function to save an exercise
-export const saveExercise = (exercise: Exercise): void => {
-  const existingIndex = savedExercises.findIndex(e => e.id === exercise.id);
-  if (existingIndex !== -1) {
-    savedExercises[existingIndex] = exercise;
+export const saveWorkout = (workout: Workout): void => {
+  const index = mockWorkouts.findIndex((w) => w.id === workout.id);
+  if (index !== -1) {
+    mockWorkouts[index] = workout;
   } else {
-    savedExercises.push(exercise);
+    mockWorkouts.push(workout);
   }
 };
 
-// Generate date range for the calendar
+export const deleteWorkout = (id: string): boolean => {
+  const initialLength = mockWorkouts.length;
+  const index = mockWorkouts.findIndex(workout => workout.id === id);
+  
+  if (index !== -1) {
+    mockWorkouts.splice(index, 1);
+    return mockWorkouts.length !== initialLength;
+  }
+  
+  return false;
+};
+
+export const getWorkoutById = (id: string): Workout | undefined => {
+  return mockWorkouts.find(workout => workout.id === id);
+};
+
+export const saveExercise = (exercise: Exercise): void => {
+  mockWorkouts.forEach(workout => {
+    const index = workout.exercises.findIndex(e => e.id === exercise.id);
+    if (index !== -1) {
+      workout.exercises[index] = exercise;
+    }
+  });
+};
+
+// For AddExerciseForm.tsx
+const savedExercises: Exercise[] = [
+  {
+    id: "saved-ex-1",
+    name: "Bench Press",
+    type: "Strength",
+    sets: [],
+    notes: "",
+    media: [],
+    selectedMetrics: [
+      { type: "weight", unit: "lbs" },
+      { type: "repetitions", unit: "reps" }
+    ]
+  },
+  {
+    id: "saved-ex-2",
+    name: "Squats",
+    type: "Strength",
+    sets: [],
+    notes: "",
+    media: [],
+    selectedMetrics: [
+      { type: "weight", unit: "lbs" },
+      { type: "repetitions", unit: "reps" }
+    ]
+  },
+  {
+    id: "saved-ex-3",
+    name: "Deadlift",
+    type: "Strength",
+    sets: [],
+    notes: "",
+    media: [],
+    selectedMetrics: [
+      { type: "weight", unit: "lbs" },
+      { type: "repetitions", unit: "reps" }
+    ]
+  },
+  {
+    id: "saved-ex-4",
+    name: "Treadmill",
+    type: "Cardio",
+    sets: [],
+    notes: "",
+    media: [],
+    selectedMetrics: [
+      { type: "duration", unit: "min" },
+      { type: "distance", unit: "miles" }
+    ]
+  }
+];
+
+export const getSavedExercises = (): Exercise[] => {
+  return [...savedExercises];
+};
+
+export const addWorkout = (workout: Workout): void => {
+  mockWorkouts.push(workout);
+};
+
+export const addExercise = (workoutId: string, exercise: Exercise): void => {
+  const workout = mockWorkouts.find(w => w.id === workoutId);
+  if (workout) {
+    workout.exercises.push(exercise);
+  }
+};
+
+export const deleteExercise = (exerciseId: string): void => {
+  mockWorkouts.forEach(workout => {
+    workout.exercises = workout.exercises.filter(e => e.id !== exerciseId);
+  });
+};
+
+// Exercise types for dropdown
+export const getExerciseTypes = (): string[] => {
+  return [
+    "Strength",
+    "Cardio",
+    "Flexibility",
+    "Balance",
+    "Core",
+    "HIIT",
+    "Recovery",
+    "Other"
+  ];
+};
+
+// Date range for calendars
 export const dateRange = (() => {
   const today = new Date();
-  const startDate = startOfWeek(today);
-  const result = [];
+  const range = [];
   
-  for (let i = -14; i < 28; i++) {
-    const date = addDays(startDate, i);
-    result.push({
+  // Generate dates for the past week and next 2 weeks
+  for (let i = -7; i <= 14; i++) {
+    const date = addDays(today, i);
+    range.push({
       date,
-      dayName: format(date, 'EEE'),
-      dayNumber: format(date, 'd'),
-      isToday: isSameDay(date, today)
+      dayName: format(date, 'E'), // Short day name (e.g., Mon, Tue)
+      dayNumber: format(date, 'd'), // Day number (e.g., 1, 2, 31)
+      isToday: i === 0
     });
   }
   
-  return result;
+  return range;
 })();
 
-// Supported metric types and their default units
-export const supportedMetrics = [
-  { type: "weight", defaultUnit: "kg", availableUnits: ["kg", "lb"] },
-  { type: "distance", defaultUnit: "km", availableUnits: ["km", "miles"] },
-  { type: "duration", defaultUnit: "minutes", availableUnits: ["seconds", "minutes", "hours"] },
-  { type: "repetitions", defaultUnit: "reps", availableUnits: ["reps"] },
-  { type: "restTime", defaultUnit: "seconds", availableUnits: ["seconds", "minutes"] }
-];
-
-// Mock data for exercises with selectedMetrics
-const mockExercises: Exercise[] = [
-  {
-    id: uuidv4(),
-    name: "Push-ups",
-    type: "Strength",
-    sets: [
-      {
-        id: uuidv4(),
-        setNumber: 1,
-        metrics: [
-          { id: uuidv4(), type: "repetitions", value: 12, unit: "reps" },
-        ],
-      },
-      {
-        id: uuidv4(),
-        setNumber: 2,
-        metrics: [
-          { id: uuidv4(), type: "repetitions", value: 10, unit: "reps" },
-        ],
-      },
-      {
-        id: uuidv4(),
-        setNumber: 3,
-        metrics: [
-          { id: uuidv4(), type: "repetitions", value: 8, unit: "reps" },
-        ],
-      },
-    ],
-    notes: "Focus on form and controlled movements.",
-    duration: 0,
-    media: [],
-    selectedMetrics: [
-      { type: "repetitions", unit: "reps" }
-    ]
-  },
-  {
-    id: uuidv4(),
-    name: "Running",
-    type: "Cardio",
-    sets: [
-      {
-        id: uuidv4(),
-        setNumber: 1,
-        metrics: [
-          { id: uuidv4(), type: "distance", value: 3, unit: "km" },
-          { id: uuidv4(), type: "duration", value: 25, unit: "min" },
-        ],
-      },
-    ],
-    notes: "Easy pace, maintain consistent breathing.",
-    duration: 25,
-    media: [],
-    selectedMetrics: [
-      { type: "distance", unit: "km" },
-      { type: "duration", unit: "min" }
-    ]
-  },
-  {
-    id: uuidv4(),
-    name: "Yoga Flow",
-    type: "Yoga",
-    sets: [],
-    notes: "Gentle flow to improve flexibility and reduce stress.",
-    duration: 30,
-    media: [],
-    selectedMetrics: [
-      { type: "duration", unit: "minutes" }
-    ]
-  },
-  {
-    id: uuidv4(),
-    name: "Bicep Curls",
-    type: "Strength",
-    sets: [
-      {
-        id: uuidv4(),
-        setNumber: 1,
-        metrics: [
-          { id: uuidv4(), type: "weight", value: 20, unit: "lb" },
-          { id: uuidv4(), type: "repetitions", value: 10, unit: "reps" },
-        ],
-      },
-      {
-        id: uuidv4(),
-        setNumber: 2,
-        metrics: [
-          { id: uuidv4(), type: "weight", value: 20, unit: "lb" },
-          { id: uuidv4(), type: "repetitions", value: 8, unit: "reps" },
-        ],
-      },
-      {
-        id: uuidv4(),
-        setNumber: 3,
-        metrics: [
-          { id: uuidv4(), type: "weight", value: 20, unit: "lb" },
-          { id: uuidv4(), type: "repetitions", value: 6, unit: "reps" },
-        ],
-      },
-    ],
-    notes: "Controlled movement, squeeze at the top.",
-    duration: 0,
-    media: [],
-    selectedMetrics: [
-      { type: "weight", unit: "lb" },
-      { type: "repetitions", unit: "reps" }
-    ]
-  },
-  {
-    id: uuidv4(),
-    name: "Plank",
-    type: "Strength",
-    sets: [
-      {
-        id: uuidv4(),
-        setNumber: 1,
-        metrics: [
-          { id: uuidv4(), type: "duration", value: 60, unit: "sec" },
-        ],
-      },
-      {
-        id: uuidv4(),
-        setNumber: 2,
-        metrics: [
-          { id: uuidv4(), type: "duration", value: 60, unit: "sec" },
-        ],
-      },
-      {
-        id: uuidv4(),
-        setNumber: 3,
-        metrics: [
-          { id: uuidv4(), type: "duration", value: 60, unit: "sec" },
-        ],
-      },
-    ],
-    notes: "Engage core, maintain straight line from head to heels.",
-    duration: 0,
-    media: [],
-    selectedMetrics: [
-      { type: "duration", unit: "sec" }
-    ]
-  },
-  {
-    id: uuidv4(),
-    name: "Cycling",
-    type: "Cardio",
-    sets: [
-      {
-        id: uuidv4(),
-        setNumber: 1,
-        metrics: [
-          { id: uuidv4(), type: "distance", value: 10, unit: "km" },
-          { id: uuidv4(), type: "duration", value: 40, unit: "min" },
-        ],
-      },
-    ],
-    notes: "Moderate intensity, focus on cadence.",
-    duration: 40,
-    media: [],
-    selectedMetrics: [
-      { type: "distance", unit: "km" },
-      { type: "duration", unit: "min" }
-    ]
-  },
-  {
-    id: uuidv4(),
-    name: "Squats",
-    type: "Strength",
-    sets: [
-      {
-        id: uuidv4(),
-        setNumber: 1,
-        metrics: [
-          { id: uuidv4(), type: "repetitions", value: 15, unit: "reps" },
-        ],
-      },
-      {
-        id: uuidv4(),
-        setNumber: 2,
-        metrics: [
-          { id: uuidv4(), type: "repetitions", value: 12, unit: "reps" },
-        ],
-      },
-      {
-        id: uuidv4(),
-        setNumber: 3,
-        metrics: [
-          { id: uuidv4(), type: "repetitions", value: 10, unit: "reps" },
-        ],
-      },
-    ],
-    notes: "Maintain good form, chest up, back straight.",
-    duration: 0,
-    media: [],
-    selectedMetrics: [
-      { type: "repetitions", unit: "reps" }
-    ]
-  },
-  {
-    id: uuidv4(),
-    name: "Swimming",
-    type: "Cardio",
-    sets: [
-      {
-        id: uuidv4(),
-        setNumber: 1,
-        metrics: [
-          { id: uuidv4(), type: "distance", value: 1, unit: "km" },
-          { id: uuidv4(), type: "duration", value: 30, unit: "min" },
-        ],
-      },
-    ],
-    notes: "Freestyle, focus on long strokes.",
-    duration: 30,
-    media: [],
-    selectedMetrics: [
-      { type: "distance", unit: "km" },
-      { type: "duration", unit: "min" }
-    ]
-  },
-  {
-    id: uuidv4(),
-    name: "Deadlifts",
-    type: "Strength",
-    sets: [
-      {
-        id: uuidv4(),
-        setNumber: 1,
-        metrics: [
-          { id: uuidv4(), type: "weight", value: 50, unit: "kg" },
-          { id: uuidv4(), type: "repetitions", value: 5, unit: "reps" },
-        ],
-      },
-      {
-        id: uuidv4(),
-        setNumber: 2,
-        metrics: [
-          { id: uuidv4(), type: "weight", value: 50, unit: "kg" },
-          { id: uuidv4(), type: "repetitions", value: 5, unit: "reps" },
-        ],
-      },
-      {
-        id: uuidv4(),
-        setNumber: 3,
-        metrics: [
-          { id: uuidv4(), type: "weight", value: 50, unit: "kg" },
-          { id: uuidv4(), type: "repetitions", value: 5, unit: "reps" },
-        ],
-      },
-    ],
-    notes: "Maintain proper form, engage core.",
-    duration: 0,
-    media: [],
-    selectedMetrics: [
-      { type: "weight", unit: "kg" },
-      { type: "repetitions", unit: "reps" }
-    ]
-  },
-  {
-    id: uuidv4(),
-    name: "HIIT Sprints",
-    type: "HIIT",
-    sets: [
-      {
-        id: uuidv4(),
-        setNumber: 1,
-        metrics: [
-          { id: uuidv4(), type: "duration", value: 30, unit: "sec" },
-          { id: uuidv4(), type: "restTime", value: 30, unit: "sec" },
-        ],
-      },
-      {
-        id: uuidv4(),
-        setNumber: 2,
-        metrics: [
-          { id: uuidv4(), type: "duration", value: 30, unit: "sec" },
-          { id: uuidv4(), type: "restTime", value: 30, unit: "sec" },
-        ],
-      },
-      {
-        id: uuidv4(),
-        setNumber: 3,
-        metrics: [
-          { id: uuidv4(), type: "duration", value: 30, unit: "sec" },
-          { id: uuidv4(), type: "restTime", value: 30, unit: "sec" },
-        ],
-      },
-    ],
-    notes: "Full intensity sprints, short rest periods.",
-    duration: 15,
-    media: [],
-    selectedMetrics: [
-      { type: "duration", unit: "sec" },
-      { type: "restTime", unit: "sec" }
-    ]
-  },
-];
-
-// Mock data for workouts
-const today = new Date();
-const yesterday = new Date(today);
-yesterday.setDate(today.getDate() - 1);
-const pastWeek = new Date(today);
-pastWeek.setDate(today.getDate() - 3);
-const otherDay = new Date(today);
-otherDay.setDate(today.getDate() - 10);
-
-const todayWorkouts: Workout[] = [
-  {
-    id: uuidv4(),
-    title: "Morning Strength",
-    category: "Strength",
-    exercises: [mockExercises[0], mockExercises[3], mockExercises[4]],
-    date: today,
-    completed: true,
-  },
-  {
-    id: uuidv4(),
-    title: "Evening Cardio",
-    category: "Cardio",
-    exercises: [mockExercises[1], mockExercises[5]],
-    date: today,
-    completed: false,
-  },
-  {
-    id: uuidv4(),
-    title: "Afternoon Yoga",
-    category: "Yoga",
-    exercises: [mockExercises[2]],
-    date: today,
-    completed: false,
-  },
-  {
-    id: uuidv4(),
-    title: "Night HIIT",
-    category: "HIIT",
-    exercises: [mockExercises[9]],
-    date: today,
-    completed: false,
-  },
-];
-
-const yesterdayWorkouts: Workout[] = [
-  {
-    id: uuidv4(),
-    title: "Yoga Session",
-    category: "Yoga",
-    exercises: [mockExercises[2]],
-    date: yesterday,
-    completed: true,
-  },
-];
-
-const pastWeekWorkouts: Workout[] = [
-  {
-    id: uuidv4(),
-    title: "Full Body Workout",
-    category: "HIIT",
-    exercises: [mockExercises[6], mockExercises[7], mockExercises[8]],
-    date: pastWeek,
-    completed: true,
-  },
-];
-
-const otherWorkouts: Workout[] = [
-  {
-    id: uuidv4(),
-    title: "Long Run",
-    category: "Cardio",
-    exercises: [mockExercises[9]],
-    date: otherDay,
-    completed: false,
-  },
-];
-
-// Function to get all workouts
-export const getAllWorkouts = (): Workout[] => {
-  return [
-    ...todayWorkouts,
-    ...yesterdayWorkouts,
-    ...pastWeekWorkouts,
-    ...otherWorkouts
-  ];
-};
-
-// Function to get workouts by date
+// Get workouts by date - modified to handle date comparison correctly
 export const getWorkoutsByDate = (date: Date): Workout[] => {
-  const formattedDate = date.toDateString();
-  return [
-    ...todayWorkouts.filter(workout => workout.date.toDateString() === formattedDate),
-    ...yesterdayWorkouts.filter(workout => workout.date.toDateString() === formattedDate),
-    ...pastWeekWorkouts.filter(workout => workout.date.toDateString() === formattedDate),
-    ...otherWorkouts.filter(workout => workout.date.toDateString() === formattedDate),
-  ];
+  console.log("Getting workouts for date:", date);
+  return mockWorkouts.filter(workout => {
+    const workoutDate = new Date(workout.date);
+    console.log("Comparing with workout date:", workoutDate);
+    return isSameDay(workoutDate, date);
+  });
 };
 
-// Function to get workouts for yesterday
+// Get all workouts
+export const getAllWorkouts = (): Workout[] => {
+  return [...mockWorkouts];
+};
+
+// Get yesterday's workouts
 export const getWorkoutsForYesterday = (): Workout[] => {
-  return yesterdayWorkouts;
+  const yesterday = subDays(new Date(), 1);
+  return getWorkoutsByDate(yesterday);
 };
 
-// Function to get workouts for the past week (excluding today and yesterday)
+// Get workouts from past week
 export const getWorkoutsForPastWeek = (): Workout[] => {
-  return pastWeekWorkouts;
-};
-
-// Add the getWorkoutById function:
-export const getWorkoutById = (id: string): Workout | undefined => {
-  const allWorkouts = [
-    ...todayWorkouts,
-    ...yesterdayWorkouts,
-    ...pastWeekWorkouts,
-    ...otherWorkouts
-  ];
+  const today = new Date();
+  const oneWeekAgo = subDays(today, 7);
   
-  return allWorkouts.find(workout => workout.id === id);
+  return mockWorkouts.filter(workout => {
+    const workoutDate = new Date(workout.date);
+    return workoutDate >= oneWeekAgo && workoutDate < today && 
+           !isSameDay(workoutDate, today) && 
+           !isSameDay(workoutDate, subDays(today, 1));
+  });
 };
 
-// Initialize saved exercises with mock data for reuse
-savedExercises = [...mockExercises];
+// Get all categories
+export const getAllCategories = (): string[] => {
+  return categoryInfo.map(cat => cat.name);
+};
+
+// Create new category
+export const createCategory = (category: CategoryInfo): void => {
+  const existingIndex = categoryInfo.findIndex(cat => cat.name === category.name);
+  if (existingIndex === -1) {
+    categoryInfo.push(category);
+  }
+};
+
+// Update existing category
+export const updateCategory = (oldName: string, newCategory: CategoryInfo): void => {
+  const index = categoryInfo.findIndex(cat => cat.name === oldName);
+  if (index !== -1) {
+    categoryInfo[index] = newCategory;
+    
+    // Update all workouts using this category
+    mockWorkouts.forEach(workout => {
+      if (workout.category === oldName) {
+        workout.category = newCategory.name;
+      }
+    });
+  }
+};
+
+// Supported metrics for exercise tracking
+export const supportedMetrics = [
+  {
+    type: "repetitions",
+    defaultUnit: "reps",
+    availableUnits: ["reps"]
+  },
+  {
+    type: "weight",
+    defaultUnit: "lbs",
+    availableUnits: ["lbs", "kg"]
+  },
+  {
+    type: "duration",
+    defaultUnit: "min",
+    availableUnits: ["sec", "min", "hr"]
+  },
+  {
+    type: "distance",
+    defaultUnit: "miles",
+    availableUnits: ["miles", "km", "meters"]
+  },
+  {
+    type: "restTime",
+    defaultUnit: "min",
+    availableUnits: ["sec", "min"]
+  }
+];
+
+// Format metric with unit for display next to metric name
+export const formatMetricWithUnit = (type: string, unit: string) => {
+  const name = type.charAt(0).toUpperCase() + type.slice(1).replace(/([A-Z])/g, ' $1');
+  return `${name} (${unit.toLowerCase()})`;
+};

@@ -6,7 +6,7 @@
  * It reuses the same structure as AddWorkout but loads the existing workout data.
  */
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,40 @@ import DateTimeSelector from "@/components/DateTimeSelector";
 import { getAllCategories, getWorkoutById } from "@/lib/mockData";
 import { toast } from "sonner";
 import { Exercise, Workout } from "@/lib/mockData";
+import { ExerciseAccordionContext, ExerciseAccordionProvider } from "@/contexts/ExerciseAccordionContext";
+
+// Create a wrapper component that will handle the accordion functionality
+const AccordionExerciseListItem: React.FC<{
+  exercise: Exercise;
+  onRemove: (id: string) => void;
+  onExerciseUpdate: (updatedExercise: Exercise) => void;
+  isNewlyAdded: boolean;
+}> = ({ exercise, onRemove, onExerciseUpdate, isNewlyAdded }) => {
+  const { expandedExerciseId, setExpandedExercise } = useContext(ExerciseAccordionContext);
+  
+  // Check if this exercise is expanded
+  const isExpanded = expandedExerciseId === exercise.id;
+  
+  // Toggle expansion handler
+  const handleToggleExpand = (expanded: boolean) => {
+    if (expanded) {
+      setExpandedExercise(exercise.id, null);
+    } else {
+      setExpandedExercise(null, null);
+    }
+  };
+  
+  return (
+    <ExerciseListItem
+      exercise={exercise}
+      onRemove={onRemove}
+      onExerciseUpdate={onExerciseUpdate}
+      isNewlyAdded={isNewlyAdded}
+      isExpanded={isExpanded}
+      onToggleExpand={handleToggleExpand}
+    />
+  );
+};
 
 const EditWorkout = () => {
   const navigate = useNavigate();
@@ -51,7 +85,16 @@ const EditWorkout = () => {
                   set.metrics.map(metric => ({ ...metric })) : 
                   []
               })) : 
-              []
+              [],
+            // Make sure we extract and store selectedMetrics for each exercise
+            selectedMetrics: exercise.selectedMetrics || (
+              exercise.sets && exercise.sets.length > 0 && exercise.sets[0].metrics ?
+                exercise.sets[0].metrics.map(metric => ({
+                  type: metric.type,
+                  unit: metric.unit
+                })) : 
+                []
+            )
           };
           return exerciseCopy;
         });
@@ -68,8 +111,22 @@ const EditWorkout = () => {
   }, [id, navigate]);
   
   const handleAddExercise = (exercise: Exercise) => {
-    setExercises(prevExercises => [...prevExercises, exercise]);
-    setLastAddedExerciseId(exercise.id);
+    // Make sure the new exercise includes selectedMetrics for future set additions
+    const exerciseWithMetrics = {
+      ...exercise,
+      // If exercise doesn't have selectedMetrics but has sets with metrics, extract them
+      selectedMetrics: exercise.selectedMetrics || (
+        exercise.sets && exercise.sets.length > 0 && exercise.sets[0].metrics ?
+          exercise.sets[0].metrics.map(metric => ({
+            type: metric.type,
+            unit: metric.unit
+          })) :
+          []
+      )
+    };
+    
+    setExercises(prevExercises => [...prevExercises, exerciseWithMetrics]);
+    setLastAddedExerciseId(exerciseWithMetrics.id);
     setIsAddingExercise(false);
   };
   
@@ -82,9 +139,52 @@ const EditWorkout = () => {
   
   const handleExerciseUpdate = (updatedExercise: Exercise) => {
     console.log("Updating exercise:", updatedExercise);
+    
+    // Check if this is a set addition with empty metrics
+    const isEmptySetAdded = updatedExercise.sets && updatedExercise.sets.some(set => 
+      !set.metrics || set.metrics.length === 0
+    );
+    
+    if (isEmptySetAdded) {
+      // Find the current exercise to get its selectedMetrics
+      const currentExercise = exercises.find(e => e.id === updatedExercise.id);
+      
+      if (currentExercise && currentExercise.selectedMetrics && currentExercise.selectedMetrics.length > 0) {
+        // Find sets without metrics and apply the selectedMetrics
+        updatedExercise.sets = updatedExercise.sets.map(set => {
+          if (!set.metrics || set.metrics.length === 0) {
+            // Create new metrics for this set based on the exercise's selectedMetrics
+            return {
+              ...set,
+              metrics: currentExercise.selectedMetrics.map(metric => ({
+                id: Math.random().toString(36).substring(2, 11),
+                type: metric.type,
+                value: 0, // Default value
+                unit: metric.unit
+              }))
+            };
+          }
+          return set;
+        });
+      }
+    }
+    
     setExercises(prevExercises => 
       prevExercises.map(exercise => 
-        exercise.id === updatedExercise.id ? updatedExercise : exercise
+        exercise.id === updatedExercise.id ? {
+          ...updatedExercise,
+          // Preserve selectedMetrics from existing exercise or extract them from the sets
+          selectedMetrics: updatedExercise.selectedMetrics || (
+            exercise.selectedMetrics || (
+              updatedExercise.sets && updatedExercise.sets.length > 0 && updatedExercise.sets[0].metrics ?
+                updatedExercise.sets[0].metrics.map(metric => ({
+                  type: metric.type,
+                  unit: metric.unit
+                })) :
+                []
+            )
+          )
+        } : exercise
       )
     );
   };
@@ -102,7 +202,7 @@ const EditWorkout = () => {
       title: workoutTitle,
       category: selectedCategory,
       exercises,
-      date: workoutDate, // Use the selected date from the date picker
+      date: workoutDate.toISOString(), // Convert Date to string
       completed: false // Keep the original completion status or update it
     };
     
@@ -163,103 +263,46 @@ const EditWorkout = () => {
       </div>
       
       <div className="max-w-2xl mx-auto px-4 py-6">
-        <div className="space-y-6">
-          {/* Date and Time Selector */}
-          <DateTimeSelector 
-            date={workoutDate}
-            onDateChange={setWorkoutDate}
-            className="mb-4"
-          />
-          
-          {/* Workout Title */}
-          <div>
-            <Input
-              id="title"
-              placeholder="Workout Title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
+        <ExerciseAccordionProvider>
+          <div className="space-y-6">
+            {/* Date and Time Selector */}
+            <DateTimeSelector 
+              date={workoutDate}
+              onDateChange={setWorkoutDate}
+              className="mb-4"
             />
-          </div>
-          
-          {/* Category Selector */}
-          <CategorySelector 
-            categories={getAllCategories()} 
-            selectedCategory={selectedCategory} 
-            onSelectCategory={setSelectedCategory}
-            onCreateCategory={handleCreateCategory}
-          />
-          
-          {/* Exercises */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <h2 className="text-sm font-medium">Exercises</h2>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsAddingExercise(true)}
-                className="rounded-full h-8 w-8 p-0"
-              >
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  className="h-5 w-5"
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor"
-                  strokeWidth="2" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round"
-                >
-                  <circle cx="12" cy="12" r="10" />
-                  <path d="M12 8v8M8 12h8" />
-                </svg>
-              </Button>
+            
+            {/* Workout Title */}
+            <div>
+              <Input
+                id="title"
+                placeholder="Workout Title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+              />
             </div>
             
-            {exercises.length === 0 ? (
-              <div className="bg-muted/50 rounded-lg p-8 text-center">
-                <p className="text-muted-foreground">No exercises added yet</p>
-                <Button 
-                  variant="outline" 
-                  onClick={() => setIsAddingExercise(true)}
-                  className="mt-4"
-                >
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    className="h-4 w-4 mr-2"
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    stroke="currentColor"
-                    strokeWidth="2" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round"
-                  >
-                    <circle cx="12" cy="12" r="10" />
-                    <path d="M12 8v8M8 12h8" />
-                  </svg>
-                  Add Exercise
-                </Button>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {exercises.map((exercise) => (
-                  <ExerciseListItem
-                    key={exercise.id}
-                    exercise={exercise}
-                    onRemove={handleRemoveExercise}
-                    onExerciseUpdate={handleExerciseUpdate}
-                    isNewlyAdded={exercise.id === lastAddedExerciseId}
-                  />
-                ))}
-                
+            {/* Category Selector */}
+            <CategorySelector 
+              categories={getAllCategories()} 
+              selectedCategory={selectedCategory} 
+              onSelectCategory={setSelectedCategory}
+              onCreateCategory={handleCreateCategory}
+            />
+            
+            {/* Exercises */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <h2 className="text-sm font-medium">Exercises</h2>
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
                   onClick={() => setIsAddingExercise(true)}
-                  className="w-full mt-2"
+                  className="rounded-full h-8 w-8 p-0"
                 >
                   <svg 
                     xmlns="http://www.w3.org/2000/svg" 
-                    className="h-4 w-4 mr-2"
+                    className="h-5 w-5"
                     viewBox="0 0 24 24" 
                     fill="none" 
                     stroke="currentColor"
@@ -270,12 +313,71 @@ const EditWorkout = () => {
                     <circle cx="12" cy="12" r="10" />
                     <path d="M12 8v8M8 12h8" />
                   </svg>
-                  Add Exercise
                 </Button>
               </div>
-            )}
+              
+              {exercises.length === 0 ? (
+                <div className="bg-muted/50 rounded-lg p-8 text-center">
+                  <p className="text-muted-foreground">No exercises added yet</p>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setIsAddingExercise(true)}
+                    className="mt-4"
+                  >
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      className="h-4 w-4 mr-2"
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor"
+                      strokeWidth="2" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round"
+                    >
+                      <circle cx="12" cy="12" r="10" />
+                      <path d="M12 8v8M8 12h8" />
+                    </svg>
+                    Add Exercise
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {exercises.map((exercise) => (
+                    <AccordionExerciseListItem
+                      key={exercise.id}
+                      exercise={exercise}
+                      onRemove={handleRemoveExercise}
+                      onExerciseUpdate={handleExerciseUpdate}
+                      isNewlyAdded={exercise.id === lastAddedExerciseId}
+                    />
+                  ))}
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsAddingExercise(true)}
+                    className="w-full mt-2"
+                  >
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      className="h-4 w-4 mr-2"
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor"
+                      strokeWidth="2" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round"
+                    >
+                      <circle cx="12" cy="12" r="10" />
+                      <path d="M12 8v8M8 12h8" />
+                    </svg>
+                    Add Exercise
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        </ExerciseAccordionProvider>
         
         {/* Add Exercise Form */}
         {isAddingExercise && 

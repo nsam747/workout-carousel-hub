@@ -1,5 +1,5 @@
 
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useContext } from "react";
 import { dateRange } from "@/lib/mockData";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
@@ -16,6 +16,7 @@ const WeekCalendarCarousel: React.FC<WeekCalendarCarouselProps> = ({
 }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const selectedDateRef = useRef<HTMLDivElement>(null);
+
 
   // Scroll to selected date when component mounts or selectedDate changes
   useEffect(() => {
