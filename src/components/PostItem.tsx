@@ -1,11 +1,10 @@
-
 import React, { useState } from "react";
 import { Post, toggleLike, currentUser, isLikedByUser, tryWorkout } from "@/lib/feedsData";
 import WorkoutCard from "@/components/WorkoutCard";
 import ExerciseItem from "@/components/ExerciseItem";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { formatDistanceToNow } from "date-fns";
-import { Heart, Flag, UserPlus, UserCheck, Copy, Bookmark, MoreHorizontal } from "lucide-react";
+import { Heart, Flag, UserPlus, UserCheck, Copy, Bookmark, MoreHorizontal, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
