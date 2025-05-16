@@ -7,6 +7,7 @@ import EditWorkout from "./pages/EditWorkout";
 import Data from "./pages/Data";
 import ExerciseDetail from "./pages/ExerciseDetail";
 import Feeds from "./pages/Feeds";
+import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import { Toaster } from "./components/ui/sonner";
 import { ExerciseAccordionProvider } from "./contexts/ExerciseAccordionContext";
@@ -22,6 +23,7 @@ function App() {
             <Route path="/data" element={<Data />} />
             <Route path="/exercise/:id" element={<ExerciseDetail />} />
             <Route path="/feeds" element={<Feeds />} />
+            <Route path="/profile" element={<Profile />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <Toaster position="top-center" />
