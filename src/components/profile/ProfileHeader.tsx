@@ -2,12 +2,22 @@
 import React from "react";
 import { User } from "@/lib/feedsData";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Lock, Unlock } from "lucide-react";
 
 interface ProfileHeaderProps {
   user: User;
+  isCurrentUser: boolean;
+  isPrivate: boolean;
+  onTogglePrivacy?: () => void;
 }
 
-const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user }) => {
+const ProfileHeader: React.FC<ProfileHeaderProps> = ({ 
+  user,
+  isCurrentUser,
+  isPrivate,
+  onTogglePrivacy
+}) => {
   const getInitials = (name: string) => {
     return name
       .split(" ")
@@ -25,7 +35,24 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user }) => {
       </Avatar>
       
       <div className="text-center">
-        <h2 className="text-xl font-bold">{user.name}</h2>
+        <div className="flex items-center justify-center gap-2">
+          <h2 className="text-xl font-bold">{user.name}</h2>
+          {isCurrentUser && (
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-6 w-6 rounded-full" 
+              onClick={onTogglePrivacy}
+              title={isPrivate ? "Private Profile" : "Public Profile"}
+            >
+              {isPrivate ? (
+                <Lock className="h-3.5 w-3.5" />
+              ) : (
+                <Unlock className="h-3.5 w-3.5" />
+              )}
+            </Button>
+          )}
+        </div>
         <p className="text-muted-foreground">Fitness Enthusiast</p>
       </div>
     </div>

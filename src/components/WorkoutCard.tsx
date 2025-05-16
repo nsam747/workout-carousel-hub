@@ -196,28 +196,7 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({
           </div>
         </div>
         
-        <div className="flex items-center gap-2">
-          {/* Show thumbnails in collapsed state */}
-          {!isExpanded && hasMedia && mediaThumbnails.length > 0 && (
-            <div className="flex items-center gap-1 h-8">
-              {mediaThumbnails.slice(0, 3).map((media, index) => (
-                <div 
-                  key={index} 
-                  className="h-8 w-8 rounded overflow-hidden border border-border/40"
-                >
-                  <AspectRatio ratio={1/1}>
-                    <img 
-                      src={media} 
-                      alt={`Thumbnail ${index + 1}`}
-                      className="h-full w-full object-cover"
-                      loading="lazy"
-                    />
-                  </AspectRatio>
-                </div>
-              ))}
-            </div>
-          )}
-          
+        <div className="flex flex-col items-end justify-between h-full">
           <div className="flex items-center gap-2">
             {/* Action buttons and expand toggle in the same row */}
             {!isReadOnly && (
@@ -267,10 +246,12 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({
             </Button>
           </div>
           
-          {/* Date right below the chevron */}
-          <span className="text-sm text-muted-foreground whitespace-nowrap select-none mt-2 hidden">
-            {formatWorkoutDate(workout.date)}
-          </span>
+          {/* Date right below the chevron - Fixed positioning */}
+          {!isExpanded && (
+            <span className="text-sm text-muted-foreground whitespace-nowrap select-none mt-1">
+              {formatWorkoutDate(workout.date)}
+            </span>
+          )}
         </div>
       </div>
 
@@ -280,6 +261,30 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({
           {workout.exercises.map((exercise) => (
             <ExerciseItem key={exercise.id} exercise={exercise} workoutId={workout.id} />
           ))}
+          
+          {/* Media gallery - shown at the bottom when expanded */}
+          {hasMedia && mediaThumbnails.length > 0 && (
+            <div className="px-4 py-3 border-t border-border/40">
+              <h4 className="text-sm font-medium mb-2">Workout Media</h4>
+              <div className="flex flex-wrap gap-2 overflow-x-auto pb-1">
+                {mediaThumbnails.map((media, index) => (
+                  <div 
+                    key={index} 
+                    className="h-16 w-16 rounded overflow-hidden border border-border/40 flex-shrink-0"
+                  >
+                    <AspectRatio ratio={1/1}>
+                      <img 
+                        src={media} 
+                        alt={`Workout media ${index + 1}`}
+                        className="h-full w-full object-cover"
+                        loading="lazy"
+                      />
+                    </AspectRatio>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
