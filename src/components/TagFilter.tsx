@@ -10,7 +10,7 @@ interface TagFilterProps {
 
 const TagFilter: React.FC<TagFilterProps> = ({ selectedTag, onSelectTag }) => {
   // All available tags plus "All" option
-  const tags: (PostTag | "All")[] = ["All", "Calisthenics", "Aerials", "Yoga", "Gym", "Dance", "Other"];
+  const tags: (PostTag | "All")[] = ["All", "Strength", "Cardio", "Flexibility", "Core", "Recovery", "HIIT", "Balance"];
   
   return (
     <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4">

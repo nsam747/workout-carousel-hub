@@ -5,11 +5,17 @@ import WorkoutCard from "@/components/WorkoutCard";
 import ExerciseItem from "@/components/ExerciseItem";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { formatDistanceToNow } from "date-fns";
-import { Heart, Flag, UserPlus, UserCheck, Copy, Check, ChevronLeft, ChevronRight } from "lucide-react";
+import { Heart, Flag, UserPlus, UserCheck, Copy, Bookmark, MoreHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
 
 interface PostItemProps {
   post: Post;
@@ -22,6 +28,7 @@ const PostItem: React.FC<PostItemProps> = ({ post }) => {
   const [likeCount, setLikeCount] = useState<number>(post.likes);
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
   const [isFollowing, setIsFollowing] = useState<boolean>(post.user.isFollowing || false);
+  const [isBookmarked, setIsBookmarked] = useState<boolean>(false);
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
 
   const handleLikeToggle = () => {
@@ -51,6 +58,11 @@ const PostItem: React.FC<PostItemProps> = ({ post }) => {
       tryWorkout(post.workoutData);
       toast.success("Workout added to your routines!");
     }
+  };
+  
+  const handleBookmarkToggle = () => {
+    setIsBookmarked(!isBookmarked);
+    toast.success(isBookmarked ? "Removed from bookmarks" : "Added to bookmarks");
   };
 
   const formatTimeAgo = (timestamp: string) => {
@@ -110,6 +122,11 @@ const PostItem: React.FC<PostItemProps> = ({ post }) => {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <span 
+            className="inline-flex items-center justify-center text-xs py-1 px-2.5 rounded-full bg-primary/10 text-primary"
+          >
+            {post.tag}
+          </span>
           <Button 
             variant="ghost" 
             size="sm" 
@@ -131,11 +148,6 @@ const PostItem: React.FC<PostItemProps> = ({ post }) => {
               </>
             )}
           </Button>
-          <span 
-            className="inline-flex items-center justify-center text-xs py-1 px-2.5 rounded-full bg-primary/10 text-primary"
-          >
-            {post.tag}
-          </span>
         </div>
       </div>
       
@@ -214,7 +226,7 @@ const PostItem: React.FC<PostItemProps> = ({ post }) => {
         )}
       </div>
       
-      {/* Like counter, try workout and report buttons */}
+      {/* Like counter and actions */}
       <div className="px-4 py-3 flex items-center justify-between">
         <div className="flex items-center">
           <span className="text-sm text-muted-foreground mr-2">
@@ -239,28 +251,42 @@ const PostItem: React.FC<PostItemProps> = ({ post }) => {
             />
             {isLiked ? "Liked" : "Like"}
           </button>
-          
-          {/* Report button */}
-          <button 
-            className="inline-flex items-center justify-center gap-1.5 text-sm py-1.5 px-3 rounded-full transition-colors text-muted-foreground hover:bg-primary/5"
-            onClick={handleReportPost}
-            aria-label="Report post"
-          >
-            <Flag className="h-4 w-4" />
-            Report
-          </button>
         </div>
         
-        {/* Try this workout button (only for workout posts) */}
-        {post.contentType === "workout" && post.workoutData && (
-          <button 
-            className="inline-flex items-center justify-center gap-1.5 text-sm py-1.5 px-3 rounded-full transition-colors bg-primary/10 text-primary font-medium hover:bg-primary/20"
-            onClick={handleTryWorkout}
-          >
-            <Copy className="h-4 w-4" />
-            Try Workout
-          </button>
-        )}
+        {/* Actions dropdown menu */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 rounded-full"
+            >
+              <MoreHorizontal className="h-4 w-4" />
+              <span className="sr-only">More options</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            {post.contentType === "workout" && post.workoutData && (
+              <DropdownMenuItem onClick={handleTryWorkout}>
+                <Copy className="h-4 w-4 mr-2" />
+                <span>Try Workout</span>
+              </DropdownMenuItem>
+            )}
+            
+            <DropdownMenuItem onClick={handleBookmarkToggle}>
+              <Bookmark className={cn(
+                "h-4 w-4 mr-2",
+                isBookmarked && "fill-foreground"
+              )} />
+              <span>{isBookmarked ? "Remove Bookmark" : "Bookmark"}</span>
+            </DropdownMenuItem>
+            
+            <DropdownMenuItem onClick={handleReportPost}>
+              <Flag className="h-4 w-4 mr-2" />
+              <span>Report</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </div>
   );
