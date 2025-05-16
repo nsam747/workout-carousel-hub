@@ -15,12 +15,14 @@ import {
   DropdownMenuItem, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
+import { useNavigate } from "react-router-dom";
 
 interface PostItemProps {
   post: Post;
 }
 
 const PostItem: React.FC<PostItemProps> = ({ post }) => {
+  const navigate = useNavigate();
   const [isLiked, setIsLiked] = useState<boolean>(
     isLikedByUser(post.id, currentUser.id)
   );
@@ -86,6 +88,11 @@ const PostItem: React.FC<PostItemProps> = ({ post }) => {
       .substring(0, 2);
   };
 
+  // Navigate to user profile
+  const navigateToProfile = () => {
+    navigate(`/profile/${post.user.id}`);
+  };
+
   // Check if post has media
   const hasMedia = post.media && post.media.length > 0;
   
@@ -108,13 +115,13 @@ const PostItem: React.FC<PostItemProps> = ({ post }) => {
     <div className="mb-6 bg-background border border-border rounded-xl overflow-hidden glass-card animate-scale-in">
       {/* User info header */}
       <div className="px-4 py-3 border-b border-border/40 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Avatar className="h-9 w-9">
+        <div className="flex items-center gap-3" onClick={navigateToProfile} role="button">
+          <Avatar className="h-9 w-9 cursor-pointer">
             <AvatarImage src={post.user.avatar} alt={post.user.name} />
             <AvatarFallback>{getInitials(post.user.name)}</AvatarFallback>
           </Avatar>
           <div>
-            <h3 className="font-medium text-sm">{post.user.name}</h3>
+            <h3 className="font-medium text-sm cursor-pointer">{post.user.name}</h3>
             <span className="text-xs text-muted-foreground">
               {formatTimeAgo(post.timestamp)}
             </span>

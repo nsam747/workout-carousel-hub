@@ -1,13 +1,13 @@
 
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Home, PlusCircle, BarChart, Settings, Users } from "lucide-react";
+import { Home, PlusCircle, BarChart, Settings, Users, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const BottomNavigation = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = (path: string) => location.pathname === path || location.pathname.startsWith(path + '/');
   
   const scrollToTop = () => {
     if (isActive("/")) {
@@ -25,9 +25,8 @@ const BottomNavigation = () => {
     navigate("/data");
   };
   
-  const handleSettingsClick = () => {
-    // Placeholder for future functionality
-    console.log("Settings functionality coming soon");
+  const handleProfileClick = () => {
+    navigate("/profile");
   };
   
   return (
@@ -75,11 +74,14 @@ const BottomNavigation = () => {
         </button>
         
         <button 
-          className="flex flex-col items-center justify-center h-full w-16 text-muted-foreground"
-          onClick={handleSettingsClick}
+          className={cn(
+            "flex flex-col items-center justify-center h-full w-16 transition-colors",
+            isActive("/profile") ? "text-primary" : "text-muted-foreground"
+          )}
+          onClick={handleProfileClick}
         >
-          <Settings className="h-5 w-5 mb-1" />
-          <span className="text-xs">Settings</span>
+          <User className="h-5 w-5 mb-1" />
+          <span className="text-xs">Profile</span>
         </button>
       </div>
     </div>
