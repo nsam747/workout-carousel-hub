@@ -1,7 +1,7 @@
 
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Home, PlusCircle, BarChart, Settings, Users, User } from "lucide-react";
+import { Home, PlusCircle, BarChart, Settings, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const BottomNavigation = () => {
@@ -25,8 +25,9 @@ const BottomNavigation = () => {
     navigate("/data");
   };
   
-  const handleProfileClick = () => {
-    navigate("/profile");
+  const handleSettingsClick = () => {
+    // Placeholder for future functionality
+    console.log("Settings functionality coming soon");
   };
   
   return (
@@ -74,14 +75,11 @@ const BottomNavigation = () => {
         </button>
         
         <button 
-          className={cn(
-            "flex flex-col items-center justify-center h-full w-16 transition-colors",
-            isActive("/profile") ? "text-primary" : "text-muted-foreground"
-          )}
-          onClick={handleProfileClick}
+          className="flex flex-col items-center justify-center h-full w-16 text-muted-foreground"
+          onClick={handleSettingsClick}
         >
-          <User className="h-5 w-5 mb-1" />
-          <span className="text-xs">Profile</span>
+          <Settings className="h-5 w-5 mb-1" />
+          <span className="text-xs">Settings</span>
         </button>
       </div>
     </div>
