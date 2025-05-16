@@ -2,8 +2,9 @@
 import React from "react";
 import { WeeklyStat } from "@/lib/profileData";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ResponsiveContainer, BarChart, Bar, XAxis, Tooltip } from "recharts";
+import { ResponsiveContainer, BarChart, Bar, XAxis, Tooltip, TooltipProps } from "recharts";
 import { format } from "date-fns";
+import { NameType, ValueType } from "recharts/types/component/DefaultTooltipContent";
 
 interface ActivityChartProps {
   weeklyStats: WeeklyStat[];
@@ -27,10 +28,10 @@ const ActivityChart: React.FC<ActivityChartProps> = ({ weeklyStats }) => {
     fullData: week, // Store full data for tooltip
   }));
 
-  // Custom tooltip component
-  const CustomTooltip = ({ active, payload }: any) => {
+  // Custom tooltip component with proper TypeScript typing
+  const CustomTooltip = ({ active, payload }: TooltipProps<ValueType, NameType>) => {
     if (active && payload && payload.length) {
-      const data = payload[0].payload.fullData;
+      const data = payload[0].payload.fullData as WeeklyStat;
       
       const categoryItems = Object.entries(data.categories)
         .map(([category, count]) => (
